@@ -1,0 +1,80 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
+
+class Partner extends Authenticatable
+{
+    use HasFactory, Notifiable;
+
+    protected $table = 'partners';
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'social_contacts',
+        'status',
+        'balance',
+        'total_earned',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'social_contacts' => 'array',
+            'balance' => 'decimal:2',
+            'total_earned' => 'decimal:2',
+            'password' => 'hashed',
+        ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Partner $partner) {
+            if (! $partner->id) {
+                $partner->id = (string) Str::uuid();
+            }
+        });
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    public function promoCodes(): HasMany
+    {
+        return $this->hasMany(PromoCode::class, 'partner_id', 'id');
+    }
+
+    public function withdrawals(): HasMany
+    {
+        return $this->hasMany(Withdrawal::class, 'partner_id', 'id');
+    }
+
+    public function authSessions(): MorphMany
+    {
+        return $this->morphMany(AuthSession::class, 'authenticatable');
+    }
+
+    public function authActivityLogs(): MorphMany
+    {
+        return $this->morphMany(AuthActivityLog::class, 'authenticatable');
+    }
+}

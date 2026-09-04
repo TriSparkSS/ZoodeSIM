@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZoodeSIM — Партнёрская программа</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #07091A;
+  --card: #0F1230;
+  --card2: #131638;
+  --cyan: #00D4FF;
+  --purple: #7B2FFF;
+  --green: #00E5A0;
+  --red: #FF6B6B;
+  --yellow: #FFB800;
+  --text: #E8EAFF;
+  --muted: #6B7099;
+  --border: rgba(0,212,255,0.12);
+}
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+/* TABS */
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); background: var(--card); padding: 0 32px; }
+.tab { padding: 16px 28px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--muted); border-bottom: 3px solid transparent; transition: all 0.2s; }
+.tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+.tab:hover { color: var(--text); }
+
+.page { display: none; }
+.page.active { display: block; }
+
+/* ===== BLOGGER FORM PAGE ===== */
+.form-hero {
+  background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(123,47,255,0.08));
+  border-bottom: 1px solid var(--border);
+  padding: 60px 32px 50px;
+  text-align: center;
+}
+.form-hero h1 { font-size: 36px; font-weight: 900; margin-bottom: 12px; }
+.form-hero h1 span { background: linear-gradient(135deg, var(--cyan), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.form-hero p { color: var(--muted); font-size: 16px; max-width: 500px; margin: 0 auto 32px; }
+
+.benefits { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+.benefit { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 24px; text-align: center; min-width: 140px; }
+.benefit-val { font-size: 24px; font-weight: 800; color: var(--cyan); }
+.benefit-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+.form-container { max-width: 640px; margin: 40px auto; padding: 0 24px 60px; }
+
+.form-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 36px; }
+.form-card h2 { font-size: 20px; font-weight: 700; margin-bottom: 28px; }
+
+.form-group { margin-bottom: 20px; }
+.form-label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 8px; letter-spacing: 0.3px; }
+.form-label span { color: var(--cyan); }
+
+.form-input {
+  width: 100%; background: var(--card2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 13px 16px; color: var(--text); font-size: 14px;
+  transition: border-color 0.2s; outline: none;
+}
+.form-input:focus { border-color: var(--cyan); }
+.form-input::placeholder { color: var(--muted); }
+
+.input-with-icon { position: relative; }
+.input-with-icon .icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; }
+.input-with-icon .form-input { padding-left: 42px; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.platform-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.platform-btn {
+  background: var(--card2); border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px 8px; text-align: center; cursor: pointer; transition: all 0.2s; font-size: 12px; color: var(--muted);
+}
+.platform-btn .picon { font-size: 22px; display: block; margin-bottom: 4px; }
+.platform-btn.selected { border-color: var(--cyan); color: var(--cyan); background: rgba(0,212,255,0.08); }
+.platform-btn:hover { border-color: rgba(0,212,255,0.4); color: var(--text); }
+
+.followers-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.followers-btn {
+  background: var(--card2); border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s; font-size: 13px; color: var(--muted);
+}
+.followers-btn.selected { border-color: var(--purple); color: var(--purple); background: rgba(123,47,255,0.08); }
+.followers-btn:hover { border-color: rgba(123,47,255,0.3); color: var(--text); }
+
+.select-input {
+  width: 100%; background: var(--card2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 13px 16px; color: var(--text); font-size: 14px;
+  outline: none; cursor: pointer; appearance: none;
+}
+.select-input:focus { border-color: var(--cyan); }
+
+.submit-btn {
+  width: 100%; margin-top: 28px;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  border: none; border-radius: 12px; padding: 16px;
+  color: white; font-weight: 800; font-size: 16px; cursor: pointer; transition: opacity 0.2s;
+}
+.submit-btn:hover { opacity: 0.88; }
+
+.form-note { text-align: center; font-size: 12px; color: var(--muted); margin-top: 16px; }
+
+/* SUCCESS STATE */
+.success-screen { display: none; text-align: center; padding: 60px 20px; }
+.success-screen.show { display: block; }
+.success-icon { font-size: 64px; margin-bottom: 20px; }
+.success-screen h2 { font-size: 28px; font-weight: 800; margin-bottom: 12px; }
+.success-screen p { color: var(--muted); font-size: 15px; }
+
+/* ===== ADMIN PAGE ===== */
+.admin-layout { display: flex; min-height: calc(100vh - 53px); }
+
+.admin-sidebar {
+  width: 220px; background: var(--card); border-right: 1px solid var(--border);
+  padding: 24px 0; flex-shrink: 0;
+}
+.admin-nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 11px 20px;
+  color: var(--muted); cursor: pointer; font-size: 13px; transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+.admin-nav-item.active { color: var(--cyan); background: rgba(0,212,255,0.07); border-left-color: var(--cyan); }
+.admin-nav-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+
+.admin-main { flex: 1; padding: 28px; overflow-y: auto; }
+
+.admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.admin-title { font-size: 22px; font-weight: 700; }
+
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+.mini-stat { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+.mini-stat-val { font-size: 26px; font-weight: 800; }
+.mini-stat-label { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.mini-stat-val.cyan { color: var(--cyan); }
+.mini-stat-val.yellow { color: var(--yellow); }
+.mini-stat-val.green { color: var(--green); }
+.mini-stat-val.red { color: var(--red); }
+
+/* APPLICATIONS TABLE */
+.table-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+.table-top { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border); }
+.table-top-title { font-size: 16px; font-weight: 700; }
+
+.filter-tabs { display: flex; gap: 6px; }
+.filter-tab {
+  padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; border: 1px solid var(--border); color: var(--muted);
+}
+.filter-tab.active { background: rgba(0,212,255,0.1); border-color: var(--cyan); color: var(--cyan); }
+.filter-tab:hover { color: var(--text); }
+
+table { width: 100%; border-collapse: collapse; }
+thead th { text-align: left; font-size: 11px; color: var(--muted); letter-spacing: 0.5px; padding: 14px 20px; border-bottom: 1px solid var(--border); }
+tbody td { padding: 14px 20px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: rgba(255,255,255,0.02); }
+
+.applicant { display: flex; align-items: center; gap: 12px; }
+.applicant-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: white; flex-shrink: 0; }
+.applicant-name { font-weight: 600; font-size: 13px; }
+.applicant-contact { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+.platform-tag { display: inline-flex; align-items: center; gap: 4px; background: var(--card2); border-radius: 6px; padding: 4px 8px; font-size: 11px; margin: 2px; }
+
+.status-badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.status-pending { background: rgba(255,184,0,0.12); color: var(--yellow); }
+.status-approved { background: rgba(0,229,160,0.12); color: var(--green); }
+.status-rejected { background: rgba(255,107,107,0.12); color: var(--red); }
+
+.action-btns { display: flex; gap: 8px; }
+.btn-approve {
+  background: rgba(0,229,160,0.1); border: 1px solid rgba(0,229,160,0.3);
+  color: var(--green); border-radius: 8px; padding: 7px 14px; font-size: 12px;
+  font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.btn-approve:hover { background: rgba(0,229,160,0.2); }
+.btn-reject {
+  background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3);
+  color: var(--red); border-radius: 8px; padding: 7px 14px; font-size: 12px;
+  font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.btn-reject:hover { background: rgba(255,107,107,0.2); }
+.btn-view {
+  background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.2);
+  color: var(--cyan); border-radius: 8px; padding: 7px 14px; font-size: 12px;
+  font-weight: 700; cursor: pointer; transition: all 0.2s;
+}
+.btn-view:hover { background: rgba(0,212,255,0.2); }
+
+/* MODAL */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100;
+  display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+  padding: 32px; max-width: 500px; width: 100%;
+}
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.modal-title { font-size: 18px; font-weight: 700; }
+.modal-close { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; }
+.modal-close:hover { color: var(--text); }
+.modal-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.modal-row:last-of-type { border-bottom: none; }
+.modal-row-label { color: var(--muted); }
+.modal-row-val { font-weight: 600; text-align: right; }
+.modal-actions { display: flex; gap: 12px; margin-top: 24px; }
+.modal-actions .btn-approve, .modal-actions .btn-reject { flex: 1; padding: 12px; font-size: 14px; text-align: center; }
+
+/* PROMO ASSIGN */
+.promo-assign { background: var(--card2); border-radius: 12px; padding: 16px; margin-top: 16px; }
+.promo-assign label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 8px; }
+.promo-input-row { display: flex; gap: 10px; }
+.promo-input-row input {
+  flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 14px; color: var(--text); font-size: 14px; font-weight: 700; letter-spacing: 2px; outline: none;
+}
+.promo-input-row input:focus { border-color: var(--cyan); }
+.btn-gen { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--cyan); font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.btn-gen:hover { border-color: var(--cyan); }
+
+/* TOAST */
+.toast { position: fixed; bottom: 30px; right: 30px; padding: 14px 22px; border-radius: 12px; font-weight: 700; font-size: 14px; opacity: 0; transform: translateY(10px); transition: all 0.3s; z-index: 200; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background: var(--green); color: #07091A; }
+.toast.error { background: var(--red); color: white; }
+
+@media (max-width: 768px) {
+  .form-row { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .admin-sidebar { display: none; }
+  .platform-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('blogger')">📱 Форма для блогеров</div>
+  <div class="tab" onclick="switchTab('admin')">🛡️ Панель администратора</div>
+</div>
+
+<!-- ===== BLOGGER FORM PAGE ===== -->
+<div class="page active" id="page-blogger">
+  <div class="form-hero">
+    <h1>Стань партнёром <span>ZoodeSIM</span></h1>
+    <p>Продвигай eSIM и зарабатывай с каждого подписчика который зарегистрируется по твоему промокоду</p>
+    <div class="benefits">
+      <div class="benefit"><div class="benefit-val">$1.50</div><div class="benefit-label">за регистрацию</div></div>
+      <div class="benefit"><div class="benefit-val">10%</div><div class="benefit-label">с каждой покупки</div></div>
+      <div class="benefit"><div class="benefit-val">200 МБ</div><div class="benefit-label">бонус твоим подписчикам</div></div>
+      <div class="benefit"><div class="benefit-val">$0</div><div class="benefit-label">бесплатно участвовать</div></div>
+    </div>
+  </div>
+
+  <div class="form-container">
+    <div class="form-card" id="applicationForm">
+      <h2>Заявка на партнёрство</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Имя <span>*</span></label>
+          <input type="text" class="form-input" placeholder="Sardor" id="f-name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Фамилия</label>
+          <input type="text" class="form-input" placeholder="Rahimov" id="f-lastname">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email <span>*</span></label>
+        <div class="input-with-icon">
+          <span class="icon">✉️</span>
+          <input type="email" class="form-input" placeholder="sardor@gmail.com" id="f-email">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Телефон / WhatsApp <span>*</span></label>
+        <div class="input-with-icon">
+          <span class="icon">📞</span>
+          <input type="text" class="form-input" placeholder="+992 XX XXX XXXX" id="f-phone">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Ваши платформы <span>*</span> (выберите все где есть аудитория)</label>
+        <div class="platform-grid">
+          <div class="platform-btn" onclick="togglePlatform(this, 'instagram')"><span class="picon">📸</span>Instagram</div>
+          <div class="platform-btn" onclick="togglePlatform(this, 'telegram')"><span class="picon">✈️</span>Telegram</div>
+          <div class="platform-btn" onclick="togglePlatform(this, 'tiktok')"><span class="picon">🎵</span>TikTok</div>
+          <div class="platform-btn" onclick="togglePlatform(this, 'youtube')"><span class="picon">▶️</span>YouTube</div>
+        </div>
+      </div>
+
+      <div class="form-group" id="instagram-field" style="display:none">
+        <label class="form-label">Instagram — ссылка на профиль</label>
+        <div class="input-with-icon">
+          <span class="icon">📸</span>
+          <input type="text" class="form-input" placeholder="https://instagram.com/username" id="f-instagram">
+        </div>
+      </div>
+
+      <div class="form-group" id="telegram-field" style="display:none">
+        <label class="form-label">Telegram — ссылка на канал/аккаунт</label>
+        <div class="input-with-icon">
+          <span class="icon">✈️</span>
+          <input type="text" class="form-input" placeholder="https://t.me/username" id="f-telegram">
+        </div>
+      </div>
+
+      <div class="form-group" id="tiktok-field" style="display:none">
+        <label class="form-label">TikTok — ссылка на профиль</label>
+        <div class="input-with-icon">
+          <span class="icon">🎵</span>
+          <input type="text" class="form-input" placeholder="https://tiktok.com/@username" id="f-tiktok">
+        </div>
+      </div>
+
+      <div class="form-group" id="youtube-field" style="display:none">
+        <label class="form-label">YouTube — ссылка на канал</label>
+        <div class="input-with-icon">
+          <span class="icon">▶️</span>
+          <input type="text" class="form-input" placeholder="https://youtube.com/@channel" id="f-youtube">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Общее количество подписчиков <span>*</span></label>
+        <div class="followers-grid">
+          <div class="followers-btn" onclick="selectFollowers(this, '1k-10k')">1K – 10K</div>
+          <div class="followers-btn" onclick="selectFollowers(this, '10k-50k')">10K – 50K</div>
+          <div class="followers-btn" onclick="selectFollowers(this, '50k-100k')">50K – 100K</div>
+          <div class="followers-btn" onclick="selectFollowers(this, '100k-500k')">100K – 500K</div>
+          <div class="followers-btn" onclick="selectFollowers(this, '500k-1m')">500K – 1M</div>
+          <div class="followers-btn" onclick="selectFollowers(this, '1m+')">1M+</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Тематика контента <span>*</span></label>
+        <select class="select-input" id="f-niche">
+          <option value="" disabled selected>Выберите тематику</option>
+          <option>Путешествия и туризм</option>
+          <option>Технологии и гаджеты</option>
+          <option>Лайфстайл</option>
+          <option>Бизнес и финансы</option>
+          <option>Образование</option>
+          <option>Развлечения</option>
+          <option>Другое</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Страна проживания</label>
+        <select class="select-input" id="f-country">
+          <option value="" disabled selected>Выберите страну</option>
+          <option>Таджикистан</option>
+          <option>Узбекистан</option>
+          <option>Казахстан</option>
+          <option>Россия</option>
+          <option>ОАЭ</option>
+          <option>Другая</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Расскажите о себе (необязательно)</label>
+        <textarea class="form-input" rows="3" placeholder="Кто вы, о чём ваш контент, почему хотите сотрудничать с ZoodeSIM..." id="f-about" style="resize:vertical"></textarea>
+      </div>
+
+      <button class="submit-btn" onclick="submitApplication()">🚀 Отправить заявку</button>
+      <p class="form-note">⏱ Мы рассмотрим вашу заявку в течение 24–48 часов и свяжемся с вами</p>
+    </div>
+
+    <div class="success-screen" id="successScreen">
+      <div class="success-icon">🎉</div>
+      <h2>Заявка отправлена!</h2>
+      <p>Мы получили вашу заявку и рассмотрим её в течение 24–48 часов.<br>Результат придёт на ваш email и Telegram.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ADMIN PAGE ===== -->
+<div class="page" id="page-admin">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-nav-item active">📋 Заявки</div>
+      <div class="admin-nav-item">👥 Партнёры</div>
+      <div class="admin-nav-item">🎟️ Промокоды</div>
+      <div class="admin-nav-item">💰 Выплаты</div>
+      <div class="admin-nav-item">📊 Статистика</div>
+      <div class="admin-nav-item">⚙️ Настройки</div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-header">
+        <div class="admin-title">Заявки блогеров</div>
+      </div>
+
+      <div class="stats-row">
+        <div class="mini-stat"><div class="mini-stat-val yellow">5</div><div class="mini-stat-label">Ожидают проверки</div></div>
+        <div class="mini-stat"><div class="mini-stat-val green">24</div><div class="mini-stat-label">Одобрено</div></div>
+        <div class="mini-stat"><div class="mini-stat-val red">3</div><div class="mini-stat-label">Отклонено</div></div>
+        <div class="mini-stat"><div class="mini-stat-val cyan">32</div><div class="mini-stat-label">Всего заявок</div></div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-top">
+          <div class="table-top-title">Список заявок</div>
+          <div class="filter-tabs">
+            <div class="filter-tab active" onclick="filterApps(this,'all')">Все</div>
+            <div class="filter-tab" onclick="filterApps(this,'pending')">Ожидают</div>
+            <div class="filter-tab" onclick="filterApps(this,'approved')">Одобрены</div>
+            <div class="filter-tab" onclick="filterApps(this,'rejected')">Отклонены</div>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>БЛОГЕР</th>
+              <th>ПЛАТФОРМЫ</th>
+              <th>ПОДПИСЧИКИ</th>
+              <th>ТЕМАТИКА</th>
+              <th>СТАТУС</th>
+              <th>ДЕЙСТВИЯ</th>
+            </tr>
+          </thead>
+          <tbody id="applicationsTable">
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Заявка блогера</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modalContent"></div>
+    <div class="promo-assign" id="promoAssign" style="display:none">
+      <label>Назначить промокод партнёру:</label>
+      <div class="promo-input-row">
+        <input type="text" id="promoInput" placeholder="SARDOR10">
+        <button class="btn-gen" onclick="generatePromo()">⚡ Сгенерировать</button>
+      </div>
+    </div>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// DATA
+const applications = [
+  { id:1, name:'Sardor Rahimov', email:'sardor@gmail.com', phone:'+992901234567', platforms:['instagram','telegram'], instagram:'instagram.com/sardor_travel', telegram:'t.me/sardor_tz', followers:'50k-100k', niche:'Путешествия и туризм', country:'Таджикистан', about:'Блогер о путешествиях, 7 лет опыта', status:'pending', date:'12 июл 2026', avatarColor:'linear-gradient(135deg,#00D4FF,#7B2FFF)' },
+  { id:2, name:'Malika Tosheva', email:'malika@mail.ru', phone:'+998901234567', platforms:['tiktok','instagram'], tiktok:'tiktok.com/@malika', instagram:'instagram.com/malika_uz', followers:'100k-500k', niche:'Лайфстайл', country:'Узбекистан', about:'TikTok блогер с активной аудиторией', status:'pending', date:'11 июл 2026', avatarColor:'linear-gradient(135deg,#00E5A0,#00D4FF)' },
+  { id:3, name:'Jahon Umarov', email:'jahon@gmail.com', phone:'+992771234567', platforms:['youtube','telegram'], youtube:'youtube.com/@jahon', telegram:'t.me/jahon_tech', followers:'10k-50k', niche:'Технологии и гаджеты', country:'Таджикистан', about:'Tech обзоры на таджикском', status:'pending', date:'10 июл 2026', avatarColor:'linear-gradient(135deg,#7B2FFF,#FF6B6B)' },
+  { id:4, name:'Nilufar Saidova', email:'nilufar@gmail.com', phone:'+992881234567', platforms:['instagram'], instagram:'instagram.com/nilufar_life', followers:'1k-10k', niche:'Лайфстайл', country:'Таджикистан', about:'', status:'approved', date:'9 июл 2026', avatarColor:'linear-gradient(135deg,#FFB800,#FF6B6B)', promo:'NILUFAR10' },
+  { id:5, name:'Davlat Nazarov', email:'davlat@mail.ru', phone:'+992901112233', platforms:['telegram'], telegram:'t.me/davlat_news', followers:'50k-100k', niche:'Образование', country:'Таджикистан', about:'Образовательный канал', status:'approved', date:'8 июл 2026', avatarColor:'linear-gradient(135deg,#00D4FF,#00E5A0)', promo:'DAVLAT20' },
+  { id:6, name:'Farrukh Aliev', email:'farrukh@gmail.com', phone:'+998901112233', platforms:['tiktok'], tiktok:'tiktok.com/@farrukh', followers:'1k-10k', niche:'Развлечения', country:'Узбекистан', about:'', status:'rejected', date:'7 июл 2026', avatarColor:'linear-gradient(135deg,#FF6B6B,#7B2FFF)' },
+  { id:7, name:'Zulfiya Karimova', email:'zulfiya@gmail.com', phone:'+992901234000', platforms:['instagram','tiktok'], instagram:'instagram.com/zulfiya', tiktok:'tiktok.com/@zulfiya_k', followers:'10k-50k', niche:'Путешествия и туризм', country:'Таджикистан', about:'Путешествую по миру и снимаю', status:'pending', date:'12 июл 2026', avatarColor:'linear-gradient(135deg,#00E5A0,#7B2FFF)' },
+  { id:8, name:'Bahodir Tursunov', email:'bahodir@mail.ru', phone:'+998991234567', platforms:['youtube'], youtube:'youtube.com/@bahodir', followers:'500k-1m', niche:'Технологии и гаджеты', country:'Узбекистан', about:'Крупный YouTube канал', status:'pending', date:'11 июл 2026', avatarColor:'linear-gradient(135deg,#00D4FF,#FFB800)' },
+];
+
+const platformIcons = { instagram:'📸', telegram:'✈️', tiktok:'🎵', youtube:'▶️' };
+const platformNames = { instagram:'Instagram', telegram:'Telegram', tiktok:'TikTok', youtube:'YouTube' };
+const followersLabel = { '1k-10k':'1K–10K', '10k-50k':'10K–50K', '50k-100k':'50K–100K', '100k-500k':'100K–500K', '500k-1m':'500K–1M', '1m+':'1M+' };
+
+let currentFilter = 'all';
+let currentApp = null;
+
+function renderTable(filter) {
+  const tbody = document.getElementById('applicationsTable');
+  const filtered = filter === 'all' ? applications : applications.filter(a => a.status === filter);
+  tbody.innerHTML = filtered.map(app => `
+    <tr data-status="${app.status}">
+      <td>
+        <div class="applicant">
+          <div class="applicant-avatar" style="background:${app.avatarColor}">${app.name[0]}</div>
+          <div>
+            <div class="applicant-name">${app.name}</div>
+            <div class="applicant-contact">${app.email}</div>
+          </div>
+        </div>
+      </td>
+      <td>${app.platforms.map(p => `<span class="platform-tag">${platformIcons[p]} ${platformNames[p]}</span>`).join('')}</td>
+      <td>${followersLabel[app.followers] || app.followers}</td>
+      <td>${app.niche}</td>
+      <td><span class="status-badge status-${app.status}">${app.status === 'pending' ? '⏳ Ожидает' : app.status === 'approved' ? '✅ Одобрен' : '❌ Отклонён'}</span></td>
+      <td>
+        <div class="action-btns">
+          <button class="btn-view" onclick="viewApp(${app.id})">👁 Просмотр</button>
+          ${app.status === 'pending' ? `
+            <button class="btn-approve" onclick="approveApp(${app.id})">✅ Одобрить</button>
+            <button class="btn-reject" onclick="rejectApp(${app.id})">❌ Отклонить</button>
+          ` : ''}
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterApps(el, filter) {
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentFilter = filter;
+  renderTable(filter);
+}
+
+function viewApp(id) {
+  currentApp = applications.find(a => a.id === id);
+  const a = currentApp;
+  const links = a.platforms.map(p => {
+    const url = a[p] || '';
+    return `<a href="https://${url}" target="_blank" style="color:var(--cyan)">${platformIcons[p]} ${url}</a>`;
+  }).join('<br>');
+
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-row"><span class="modal-row-label">Имя</span><span class="modal-row-val">${a.name}</span></div>
+    <div class="modal-row"><span class="modal-row-label">Email</span><span class="modal-row-val">${a.email}</span></div>
+    <div class="modal-row"><span class="modal-row-label">Телефон</span><span class="modal-row-val">${a.phone}</span></div>
+    <div class="modal-row"><span class="modal-row-label">Платформы</span><span class="modal-row-val">${links}</span></div>
+    <div class="modal-row"><span class="modal-row-label">Подписчики</span><span class="modal-row-val">${followersLabel[a.followers]}</span></div>
+    <div class="modal-row"><span class="modal-row-label">Тематика</span><span class="modal-row-val">${a.niche}</span></div>
+    <div class="modal-row"><span class="modal-row-label">Страна</span><span class="modal-row-val">${a.country}</span></div>
+    ${a.about ? `<div class="modal-row"><span class="modal-row-label">О себе</span><span class="modal-row-val" style="max-width:260px">${a.about}</span></div>` : ''}
+    ${a.promo ? `<div class="modal-row"><span class="modal-row-label">Промокод</span><span class="modal-row-val" style="color:var(--cyan);letter-spacing:2px">${a.promo}</span></div>` : ''}
+    <div class="modal-row"><span class="modal-row-label">Дата заявки</span><span class="modal-row-val">${a.date}</span></div>
+    <div class="modal-row"><span class="modal-row-label">Статус</span><span class="modal-row-val"><span class="status-badge status-${a.status}">${a.status === 'pending' ? '⏳ Ожидает' : a.status === 'approved' ? '✅ Одобрен' : '❌ Отклонён'}</span></span></div>
+  `;
+
+  const promoAssign = document.getElementById('promoAssign');
+  const modalActions = document.getElementById('modalActions');
+
+  if (a.status === 'pending') {
+    promoAssign.style.display = 'block';
+    const firstName = a.name.split(' ')[0].toUpperCase();
+    document.getElementById('promoInput').value = firstName + '10';
+    modalActions.innerHTML = `
+      <button class="btn-approve" style="flex:1;padding:12px;font-size:14px" onclick="approveApp(${a.id}, true)">✅ Одобрить и выдать промокод</button>
+      <button class="btn-reject" style="flex:1;padding:12px;font-size:14px" onclick="rejectApp(${a.id}, true)">❌ Отклонить</button>
+    `;
+  } else {
+    promoAssign.style.display = 'none';
+    modalActions.innerHTML = `<button class="btn-view" style="flex:1;padding:12px;font-size:14px" onclick="closeModal()">Закрыть</button>`;
+  }
+
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('show'); }
+
+function generatePromo() {
+  if (!currentApp) return;
+  const firstName = currentApp.name.split(' ')[0].toUpperCase();
+  const rand = Math.floor(Math.random() * 90) + 10;
+  document.getElementById('promoInput').value = firstName + rand;
+}
+
+function approveApp(id, fromModal = false) {
+  const app = applications.find(a => a.id === id);
+  const promo = fromModal ? document.getElementById('promoInput').value.toUpperCase() : app.name.split(' ')[0].toUpperCase() + '10';
+  if (!promo) { showToast('Введите промокод!', 'error'); return; }
+  app.status = 'approved';
+  app.promo = promo;
+  if (fromModal) closeModal();
+  renderTable(currentFilter);
+  showToast(`✅ ${app.name} одобрен! Промокод: ${promo}`, 'success');
+}
+
+function rejectApp(id, fromModal = false) {
+  const app = applications.find(a => a.id === id);
+  app.status = 'rejected';
+  if (fromModal) closeModal();
+  renderTable(currentFilter);
+  showToast(`❌ Заявка ${app.name} отклонена`, 'error');
+}
+
+// FORM
+let selectedPlatforms = [];
+let selectedFollowers = '';
+
+function togglePlatform(el, platform) {
+  el.classList.toggle('selected');
+  const field = document.getElementById(platform + '-field');
+  if (el.classList.contains('selected')) {
+    selectedPlatforms.push(platform);
+    if (field) field.style.display = 'block';
+  } else {
+    selectedPlatforms = selectedPlatforms.filter(p => p !== platform);
+    if (field) field.style.display = 'none';
+  }
+}
+
+function selectFollowers(el, val) {
+  document.querySelectorAll('.followers-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedFollowers = val;
+}
+
+function submitApplication() {
+  const name = document.getElementById('f-name').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  if (!name || !email || !phone) { showToast('Заполните обязательные поля!', 'error'); return; }
+  if (selectedPlatforms.length === 0) { showToast('Выберите хотя бы одну платформу!', 'error'); return; }
+  if (!selectedFollowers) { showToast('Укажите количество подписчиков!', 'error'); return; }
+
+  // Add to admin
+  const newApp = {
+    id: applications.length + 1,
+    name, email, phone,
+    platforms: selectedPlatforms,
+    followers: selectedFollowers,
+    niche: document.getElementById('f-niche').value || 'Другое',
+    country: document.getElementById('f-country').value || 'Другая',
+    about: document.getElementById('f-about').value,
+    status: 'pending',
+    date: '12 июл 2026',
+    avatarColor: 'linear-gradient(135deg,#00D4FF,#7B2FFF)'
+  };
+  selectedPlatforms.forEach(p => { newApp[p] = document.getElementById('f-' + p)?.value || ''; });
+  applications.unshift(newApp);
+
+  document.getElementById('applicationForm').style.display = 'none';
+  document.getElementById('successScreen').classList.add('show');
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('page-' + tab).classList.add('active');
+  if (tab === 'admin') renderTable('all');
+}
+
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+renderTable('all');
+</script>
+</body>
+</html>

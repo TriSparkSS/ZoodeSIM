@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Livewire\Concerns;
+
+trait WithAdminNavigation
+{
+    protected function adminNavItems(): array
+    {
+        return [
+            ['label' => __('admin.nav.applications'), 'href' => route('admin.applications'), 'icon' => '📋', 'active' => request()->routeIs('admin.applications')],
+            ['label' => __('admin.nav.partners'), 'href' => route('admin.partners'), 'icon' => '👥', 'active' => request()->routeIs('admin.partners')],
+            ['label' => __('admin.nav.promo_codes'), 'href' => route('admin.promo-codes'), 'icon' => '🎟️', 'active' => request()->routeIs('admin.promo-codes')],
+            ['label' => __('admin.nav.payouts'), 'href' => route('admin.payouts'), 'icon' => '💰', 'active' => request()->routeIs('admin.payouts')],
+            ['label' => __('admin.nav.statistics'), 'href' => route('admin.statistics'), 'icon' => '📊', 'active' => request()->routeIs('admin.statistics')],
+            ['label' => __('admin.nav.settings'), 'href' => route('admin.settings'), 'icon' => '⚙️', 'active' => request()->routeIs('admin.settings')],
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    protected function adminBreadcrumbs(string $current): array
+    {
+        return [
+            ['label' => __('ui.admin_panel'), 'href' => route('admin.applications')],
+            ['label' => $current, 'active' => true],
+        ];
+    }
+}
+
