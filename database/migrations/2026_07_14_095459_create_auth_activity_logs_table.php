@@ -10,7 +10,8 @@ return new class extends Migration
     {
         Schema::create('auth_activity_logs', function (Blueprint $table) {
             $table->id();
-            $table->nullableMorphs('authenticatable');
+            // UUID-compatible morphs (partners use UUID PKs; admin IDs cast to string).
+            $table->nullableUuidMorphs('authenticatable');
             $table->string('guard', 50);
             $table->string('event', 50);
             $table->string('ip_address', 45)->nullable();
