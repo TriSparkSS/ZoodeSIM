@@ -124,6 +124,23 @@ class AuthSessionManager
         }
     }
 
+    /**
+     * Revoke every active tracked session for the user (e.g. admin reset partner password).
+     */
+    public function terminateAll(Authenticatable $user, string $guard): void
+    {
+        $sessions = AuthSession::query()
+            ->whereMorphedTo('authenticatable', $user)
+            ->active()
+            ->get();
+
+        foreach ($sessions as $session) {
+            $this->terminate($session, $user, $guard);
+        }
+
+        $this->cycleRememberToken($user);
+    }
+
     public function revokeCurrent(Authenticatable $user): void
     {
         AuthSession::query()

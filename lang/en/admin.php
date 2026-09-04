@@ -48,6 +48,16 @@ return array (
     'table_promo' => 'Promo Code',
     'search_placeholder' => 'Search partners...',
     'updated_toast' => 'Partner updated',
+    'password_updated_toast' => 'Partner updated and password changed',
+    'password_section' => 'Change password',
+    'password_hint' => 'Leave blank to keep the current password. Minimum 8 characters.',
+    'new_password' => 'New password',
+    'confirm_password' => 'Confirm password',
+    'revoke_sessions' => 'Sign the partner out of all active sessions after changing the password',
+    'validation' => [
+      'password_min' => 'Password must be at least 8 characters',
+      'password_confirmed' => 'Password confirmation does not match',
+    ],
   ),
   'promo_codes' => 
   array (

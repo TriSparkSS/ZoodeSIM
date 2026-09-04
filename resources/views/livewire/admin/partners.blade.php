@@ -184,6 +184,42 @@
                 </x-ui.form-group>
             </div>
 
+            <div class="space-y-4 rounded-xl border border-surface-border p-4 dark:border-brand-border/40">
+                <div>
+                    <div class="text-sm font-semibold text-surface-text dark:text-brand-text">
+                        {{ __('admin.partners.password_section') }}
+                    </div>
+                    <p class="mt-1 text-xs text-surface-muted dark:text-brand-muted">
+                        {{ __('admin.partners.password_hint') }}
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <x-ui.form-group :label="__('admin.partners.new_password')">
+                        <x-ui.input wire:model="editPassword" type="password" autocomplete="new-password" />
+                        @error('editPassword')
+                            <p class="mt-1 text-xs text-brand-red">{{ $message }}</p>
+                        @enderror
+                    </x-ui.form-group>
+
+                    <x-ui.form-group :label="__('admin.partners.confirm_password')">
+                        <x-ui.input wire:model="editPasswordConfirmation" type="password" autocomplete="new-password" />
+                        @error('editPasswordConfirmation')
+                            <p class="mt-1 text-xs text-brand-red">{{ $message }}</p>
+                        @enderror
+                    </x-ui.form-group>
+                </div>
+
+                <label class="flex items-start gap-3 text-sm text-surface-text dark:text-brand-text">
+                    <input
+                        type="checkbox"
+                        wire:model="editRevokeSessions"
+                        class="mt-1 rounded border-surface-border text-brand-cyan focus:ring-brand-cyan dark:border-brand-border"
+                    >
+                    <span>{{ __('admin.partners.revoke_sessions') }}</span>
+                </label>
+            </div>
+
             <div class="flex items-center justify-between border-t border-surface-border pt-3 dark:border-brand-border/40">
                 <span class="text-surface-muted dark:text-brand-muted">Created at</span>
                 <span class="font-semibold text-surface-text dark:text-brand-text">{{ $editCreatedAt ?? '—' }}</span>

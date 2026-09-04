@@ -3,10 +3,10 @@
 namespace App\Livewire\Admin;
 
 use App\Livewire\Concerns\WithLocalizedTitle;
-
 use App\Livewire\Concerns\WithAdminNavigation;
 use App\Livewire\Concerns\WithToast;
 use App\Models\Partner;
+use App\Services\Partner\PartnerService;
 use Livewire\Component;
 
 class Partners extends Component
@@ -30,6 +30,9 @@ class Partners extends Component
     public string $editBalance = '0';
     public string $editTotalEarned = '0';
     public ?string $editCreatedAt = null;
+    public string $editPassword = '';
+    public string $editPasswordConfirmation = '';
+    public bool $editRevokeSessions = true;
 
     /**
      * @return array<int, array<string, mixed>>
@@ -107,6 +110,9 @@ class Partners extends Component
         $this->editBalance = (string) $partner->balance;
         $this->editTotalEarned = (string) $partner->total_earned;
         $this->editCreatedAt = $partner->created_at?->format('Y-m-d');
+        $this->editPassword = '';
+        $this->editPasswordConfirmation = '';
+        $this->editRevokeSessions = true;
 
         $this->showEditModal = true;
     }
@@ -115,15 +121,18 @@ class Partners extends Component
     {
         $this->showEditModal = false;
         $this->editingPartnerId = null;
+        $this->editPassword = '';
+        $this->editPasswordConfirmation = '';
+        $this->resetValidation();
     }
 
-    public function saveEdit(): void
+    public function saveEdit(PartnerService $partners): void
     {
         if (! $this->editingPartnerId) {
             return;
         }
 
-        $validated = $this->validate([
+        $rules = [
             'editName' => ['required', 'string', 'max:255'],
             'editEmail' => ['required', 'email', 'max:255', 'unique:partners,email,'.$this->editingPartnerId.',id'],
             'editStatus' => ['required', 'in:active,pending,blocked'],
@@ -132,7 +141,16 @@ class Partners extends Component
             'editTwitter' => ['nullable', 'string', 'max:255'],
             'editBalance' => ['required', 'numeric', 'min:0'],
             'editTotalEarned' => ['required', 'numeric', 'min:0'],
-        ]);
+            'editPassword' => ['nullable', 'string', 'min:8', 'same:editPasswordConfirmation'],
+            'editPasswordConfirmation' => ['nullable', 'string'],
+        ];
+
+        $messages = [
+            'editPassword.min' => __('admin.partners.validation.password_min'),
+            'editPassword.same' => __('admin.partners.validation.password_confirmed'),
+        ];
+
+        $this->validate($rules, $messages);
 
         $partner = Partner::query()->whereKey($this->editingPartnerId)->first();
         if (! $partner) {
@@ -152,8 +170,22 @@ class Partners extends Component
             ],
         ]);
 
+        $passwordChanged = false;
+
+        if (filled($this->editPassword)) {
+            $partners->updatePassword(
+                $partner,
+                $this->editPassword,
+                $this->editRevokeSessions,
+            );
+            $passwordChanged = true;
+        }
+
         $this->closeEdit();
-        $this->toast(__('admin.partners.updated_toast'));
+
+        $this->toast($passwordChanged
+            ? __('admin.partners.password_updated_toast')
+            : __('admin.partners.updated_toast'));
     }
 
     public function render()
