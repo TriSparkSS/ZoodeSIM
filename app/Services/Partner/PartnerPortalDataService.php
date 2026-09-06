@@ -22,6 +22,10 @@ class PartnerPortalDataService
             ->first(fn (PromoCode $promo) => $promo->isCurrentlyUsable())
             ?? $promoCodes->sortByDesc('created_at')->first();
 
+        $withdrawn = (float) $partner->withdrawals()
+            ->where('status', 'completed')
+            ->sum('amount');
+
         return [
             'registrations' => $registrations,
             'registrations_change' => '',
@@ -30,9 +34,11 @@ class PartnerPortalDataService
             'active_users' => $registrations,
             'conversion' => '—',
             'available_withdrawal' => (float) $partner->balance,
+            'withdrawn' => $withdrawn,
             'promo_code' => $activePromo?->code ?? '—',
             'promo_bonus' => $activePromo ? $activePromo->bonus_mb.' MB' : '—',
             'promo_reward' => $activePromo ? '$'.number_format((float) $activePromo->partner_reward, 2) : '—',
+            'promo_reward_raw' => $activePromo ? (float) $activePromo->partner_reward : 0,
         ];
     }
 

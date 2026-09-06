@@ -5,8 +5,8 @@
         :breadcrumbs="$breadcrumbs"
     >
         <x-slot:actions>
-            <span class="rounded-lg border border-brand-border bg-brand-card px-4 py-2 text-sm text-brand-muted dark:bg-brand-card">
-                📅 {{ now()->translatedFormat('F Y') }}
+            <span class="rounded-lg border border-surface-border bg-surface-card px-4 py-2 text-sm text-surface-muted dark:border-brand-border dark:bg-brand-card dark:text-brand-muted">
+                {{ now()->translatedFormat('F Y') }}
             </span>
         </x-slot:actions>
     </x-ui.page-header>
@@ -16,13 +16,11 @@
         <x-ui.stat-card
             :label="__('partner.dashboard.stats_registrations')"
             :value="(string) $stats['registrations']"
-            :change="'↑ '.__('partner.dashboard.this_week', ['count' => 23])"
             color="cyan"
         />
         <x-ui.stat-card
             :label="__('partner.statistics.conversion_rate')"
             :value="$stats['conversion']"
-            :change="'↑ '.__('partner.dashboard.conversion', ['rate' => $stats['conversion']])"
             color="purple"
         />
         <x-ui.stat-card
@@ -32,8 +30,8 @@
         />
         <x-ui.stat-card
             :label="__('partner.statistics.top_code')"
-            :value="$topCode['code']"
-            :change="__('partner.dashboard.table_uses').': '.$topCode['uses']"
+            :value="$topCode['code'] ?? '—'"
+            :change="$topCode ? __('partner.dashboard.table_uses').': '.$topCode['uses'] : null"
             change-type="neutral"
             color="white"
         />

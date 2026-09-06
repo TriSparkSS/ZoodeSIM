@@ -73,7 +73,8 @@ return [
 
     'promo_codes' => [
         'title' => 'Promo Codes',
-        'subtitle' => 'Manage your referral promo codes.',
+        'subtitle' => 'View promo codes assigned to you by the admin.',
+        'empty' => 'No promo codes yet. An admin will assign one to your account.',
         'create' => 'Create promo code',
         'create_modal_title' => 'Create New Promo Code',
         'code_label' => 'Promo code',
