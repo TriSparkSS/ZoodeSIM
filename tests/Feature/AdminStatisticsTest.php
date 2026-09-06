@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Models\Admin;
 use App\Models\Partner;
 use App\Models\PartnerApplication;
 use App\Models\PromoCode;
 use App\Models\PromoUsage;
+use App\Models\User;
 use App\Models\Withdrawal;
 use App\Services\Admin\AdminStatisticsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -114,9 +114,11 @@ class AdminStatisticsTest extends TestCase
             'max_usage' => null,
         ]);
 
+        $user = User::factory()->create();
+
         PromoUsage::query()->create([
             'promo_code_id' => $promo->id,
-            'user_id' => 'user-1',
+            'user_id' => $user->id,
             'partner_id' => $partner->id,
             'bonus_mb_given' => 200,
             'partner_reward' => 1.50,

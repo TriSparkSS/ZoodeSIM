@@ -1,0 +1,416 @@
+{
+  "info": {
+    "_postman_id": "b8d4f2e1-5c3a-4f9b-8d22-esim-user-api",
+    "name": "ZoodeSIM User API",
+    "description": "User registration, login, logout, and profile endpoints.\n\n**Setup**\n1. Import this collection and `User_API.postman_environment.json`.\n2. Select the **ZoodeSIM User API — Local** environment.\n3. Set `baseUrl` if needed (`http://esim.test` for Herd, or `http://localhost`).\n4. Register and Login both save `token` automatically for protected requests.\n\n**Locale**\nUse `lang` (`en`, `es`, `ru`, `fr`, `de`, `tg`) as `?lang=` or `Accept-Language`.\n\n**Envelope**\n```json\n{ \"success\": true, \"message\": \"...\", \"data\": {}, \"errors\": null }\n{ \"success\": false, \"message\": \"...\", \"data\": null, \"errors\": {} }\n```",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://esim.test"
+    },
+    {
+      "key": "lang",
+      "value": "en"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Register",
+      "item": [
+        {
+          "name": "Register without referral code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data && json.data.token) {",
+                  "    pm.environment.set('token', json.data.token);",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "}",
+                  "pm.test('Envelope includes token and bonus_mb 0', function () {",
+                  "    pm.expect(json.success).to.eql(true);",
+                  "    pm.expect(json.errors).to.eql(null);",
+                  "    pm.expect(json.data.bonus_mb).to.eql(0);",
+                  "    pm.expect(json.data.token_type).to.eql('Bearer');",
+                  "    pm.expect(json.data.token).to.be.a('string').and.not.empty;",
+                  "    pm.expect(json.data.user).to.include.keys('id', 'name', 'email', 'phone');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"{{name}}\",\n    \"email\": \"{{email}}\",\n    \"phone\": \"{{phone}}\",\n    \"password\": \"{{password}}\",\n    \"password_confirmation\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/register?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "register"],
+              "query": [
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            },
+            "description": "Creates a user with no referral. Returns Bearer token, safe user fields, and `{ bonus_mb: 0 }`. Saves `token` for Profile and Logout."
+          }
+        },
+        {
+          "name": "Register with valid referral code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data && json.data.token) {",
+                  "    pm.environment.set('token', json.data.token);",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "}",
+                  "pm.test('Returns token, user, and eligible bonus_mb', function () {",
+                  "    pm.expect(json.success).to.eql(true);",
+                  "    pm.expect(json.data.bonus_mb).to.be.a('number');",
+                  "    pm.expect(json.data.token_type).to.eql('Bearer');",
+                  "    pm.expect(json.data.token).to.be.a('string').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"{{name}}\",\n    \"email\": \"{{email}}\",\n    \"phone\": \"{{phone}}\",\n    \"password\": \"{{password}}\",\n    \"password_confirmation\": \"{{password}}\",\n    \"referral_code\": \"{{referral_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/register?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "register"],
+              "query": [
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            },
+            "description": "Set `referral_code` to an active partner promo. Returns Bearer token, user, and `{ bonus_mb }`. Use a unique email/phone each run."
+          }
+        },
+        {
+          "name": "Register — missing phone",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "pm.test('Error envelope', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.eql(false);",
+                  "    pm.expect(json.data).to.eql(null);",
+                  "    pm.expect(json.errors.phone).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"{{name}}\",\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\",\n    \"password_confirmation\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "register"]
+            },
+            "description": "Phone is required. Expect 422 with `errors.phone`."
+          }
+        },
+        {
+          "name": "Register — invalid referral code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "pm.test('Localized invalid-code message', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.eql(false);",
+                  "    pm.expect(json.data).to.eql(null);",
+                  "    pm.expect(json.errors.referral_code).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept-Language", "value": "ru" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"{{name}}\",\n    \"email\": \"new-user@example.com\",\n    \"phone\": \"+15550001111\",\n    \"password\": \"{{password}}\",\n    \"password_confirmation\": \"{{password}}\",\n    \"referral_code\": \"MISSING1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "register"]
+            },
+            "description": "Invalid / expired / inactive / exhausted codes return 422. This request uses `Accept-Language: ru`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data && json.data.token) {",
+                  "    pm.environment.set('token', json.data.token);",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "}",
+                  "pm.test('Returns token and safe user', function () {",
+                  "    pm.expect(json.success).to.eql(true);",
+                  "    pm.expect(json.data.token_type).to.eql('Bearer');",
+                  "    pm.expect(json.data.user).to.include.keys('id', 'name', 'email', 'phone', 'created_at');",
+                  "    pm.expect(json.data.user).to.not.have.property('password');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/login?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "login"],
+              "query": [
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            },
+            "description": "Saves `token` into the active environment for Profile and Logout."
+          }
+        },
+        {
+          "name": "Login — invalid credentials",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "pm.test('Error envelope', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.eql(false);",
+                  "    pm.expect(json.data).to.eql(null);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{email}}\",\n    \"password\": \"wrong-password\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "login"]
+            },
+            "description": "Expect 401. Five failed attempts for the same email/IP are then throttled with 429."
+          }
+        },
+        {
+          "name": "Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Returns authenticated user only', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.eql(true);",
+                  "    pm.expect(json.data).to.include.keys('id', 'name', 'email', 'phone', 'created_at', 'bonus_mb');",
+                  "    pm.expect(json.data).to.not.have.property('password');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/profile?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "profile"],
+              "query": [
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            },
+            "description": "Requires Bearer token from Login. Returns the authenticated user's safe fields plus `bonus_mb`."
+          }
+        },
+        {
+          "name": "Profile — unauthenticated",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "profile"]
+            },
+            "description": "No token. Expect 401."
+          }
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.environment.unset('token');",
+                  "    pm.collectionVariables.unset('token');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/logout?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "logout"],
+              "query": [
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            },
+            "description": "Revokes the current Sanctum token and clears the saved `token` variable."
+          }
+        }
+      ]
+    }
+  ]
+}

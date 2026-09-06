@@ -11,6 +11,7 @@ class PromoUsage extends Model
     protected $table = 'promo_usage';
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -47,5 +48,9 @@ class PromoUsage extends Model
     {
         return $this->belongsTo(Partner::class, 'partner_id', 'id');
     }
-}
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+}

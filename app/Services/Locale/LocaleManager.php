@@ -2,6 +2,7 @@
 
 namespace App\Services\Locale;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\App;
 
 class LocaleManager
@@ -63,8 +64,8 @@ class LocaleManager
         session(['locale' => $resolved]);
         App::setLocale($resolved);
 
-        if (class_exists(\Carbon\Carbon::class)) {
-            \Carbon\Carbon::setLocale($resolved);
+        if (class_exists(Carbon::class)) {
+            Carbon::setLocale($resolved);
         }
 
         return $resolved;
@@ -73,6 +74,24 @@ class LocaleManager
     public function applyCurrent(?string $requested = null): string
     {
         return $this->set($this->resolve($requested));
+    }
+
+    /**
+     * Apply a locale for stateless API requests without writing the session.
+     */
+    public function applyWithoutSession(?string $requested = null): string
+    {
+        $resolved = ($requested !== null && $this->isSupported($requested))
+            ? $requested
+            : ($this->isSupported($this->default()) ? $this->default() : $this->fallback());
+
+        App::setLocale($resolved);
+
+        if (class_exists(Carbon::class)) {
+            Carbon::setLocale($resolved);
+        }
+
+        return $resolved;
     }
 
     public function isRtl(?string $locale = null): bool
