@@ -5,11 +5,26 @@ namespace App\Services\Promo;
 use App\Models\Partner;
 use App\Models\PromoCode;
 use App\Models\PromoUsage;
+use App\Models\Transaction;
 use App\Models\User;
+use App\Services\Fraud\Contracts\DeviceFraudServiceInterface;
+use App\Services\Notifications\Contracts\NotificationDispatcherInterface;
+use App\Services\Promo\Contracts\PromoAuditLoggerInterface;
+use App\Services\Referral\Contracts\ReferralMilestoneServiceInterface;
+use App\Services\Wallet\Contracts\WalletLedgerServiceInterface;
+use App\Support\Money;
 use Illuminate\Validation\ValidationException;
 
 class PromoRedemptionService
 {
+    public function __construct(
+        protected WalletLedgerServiceInterface $ledger,
+        protected ReferralMilestoneServiceInterface $milestones,
+        protected DeviceFraudServiceInterface $fraud,
+        protected NotificationDispatcherInterface $notifications,
+        protected PromoAuditLoggerInterface $audit,
+    ) {}
+
     public function redeem(User $user, PromoCode $promo): PromoUsage
     {
         $locked = PromoCode::query()
@@ -52,6 +67,10 @@ class PromoRedemptionService
             ]);
         }
 
+        if (is_string($user->device_id) && $user->device_id !== '') {
+            $this->fraud->assertDeviceCanRedeemPromo($user->device_id, $user->id);
+        }
+
         $usage = PromoUsage::query()->create([
             'promo_code_id' => $locked->id,
             'user_id' => $user->id,
@@ -59,11 +78,55 @@ class PromoRedemptionService
             'bonus_mb_given' => (int) $locked->bonus_mb,
             'partner_reward' => $locked->partner_reward,
             'used_at' => now(),
+            'device_id' => $user->device_id,
+            'ip_address' => $user->registration_ip,
         ]);
 
         $locked->increment('usage_count');
-        $partner->increment('balance', (float) $locked->partner_reward);
-        $partner->increment('total_earned', (float) $locked->partner_reward);
+
+        $bonusMb = (int) $locked->bonus_mb;
+
+        if ($bonusMb > 0) {
+            $this->ledger->credit(
+                $user,
+                Money::fromDecimal((string) $bonusMb, 'MB'),
+                Transaction::CATEGORY_PROMO_BONUS,
+                'promo_usage',
+                $usage->id,
+                'Promo registration bonus',
+                promoCodeId: $locked->id,
+                meta: [
+                    'promo_code' => $locked->code,
+                    'bonus_mb' => $bonusMb,
+                    'partner_id' => $partner->id,
+                ],
+            );
+        }
+
+        $reward = Money::fromDecimal((string) $locked->partner_reward, (string) config('pricing.currency', 'USD'));
+
+        if ($reward->cents > 0) {
+            $this->ledger->credit(
+                $partner,
+                $reward,
+                Transaction::CATEGORY_PROMO_REWARD,
+                'promo_usage',
+                $usage->id,
+                'Referral registration commission',
+                countsAsEarning: true,
+                promoCodeId: $locked->id,
+                meta: [
+                    'promo_code' => $locked->code,
+                    'commission' => $reward->toDecimal(),
+                    'user_id' => $user->id,
+                    'bonus_mb' => $bonusMb,
+                ],
+            );
+        }
+
+        $this->milestones->awardIfDue($partner->fresh());
+        $this->notifications->referralRegistered($partner->fresh(), $user->fresh(), $usage);
+        $this->audit->redeemed($locked, $user, $usage);
 
         return $usage;
     }

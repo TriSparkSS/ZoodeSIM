@@ -22,6 +22,8 @@ class PromoUsage extends Model
         'bonus_mb_given',
         'partner_reward',
         'used_at',
+        'device_id',
+        'ip_address',
     ];
 
     protected $casts = [

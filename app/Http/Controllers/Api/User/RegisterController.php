@@ -23,6 +23,8 @@ class RegisterController extends Controller
             phone: $request->validated('phone'),
             password: $request->validated('password'),
             referralCode: $request->validated('referral_code'),
+            deviceId: $request->validated('device_id'),
+            ip: $request->ip(),
         );
 
         return ApiResponse::success(__('api.user.registered'), [

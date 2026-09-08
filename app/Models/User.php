@@ -6,13 +6,15 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'phone', 'password'])]
+#[Fillable(['name', 'email', 'phone', 'password', 'balance', 'bonus_mb', 'device_id', 'registration_ip'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -31,6 +33,9 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'resellportal_client_id' => 'integer',
+            'balance' => 'decimal:2',
+            'bonus_mb' => 'integer',
         ];
     }
 
@@ -46,5 +51,15 @@ class User extends Authenticatable
     public function promoUsage(): HasOne
     {
         return $this->hasOne(PromoUsage::class, 'user_id', 'id');
+    }
+
+    public function esimOrders(): HasMany
+    {
+        return $this->hasMany(EsimOrder::class);
+    }
+
+    public function transactions(): MorphMany
+    {
+        return $this->morphMany(Transaction::class, 'transactable');
     }
 }

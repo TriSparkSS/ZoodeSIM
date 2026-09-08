@@ -8,15 +8,15 @@
 
             <div class="flex flex-wrap justify-center gap-4">
                 <div class="light-card min-w-[140px] px-6 py-4 text-center">
-                    <div class="text-2xl font-extrabold text-brand-cyan">$1.50</div>
+                    <div class="text-2xl font-extrabold text-brand-cyan">{{ $registrationReward }}</div>
                     <div class="mt-1 text-xs text-brand-muted">{{ __('apply.hero.benefit_registration') }}</div>
                 </div>
                 <div class="light-card min-w-[140px] px-6 py-4 text-center">
-                    <div class="text-2xl font-extrabold text-brand-cyan">10%</div>
+                    <div class="text-2xl font-extrabold text-brand-cyan">{{ $purchaseCommission }}</div>
                     <div class="mt-1 text-xs text-brand-muted">{{ __('apply.hero.benefit_purchase') }}</div>
                 </div>
                 <div class="light-card min-w-[140px] px-6 py-4 text-center">
-                    <div class="text-2xl font-extrabold text-brand-cyan">200 MB</div>
+                    <div class="text-2xl font-extrabold text-brand-cyan">{{ $userBonus }}</div>
                     <div class="mt-1 text-xs text-brand-muted">{{ __('apply.hero.benefit_bonus') }}</div>
                 </div>
                 <div class="light-card min-w-[140px] px-6 py-4 text-center">

@@ -14,34 +14,29 @@ use Livewire\Component;
 class Registrations extends Component
 {
     use ResolvesAuthenticatedPartner;
-    use WithPartnerNavigation;
     use WithLocalizedTitle;
+    use WithPartnerNavigation;
     use WithToast;
 
     public string $search = '';
 
+    public string $dateFrom = '';
+
+    public string $dateTo = '';
+
     public function render(PartnerPortalDataService $portal)
     {
         $partner = $this->partner();
-        $allRegistrations = $portal->registrations($partner);
-        $stats = $portal->stats($partner);
-
-        $registrations = collect($allRegistrations)
-            ->when($this->search !== '', function ($collection) {
-                $query = strtolower($this->search);
-
-                return $collection->filter(function (array $registration) use ($query) {
-                    return str_contains(strtolower($registration['name']), $query)
-                        || str_contains(strtolower($registration['code']), $query);
-                });
-            })
-            ->values()
-            ->all();
 
         return $this->withLocalizedTitle(view('livewire.partner.registrations', [
-            'registrations' => $registrations,
-            'stats' => $stats,
-            'totalCount' => count($allRegistrations),
+            'registrations' => $portal->registrations(
+                $partner,
+                $this->search,
+                $this->dateFrom !== '' ? $this->dateFrom : null,
+                $this->dateTo !== '' ? $this->dateTo : null,
+            ),
+            'totalCount' => (int) $portal->stats($partner)['registrations'],
+            'thisMonthCount' => $portal->registrationsThisMonth($partner),
             'breadcrumbs' => $this->partnerBreadcrumbs(__('partner.nav.registrations')),
         ])->layout('layouts.partner', [
             'navItems' => $this->partnerNavItems(),

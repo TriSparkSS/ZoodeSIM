@@ -37,10 +37,10 @@ class AdminPartnerPasswordTest extends TestCase
         $this->actingAs($admin, 'admin');
 
         Livewire::test(Partners::class)
-            ->call('openEdit', $partner->id)
+            ->call('openPassword', $partner->id)
             ->set('editPassword', 'new-password123')
             ->set('editPasswordConfirmation', 'new-password123')
-            ->call('saveEdit')
+            ->call('savePassword')
             ->assertHasNoErrors();
 
         $this->assertTrue(Hash::check('new-password123', $partner->fresh()->password));
@@ -98,10 +98,9 @@ class AdminPartnerPasswordTest extends TestCase
         $this->actingAs($admin, 'admin');
 
         Livewire::test(Partners::class)
-            ->call('openEdit', $partner->id)
+            ->call('openProfile', $partner->id)
             ->set('editName', 'Partner Renamed')
-            ->set('editPassword', '')
-            ->call('saveEdit')
+            ->call('saveProfile')
             ->assertHasNoErrors();
 
         $this->assertTrue(Hash::check('keep-this-password', $partner->fresh()->password));

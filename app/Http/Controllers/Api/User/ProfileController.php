@@ -15,11 +15,10 @@ class ProfileController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        $user->loadMissing('promoUsage');
 
         return ApiResponse::success(__('api.user.profile'), [
             ...UserResource::make($user)->resolve(),
-            'bonus_mb' => (int) ($user->promoUsage?->bonus_mb_given ?? 0),
+            'bonus_mb' => (int) $user->bonus_mb,
         ]);
     }
 }

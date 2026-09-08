@@ -11,7 +11,7 @@ class PromoEligibilityService
         protected PromoCodeService $promoCodes,
     ) {}
 
-    public function assertEligible(string $code, string $registrantEmail): PromoCode
+    public function assertEligible(string $code, ?string $registrantEmail = null): PromoCode
     {
         try {
             $normalized = $this->promoCodes->normalizeCode($code);
@@ -46,7 +46,7 @@ class PromoEligibilityService
             throw $this->failure('referral_code', __('api.promo.partner_inactive'));
         }
 
-        if (strcasecmp($registrantEmail, $partner->email) === 0) {
+        if ($registrantEmail !== null && $registrantEmail !== '' && strcasecmp($registrantEmail, $partner->email) === 0) {
             throw $this->failure('referral_code', __('api.promo.self_referral'));
         }
 

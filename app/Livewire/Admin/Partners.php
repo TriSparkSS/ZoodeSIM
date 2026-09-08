@@ -2,37 +2,66 @@
 
 namespace App\Livewire\Admin;
 
-use App\Livewire\Concerns\WithLocalizedTitle;
+use App\DataTransferObjects\AdjustPartnerBalanceData;
+use App\Livewire\Concerns\ResolvesAuthenticatedAdmin;
 use App\Livewire\Concerns\WithAdminNavigation;
+use App\Livewire\Concerns\WithLocalizedTitle;
 use App\Livewire\Concerns\WithToast;
 use App\Models\Partner;
+use App\Models\Transaction;
+use App\Services\Partner\Contracts\PartnerBalanceAdjustmentServiceInterface;
 use App\Services\Partner\PartnerService;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 class Partners extends Component
 {
+    use ResolvesAuthenticatedAdmin;
     use WithAdminNavigation;
     use WithLocalizedTitle;
     use WithToast;
 
     public string $search = '';
 
-    public bool $showEditModal = false;
+    public bool $showProfileModal = false;
 
-    public ?string $editingPartnerId = null;
+    public bool $showPasswordModal = false;
+
+    public bool $showWalletModal = false;
+
+    public ?string $actingPartnerId = null;
+
+    public string $actingPartnerName = '';
 
     public string $editName = '';
+
     public string $editEmail = '';
+
     public string $editTelegram = '';
+
     public string $editInstagram = '';
+
     public string $editTwitter = '';
+
     public string $editStatus = 'pending';
-    public string $editBalance = '0';
-    public string $editTotalEarned = '0';
+
     public ?string $editCreatedAt = null;
+
     public string $editPassword = '';
+
     public string $editPasswordConfirmation = '';
+
     public bool $editRevokeSessions = true;
+
+    public string $walletBalance = '0';
+
+    public string $walletTotalEarned = '0';
+
+    public string $walletDirection = 'credit';
+
+    public string $walletAmount = '';
+
+    public string $walletNote = '';
 
     /**
      * @return array<int, array<string, mixed>>
@@ -66,8 +95,6 @@ class Partners extends Component
                     'earnings' => (float) $partner->total_earned,
                     'promo' => $activePromo?->code,
                     'status' => $partner->status,
-
-                    // PDF required fields (shown/edited in modal)
                     'social_contacts' => $social,
                     'balance' => (float) $partner->balance,
                     'total_earned' => (float) $partner->total_earned,
@@ -90,70 +117,52 @@ class Partners extends Component
         ));
     }
 
-    public function openEdit(string $partnerId): void
+    public function openProfile(string $partnerId): void
     {
-        $partner = Partner::query()->whereKey($partnerId)->first();
+        $partner = $this->findPartner($partnerId);
 
-        if (! $partner) {
+        if ($partner === null) {
             return;
         }
 
-        $social = $partner->social_contacts ?? [];
+        $this->closeAllModals();
+        $this->fillActingPartner($partner);
 
-        $this->editingPartnerId = $partner->id;
+        $social = $partner->social_contacts ?? [];
         $this->editName = $partner->name;
         $this->editEmail = $partner->email;
         $this->editTelegram = (string) ($social['telegram'] ?? '');
         $this->editInstagram = (string) ($social['instagram'] ?? '');
         $this->editTwitter = (string) ($social['twitter'] ?? '');
         $this->editStatus = $partner->status ?: 'pending';
-        $this->editBalance = (string) $partner->balance;
-        $this->editTotalEarned = (string) $partner->total_earned;
         $this->editCreatedAt = $partner->created_at?->format('Y-m-d');
-        $this->editPassword = '';
-        $this->editPasswordConfirmation = '';
-        $this->editRevokeSessions = true;
-
-        $this->showEditModal = true;
+        $this->showProfileModal = true;
     }
 
-    public function closeEdit(): void
+    public function closeProfile(): void
     {
-        $this->showEditModal = false;
-        $this->editingPartnerId = null;
-        $this->editPassword = '';
-        $this->editPasswordConfirmation = '';
+        $this->showProfileModal = false;
         $this->resetValidation();
     }
 
-    public function saveEdit(PartnerService $partners): void
+    public function saveProfile(): void
     {
-        if (! $this->editingPartnerId) {
+        if (! $this->actingPartnerId) {
             return;
         }
 
-        $rules = [
+        $this->validate([
             'editName' => ['required', 'string', 'max:255'],
-            'editEmail' => ['required', 'email', 'max:255', 'unique:partners,email,'.$this->editingPartnerId.',id'],
+            'editEmail' => ['required', 'email', 'max:255', 'unique:partners,email,'.$this->actingPartnerId.',id'],
             'editStatus' => ['required', 'in:active,pending,blocked'],
             'editTelegram' => ['nullable', 'string', 'max:255'],
             'editInstagram' => ['nullable', 'string', 'max:255'],
             'editTwitter' => ['nullable', 'string', 'max:255'],
-            'editBalance' => ['required', 'numeric', 'min:0'],
-            'editTotalEarned' => ['required', 'numeric', 'min:0'],
-            'editPassword' => ['nullable', 'string', 'min:8', 'same:editPasswordConfirmation'],
-            'editPasswordConfirmation' => ['nullable', 'string'],
-        ];
+        ]);
 
-        $messages = [
-            'editPassword.min' => __('admin.partners.validation.password_min'),
-            'editPassword.same' => __('admin.partners.validation.password_confirmed'),
-        ];
+        $partner = $this->findPartner($this->actingPartnerId);
 
-        $this->validate($rules, $messages);
-
-        $partner = Partner::query()->whereKey($this->editingPartnerId)->first();
-        if (! $partner) {
+        if ($partner === null) {
             return;
         }
 
@@ -161,8 +170,6 @@ class Partners extends Component
             'name' => $this->editName,
             'email' => $this->editEmail,
             'status' => $this->editStatus,
-            'balance' => (float) $this->editBalance,
-            'total_earned' => (float) $this->editTotalEarned,
             'social_contacts' => [
                 'telegram' => $this->editTelegram !== '' ? $this->editTelegram : null,
                 'instagram' => $this->editInstagram !== '' ? $this->editInstagram : null,
@@ -170,28 +177,207 @@ class Partners extends Component
             ],
         ]);
 
-        $passwordChanged = false;
+        $this->closeAllModals();
+        $this->toast(__('admin.partners.updated_toast'));
+    }
 
-        if (filled($this->editPassword)) {
-            $partners->updatePassword(
-                $partner,
-                $this->editPassword,
-                $this->editRevokeSessions,
-            );
-            $passwordChanged = true;
+    public function openPassword(string $partnerId): void
+    {
+        $partner = $this->findPartner($partnerId);
+
+        if ($partner === null) {
+            return;
         }
 
-        $this->closeEdit();
+        $this->closeAllModals();
+        $this->fillActingPartner($partner);
+        $this->editPassword = '';
+        $this->editPasswordConfirmation = '';
+        $this->editRevokeSessions = true;
+        $this->showPasswordModal = true;
+    }
 
-        $this->toast($passwordChanged
-            ? __('admin.partners.password_updated_toast')
-            : __('admin.partners.updated_toast'));
+    public function closePassword(): void
+    {
+        $this->showPasswordModal = false;
+        $this->editPassword = '';
+        $this->editPasswordConfirmation = '';
+        $this->resetValidation();
+    }
+
+    public function savePassword(PartnerService $partners): void
+    {
+        if (! $this->actingPartnerId) {
+            return;
+        }
+
+        $this->validate([
+            'editPassword' => ['required', 'string', 'min:8', 'same:editPasswordConfirmation'],
+            'editPasswordConfirmation' => ['required', 'string'],
+            'editRevokeSessions' => ['boolean'],
+        ], [
+            'editPassword.required' => __('admin.partners.validation.password_required'),
+            'editPassword.min' => __('admin.partners.validation.password_min'),
+            'editPassword.same' => __('admin.partners.validation.password_confirmed'),
+            'editPasswordConfirmation.required' => __('admin.partners.validation.password_confirmed'),
+        ]);
+
+        $partner = $this->findPartner($this->actingPartnerId);
+
+        if ($partner === null) {
+            return;
+        }
+
+        $partners->updatePassword(
+            $partner,
+            $this->editPassword,
+            $this->editRevokeSessions,
+        );
+
+        $this->closeAllModals();
+        $this->toast(__('admin.partners.password_updated_toast'));
+    }
+
+    public function openWallet(string $partnerId): void
+    {
+        $partner = $this->findPartner($partnerId);
+
+        if ($partner === null) {
+            return;
+        }
+
+        $this->closeAllModals();
+        $this->fillActingPartner($partner);
+        $this->syncWalletDisplay($partner);
+        $this->walletDirection = 'credit';
+        $this->walletAmount = '';
+        $this->walletNote = '';
+        $this->showWalletModal = true;
+    }
+
+    public function closeWallet(): void
+    {
+        $this->showWalletModal = false;
+        $this->walletAmount = '';
+        $this->walletNote = '';
+        $this->resetValidation();
+    }
+
+    public function adjustWallet(PartnerBalanceAdjustmentServiceInterface $adjustments): void
+    {
+        if (! $this->actingPartnerId) {
+            return;
+        }
+
+        $this->validate([
+            'walletDirection' => ['required', 'in:credit,debit'],
+            'walletAmount' => ['required', 'regex:/^\d+(\.\d{1,2})?$/'],
+            'walletNote' => ['required', 'string', 'max:255'],
+        ], [
+            'walletDirection.in' => __('admin.partners.wallet.validation.direction_invalid'),
+            'walletAmount.required' => __('admin.partners.wallet.validation.amount_required'),
+            'walletAmount.regex' => __('admin.partners.wallet.validation.amount_format'),
+            'walletNote.required' => __('admin.partners.wallet.validation.note_required'),
+        ]);
+
+        $partner = $this->findPartner($this->actingPartnerId);
+
+        if ($partner === null) {
+            return;
+        }
+
+        try {
+            $transaction = $adjustments->adjust($partner, $this->admin(), new AdjustPartnerBalanceData(
+                direction: $this->walletDirection,
+                amount: $this->walletAmount,
+                note: $this->walletNote,
+            ));
+        } catch (ValidationException $e) {
+            $this->toast(collect($e->errors())->flatten()->first() ?: __('admin.partners.wallet.failed'), 'error');
+
+            return;
+        }
+
+        $this->syncWalletDisplay($partner->fresh());
+        $this->walletAmount = '';
+        $this->walletNote = '';
+        $this->resetValidation();
+
+        $this->toast(__('admin.partners.wallet.adjusted_toast', [
+            'type' => $transaction->type === Transaction::TYPE_CREDIT
+                ? __('admin.partners.wallet.credit')
+                : __('admin.partners.wallet.debit'),
+            'amount' => '$'.number_format((float) $transaction->amount, 2),
+            'balance' => '$'.number_format((float) $transaction->balance_after, 2),
+        ]));
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    protected function walletTransactions(): array
+    {
+        if (! $this->showWalletModal || ! $this->actingPartnerId) {
+            return [];
+        }
+
+        return Transaction::query()
+            ->where('transactable_type', (new Partner)->getMorphClass())
+            ->where('transactable_id', $this->actingPartnerId)
+            ->orderByDesc('created_at')
+            ->limit(20)
+            ->get()
+            ->map(fn (Transaction $transaction) => [
+                'id' => $transaction->id,
+                'type' => $transaction->type,
+                'category' => $transaction->category,
+                'amount' => (float) $transaction->amount,
+                'balance_after' => (float) $transaction->balance_after,
+                'description' => $transaction->description,
+                'date' => $transaction->created_at?->format('Y-m-d H:i'),
+            ])
+            ->all();
+    }
+
+    protected function syncWalletDisplay(?Partner $partner): void
+    {
+        if ($partner === null) {
+            return;
+        }
+
+        $this->walletBalance = (string) $partner->balance;
+        $this->walletTotalEarned = (string) $partner->total_earned;
+    }
+
+    protected function findPartner(string $partnerId): ?Partner
+    {
+        return Partner::query()->whereKey($partnerId)->first();
+    }
+
+    protected function fillActingPartner(Partner $partner): void
+    {
+        $this->actingPartnerId = $partner->id;
+        $this->actingPartnerName = $partner->name;
+        $this->resetValidation();
+    }
+
+    protected function closeAllModals(): void
+    {
+        $this->showProfileModal = false;
+        $this->showPasswordModal = false;
+        $this->showWalletModal = false;
+        $this->editPassword = '';
+        $this->editPasswordConfirmation = '';
+        $this->walletAmount = '';
+        $this->walletNote = '';
+        $this->resetValidation();
     }
 
     public function render()
     {
         return $this->withLocalizedTitle(view('livewire.admin.partners', [
             'partners' => $this->filteredPartners(),
+            'walletTransactions' => $this->walletTransactions(),
             'breadcrumbs' => $this->adminBreadcrumbs(__('admin.nav.partners')),
         ])->layout('layouts.admin', [
             'navItems' => $this->adminNavItems(),

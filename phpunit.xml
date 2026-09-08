@@ -32,5 +32,9 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="RESELLPORTAL_BASE_URL" value="https://panel.resellportal.com/wp-json/resellportal/v1/"/>
+        <env name="RESELLPORTAL_API_KEY" value="test-api-key"/>
+        <env name="RESELLPORTAL_API_SECRET" value="test-api-secret"/>
+        <env name="RESELLPORTAL_TIMEOUT" value="5"/>
     </php>
 </phpunit>

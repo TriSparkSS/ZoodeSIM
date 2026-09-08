@@ -60,6 +60,9 @@ return [
     'status_approved' => 'موافق عليه',
     'status_rejected' => 'مرفوض',
     'status_completed' => 'مكتمل',
+    'status_processing' => 'قيد المعالجة',
+    'status_failed' => 'فشل',
+    'status_blocked' => 'محظور',
 
     'platforms' => [
         'instagram' => 'Instagram',

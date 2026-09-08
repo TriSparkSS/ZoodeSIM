@@ -61,9 +61,12 @@ return [
     'status_approved' => 'Approved',
     'status_rejected' => 'Rejected',
     'status_completed' => 'Completed',
+    'status_processing' => 'Processing',
+    'status_failed' => 'Failed',
     'status_expired' => 'Expired',
     'status_exhausted' => 'Limit reached',
     'status_inactive' => 'Inactive',
+    'status_blocked' => 'Blocked',
 
     'platforms' => [
         'instagram' => 'Instagram',

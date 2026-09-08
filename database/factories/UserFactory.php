@@ -23,6 +23,7 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
+            'id' => (string) Str::uuid(),
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->unique()->numerify('+1##########'),

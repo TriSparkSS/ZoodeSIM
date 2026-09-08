@@ -5,6 +5,9 @@ namespace App\Services\Promo;
 use App\DataTransferObjects\CreatePromoCodeData;
 use App\Models\Partner;
 use App\Models\PromoCode;
+use App\Services\Promo\Contracts\PromoAuditLoggerInterface;
+use App\Services\Referral\ReferralProgramSettings;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -12,6 +15,8 @@ class PromoCodeService
 {
     public function __construct(
         protected PromoCodeGenerator $generator,
+        protected ReferralProgramSettings $program,
+        protected PromoAuditLoggerInterface $audit,
     ) {}
 
     public function normalizeCode(string $code): string
@@ -46,7 +51,7 @@ class PromoCodeService
                 $this->deactivateActiveForPartner($data->partnerId);
             }
 
-            return PromoCode::query()->create([
+            $promo = PromoCode::query()->create([
                 'partner_id' => $data->partnerId,
                 'code' => $code,
                 'bonus_mb' => $data->bonusMb,
@@ -57,6 +62,10 @@ class PromoCodeService
                 'usage_count' => 0,
                 'max_usage' => $data->maxUsage,
             ]);
+
+            $this->audit->created($promo);
+
+            return $promo;
         });
     }
 
@@ -66,18 +75,18 @@ class PromoCodeService
     public function assignToPartner(
         Partner $partner,
         string $code,
-        int $bonusMb = 200,
-        float $partnerReward = 1.50,
+        ?int $bonusMb = null,
+        ?float $partnerReward = null,
         string $type = 'standard',
-        ?\Carbon\CarbonInterface $expiresAt = null,
+        ?CarbonInterface $expiresAt = null,
         ?int $maxUsage = null,
         bool $deactivateExistingActive = true,
     ): PromoCode {
         return $this->create(new CreatePromoCodeData(
             partnerId: $partner->id,
             code: $code,
-            bonusMb: $bonusMb,
-            partnerReward: $partnerReward,
+            bonusMb: $bonusMb ?? $this->program->defaultUserBonusMb(),
+            partnerReward: $partnerReward ?? (float) $this->program->defaultRegistrationReward(),
             type: $type,
             expiresAt: $expiresAt ?? now()->addDays(30),
             maxUsage: $maxUsage,
@@ -89,6 +98,7 @@ class PromoCodeService
     public function deactivate(PromoCode $promoCode): PromoCode
     {
         $promoCode->update(['is_active' => false]);
+        $this->audit->deactivated($promoCode);
 
         return $promoCode->refresh();
     }
@@ -96,16 +106,29 @@ class PromoCodeService
     public function activate(PromoCode $promoCode): PromoCode
     {
         $promoCode->update(['is_active' => true]);
+        $this->audit->activated($promoCode);
 
         return $promoCode->refresh();
     }
 
     public function deactivateActiveForPartner(string $partnerId): void
     {
-        PromoCode::query()
+        $active = PromoCode::query()
             ->where('partner_id', $partnerId)
             ->where('is_active', true)
+            ->get();
+
+        if ($active->isEmpty()) {
+            return;
+        }
+
+        PromoCode::query()
+            ->whereIn('id', $active->modelKeys())
             ->update(['is_active' => false]);
+
+        foreach ($active as $promo) {
+            $this->audit->deactivated($promo->fresh() ?? $promo);
+        }
     }
 
     public function suggestForName(string $name): string

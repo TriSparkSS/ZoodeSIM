@@ -120,7 +120,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"name\": \"{{name}}\",\n    \"email\": \"{{email}}\",\n    \"phone\": \"{{phone}}\",\n    \"password\": \"{{password}}\",\n    \"password_confirmation\": \"{{password}}\",\n    \"referral_code\": \"{{referral_code}}\"\n}"
+              "raw": "{\n    \"name\": \"{{name}}\",\n    \"email\": \"{{email}}\",\n    \"phone\": \"{{phone}}\",\n    \"password\": \"{{password}}\",\n    \"password_confirmation\": \"{{password}}\",\n    \"referral_code\": \"{{referral_code}}\",\n    \"device_id\": \"{{device_id}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/user/register?lang={{lang}}",
@@ -408,6 +408,191 @@
               ]
             },
             "description": "Revokes the current Sanctum token and clears the saved `token` variable."
+          }
+        }
+      ]
+    },
+    {
+      "name": "eSIM Packages",
+      "item": [
+        {
+          "name": "List all packages",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/esim/packages?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "esim", "packages"],
+              "query": [
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            },
+            "description": "Authenticated. Returns ResellPortal package_code, name, price, and location. Price is the provider price (no markup yet)."
+          }
+        },
+        {
+          "name": "List packages by country",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/esim/packages?country=US&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "esim", "packages"],
+              "query": [
+                { "key": "country", "value": "US" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            },
+            "description": "country is a 2-letter ISO code. Laravel sends it to ResellPortal as location."
+          }
+        },
+        {
+          "name": "List packages — invalid country",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/esim/packages?country=USA",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "esim", "packages"],
+              "query": [
+                { "key": "country", "value": "USA" }
+              ]
+            },
+            "description": "Expect 422 Invalid country."
+          }
+        }
+      ]
+    },
+    {
+      "name": "eSIM Orders",
+      "item": [
+        {
+          "name": "Purchase eSIM",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}", "disabled": true }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"package_code\": \"PHAJHEAYP\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/esim/orders?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "esim", "orders"],
+              "query": [
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            },
+            "description": "Authenticated. Send only package_code. Price, user_id, client_id, and service_id are ignored. Optional Idempotency-Key prevents duplicate provisioning."
+          }
+        },
+        {
+          "name": "Get eSIM order",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/esim/orders/:order?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "esim", "orders", ":order"],
+              "query": [
+                { "key": "lang", "value": "{{lang}}" }
+              ],
+              "variable": [
+                { "key": "order", "value": "" }
+              ]
+            },
+            "description": "Returns the authenticated user's own order only."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Promo",
+      "item": [
+        {
+          "name": "Validate promo code",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"code\": \"{{referral_code}}\",\n    \"email\": \"{{email}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/promo/validate?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "promo", "validate"],
+              "query": [
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            },
+            "description": "Live validation for the registration screen. Always 200 with `{ valid, bonus_mb, partner_name }`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/notifications?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "notifications"],
+              "query": [
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark all notifications read",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/notifications/read-all?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "notifications", "read-all"],
+              "query": [
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            }
           }
         }
       ]

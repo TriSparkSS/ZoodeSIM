@@ -7,8 +7,8 @@ use App\Livewire\Public\ApplyForm;
 use App\Models\Partner;
 use App\Models\PartnerApplication;
 use App\Models\PromoCode;
-use Livewire\Livewire;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class PartnerApplicationTest extends TestCase
@@ -73,6 +73,7 @@ class PartnerApplicationTest extends TestCase
             ->first();
 
         $this->assertNotNull($promo);
+        $this->assertSame(200, $promo->bonus_mb);
+        $this->assertSame('1.50', (string) $promo->partner_reward);
     }
 }
-

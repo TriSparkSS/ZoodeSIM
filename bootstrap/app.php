@@ -1,5 +1,8 @@
 <?php
 
+use App\Exceptions\EsimPurchaseException;
+use App\Exceptions\ResellPortalException;
+use App\Http\Middleware\ApiLoggingMiddleware;
 use App\Http\Middleware\EnsureAdminAuthenticated;
 use App\Http\Middleware\EnsurePartnerAuthenticated;
 use App\Http\Middleware\SetApiLocale;
@@ -28,6 +31,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->api(prepend: [
             SetApiLocale::class,
+        ]);
+
+        $middleware->api(append: [
+            ApiLoggingMiddleware::class,
         ]);
 
         $middleware->alias([
@@ -80,6 +87,22 @@ return Application::configure(basePath: dirname(__DIR__))
                 : __('api.unauthenticated');
 
             return ApiResponse::error($message, [], 401);
+        });
+
+        $exceptions->render(function (EsimPurchaseException $e, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return ApiResponse::error($e->userMessage(), [], $e->httpStatus);
+        });
+
+        $exceptions->render(function (ResellPortalException $e, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return ApiResponse::error($e->userMessage(), [], $e->httpStatus);
         });
 
         $exceptions->render(function (ThrottleRequestsException $e, Request $request) {

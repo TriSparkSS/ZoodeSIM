@@ -32,8 +32,9 @@
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <x-ui.form-group :label="__('partner.settings.payout_method')" required>
                     <x-ui.select wire:model="payoutMethod">
-                        <option value="paypal">{{ __('partner.earnings.paypal') }}</option>
-                        <option value="bank_transfer">{{ __('partner.earnings.bank_transfer') }}</option>
+                        @foreach(\App\Models\Withdrawal::methods() as $method)
+                            <option value="{{ $method }}">{{ \App\Models\Withdrawal::methodLabel($method) }}</option>
+                        @endforeach
                     </x-ui.select>
                 </x-ui.form-group>
 

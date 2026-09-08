@@ -14,8 +14,8 @@ use Livewire\Component;
 class Statistics extends Component
 {
     use ResolvesAuthenticatedPartner;
-    use WithPartnerNavigation;
     use WithLocalizedTitle;
+    use WithPartnerNavigation;
     use WithToast;
 
     public function render(PartnerPortalDataService $portal)
@@ -24,10 +24,12 @@ class Statistics extends Component
         $stats = $portal->stats($partner);
         $promoCodes = $portal->promoCodes($partner);
         $topCode = collect($promoCodes)->sortByDesc('uses')->first();
+        $chartData = $portal->dailyRegistrations($partner);
 
         return $this->withLocalizedTitle(view('livewire.partner.statistics', [
             'stats' => $stats,
-            'chartData' => [],
+            'chartData' => $chartData,
+            'weekTotal' => collect($chartData)->sum('count'),
             'monthlyTrend' => [],
             'topCode' => $topCode,
             'avgEarnings' => $stats['registrations'] > 0

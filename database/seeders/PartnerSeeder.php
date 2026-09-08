@@ -13,7 +13,7 @@ class PartnerSeeder extends Seeder
             ['email' => 'partner@zoodesim.test'],
             [
                 'name' => 'Demo Partner',
-                'password' => 'password123',
+                'password' => '11223344',
                 'social_contacts' => [
                     'telegram' => null,
                     'instagram' => null,

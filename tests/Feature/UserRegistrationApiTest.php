@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Partner;
 use App\Models\PromoCode;
+use App\Models\Transaction;
 use App\Models\User;
 use App\Services\Promo\PromoRedemptionService;
 use Carbon\CarbonInterface;
@@ -75,8 +76,34 @@ class UserRegistrationApiTest extends TestCase
         ]);
 
         $this->assertSame(1, $promo->fresh()->usage_count);
+        $this->assertSame(250, $user->fresh()->bonus_mb);
         $this->assertEquals(2.25, (float) $partner->fresh()->balance);
         $this->assertEquals(2.25, (float) $partner->fresh()->total_earned);
+
+        $this->assertDatabaseHas('transactions', [
+            'transactable_type' => User::class,
+            'transactable_id' => $user->id,
+            'type' => Transaction::TYPE_CREDIT,
+            'category' => Transaction::CATEGORY_PROMO_BONUS,
+            'amount' => '250.00',
+            'currency' => 'MB',
+            'balance_before' => '0.00',
+            'balance_after' => '250.00',
+            'promo_code_id' => $promo->id,
+        ]);
+        $this->assertDatabaseHas('transactions', [
+            'transactable_type' => Partner::class,
+            'transactable_id' => $partner->id,
+            'type' => Transaction::TYPE_CREDIT,
+            'category' => Transaction::CATEGORY_PROMO_REWARD,
+            'amount' => '2.25',
+            'balance_before' => '0.00',
+            'balance_after' => '2.25',
+            'promo_code_id' => $promo->id,
+        ]);
+        $this->assertTrue(
+            Transaction::query()->where('transaction_id', 'like', 'TXN-%')->count() >= 2
+        );
     }
 
     public function test_invalid_referral_code_is_rejected(): void
@@ -266,6 +293,7 @@ class UserRegistrationApiTest extends TestCase
             'phone' => '+1234567890',
             'password' => 'password123',
             'password_confirmation' => 'password123',
+            'device_id' => 'test-device-001',
         ], $overrides);
     }
 

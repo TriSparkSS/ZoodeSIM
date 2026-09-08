@@ -2,20 +2,25 @@
 
 namespace App\Livewire\Partner;
 
+use App\Livewire\Concerns\RequestsPartnerWithdrawal;
 use App\Livewire\Concerns\ResolvesAuthenticatedPartner;
 use App\Livewire\Concerns\WithLocalizedTitle;
 use App\Livewire\Concerns\WithPartnerNavigation;
 use App\Livewire\Concerns\WithToast;
+use App\Models\Withdrawal;
+use App\Services\Partner\Contracts\WithdrawalServiceInterface;
 use App\Services\Partner\PartnerPortalDataService;
+use App\Support\Money;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 #[Layout('layouts.partner')]
 class Dashboard extends Component
 {
+    use RequestsPartnerWithdrawal;
     use ResolvesAuthenticatedPartner;
-    use WithPartnerNavigation;
     use WithLocalizedTitle;
+    use WithPartnerNavigation;
     use WithToast;
 
     public function copyPromoCode(PartnerPortalDataService $portal): void
@@ -30,22 +35,21 @@ class Dashboard extends Component
         $this->toast(__('partner.dashboard.code_copied', ['code' => $code]));
     }
 
-    public function requestWithdrawal(PartnerPortalDataService $portal): void
+    public function render(PartnerPortalDataService $portal, WithdrawalServiceInterface $withdrawals)
     {
-        $amount = $portal->stats($this->partner())['available_withdrawal'];
-        $this->toast(__('partner.dashboard.withdraw_requested', ['amount' => '$'.number_format($amount, 2)]));
-    }
-
-    public function render(PartnerPortalDataService $portal)
-    {
-        $partner = $this->partner();
+        $partner = $this->partner()->fresh();
+        $minimum = Money::fromDecimal($withdrawals->minimumAmount(), (string) config('pricing.currency', 'USD'));
+        $chartData = $portal->dailyRegistrations($partner);
 
         return $this->withLocalizedTitle(view('livewire.partner.dashboard', [
             'partnerName' => $partner->name,
             'stats' => $portal->stats($partner),
             'registrations' => $portal->registrations($partner),
             'promoCodes' => $portal->promoCodes($partner),
-            'chartData' => [],
+            'chartData' => $chartData,
+            'weekTotal' => collect($chartData)->sum('count'),
+            'methods' => Withdrawal::methods(),
+            'minWithdrawal' => $minimum->format(),
             'breadcrumbs' => $this->partnerBreadcrumbs(__('partner.nav.overview')),
         ])->layout('layouts.partner', [
             'navItems' => $this->partnerNavItems(),

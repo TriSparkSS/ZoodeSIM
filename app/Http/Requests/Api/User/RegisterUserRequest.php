@@ -22,6 +22,7 @@ class RegisterUserRequest extends FormRequest
             'phone' => ['required', 'string', 'max:30', 'unique:users,phone'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'referral_code' => ['nullable', 'string', 'max:32'],
+            'device_id' => ['nullable', 'required_with:referral_code', 'string', 'min:8', 'max:128', 'regex:/^[A-Za-z0-9._:-]+$/'],
         ];
     }
 
@@ -39,6 +40,8 @@ class RegisterUserRequest extends FormRequest
             'password.required' => __('auth.validation.password_required'),
             'password.min' => __('api.validation.password_min'),
             'password.confirmed' => __('api.validation.password_confirmed'),
+            'device_id.required_with' => __('api.promo.device_required'),
+            'device_id.regex' => __('api.promo.device_invalid'),
         ];
     }
 

@@ -6,6 +6,7 @@ use App\Livewire\Concerns\WithLocalizedTitle;
 use App\Livewire\Concerns\WithToast;
 use App\Models\PartnerApplication;
 use App\Services\Content\ContentBlockService;
+use App\Services\Referral\ReferralProgramSettings;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -118,7 +119,7 @@ class ApplyForm extends Component
         $this->submitted = true;
     }
 
-    public function render(ContentBlockService $content)
+    public function render(ContentBlockService $content, ReferralProgramSettings $program)
     {
         $hero = $content->pair(
             'apply.hero.title',
@@ -129,6 +130,9 @@ class ApplyForm extends Component
         return $this->withLocalizedTitle(view('livewire.public.apply-form', [
             'heroTitle' => $hero['title'],
             'heroSubtitle' => $hero['body'],
+            'registrationReward' => '$'.$program->defaultRegistrationReward(),
+            'purchaseCommission' => $program->percentLabel($program->firstPurchaseCommissionPercent()),
+            'userBonus' => $program->defaultUserBonusMb().' MB',
         ]), 'apply.form.title');
     }
 }

@@ -2,74 +2,139 @@
 
 namespace App\Livewire\Admin;
 
-use App\Livewire\Concerns\WithLocalizedTitle;
-
+use App\Livewire\Concerns\ResolvesAuthenticatedAdmin;
 use App\Livewire\Concerns\WithAdminNavigation;
+use App\Livewire\Concerns\WithLocalizedTitle;
 use App\Livewire\Concerns\WithToast;
 use App\Models\Withdrawal;
+use App\Services\Partner\Contracts\WithdrawalServiceInterface;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 class Payouts extends Component
 {
+    use ResolvesAuthenticatedAdmin;
     use WithAdminNavigation;
     use WithLocalizedTitle;
     use WithToast;
 
-    /** @var array<int, array<string, mixed>> */
-    public array $payouts = [];
+    public bool $showRejectModal = false;
 
-    public function mount(): void
-    {
-        $this->payouts = Withdrawal::query()
-            ->with('partner')
-            ->orderByDesc('requested_at')
-            ->get()
-            ->map(function (Withdrawal $w) {
-                return [
-                    'id' => $w->id,
-                    'partner' => $w->partner?->name,
-                    'amount' => (float) $w->amount,
-                    'method' => $w->method,
-                    // UI expects: pending/approved/completed. Map processing -> approved.
-                    'status' => $w->status === 'processing'
-                        ? 'approved'
-                        : ($w->status === 'failed' ? 'pending' : $w->status),
-                    'date' => $w->requested_at?->format('Y-m-d'),
-                ];
-            })
-            ->all();
-    }
+    public string $rejectingId = '';
 
-    public function processPayout(string $id): void
+    public string $rejectNote = '';
+
+    public function completePayout(string $id, WithdrawalServiceInterface $withdrawals): void
     {
+        $admin = $this->admin();
         $withdrawal = Withdrawal::query()->with('partner')->whereKey($id)->first();
 
-        if (! $withdrawal || $withdrawal->status !== 'pending') {
+        if ($withdrawal === null) {
             return;
         }
 
-        $withdrawal->update([
-            'status' => 'completed',
-            'completed_at' => now(),
+        Gate::forUser($admin)->authorize('complete', $withdrawal);
+
+        try {
+            $completed = $withdrawals->complete($withdrawal, $admin);
+        } catch (ValidationException $e) {
+            $this->toast(collect($e->errors())->flatten()->first() ?: __('admin.payouts.validation.not_pending'), 'error');
+
+            return;
+        }
+
+        $this->toast(__('admin.payouts.completed_toast', [
+            'name' => $completed->partner?->name ?? __('admin.partners.table_name'),
+        ]));
+    }
+
+    public function openRejectModal(string $id): void
+    {
+        $this->resetValidation();
+        $this->rejectingId = $id;
+        $this->rejectNote = '';
+        $this->showRejectModal = true;
+    }
+
+    public function closeRejectModal(): void
+    {
+        $this->showRejectModal = false;
+        $this->rejectingId = '';
+        $this->rejectNote = '';
+        $this->resetValidation();
+    }
+
+    public function rejectPayout(WithdrawalServiceInterface $withdrawals): void
+    {
+        $admin = $this->admin();
+        $withdrawal = Withdrawal::query()->with('partner')->whereKey($this->rejectingId)->first();
+
+        if ($withdrawal === null) {
+            $this->closeRejectModal();
+
+            return;
+        }
+
+        Gate::forUser($admin)->authorize('reject', $withdrawal);
+
+        $validated = $this->validate([
+            'rejectNote' => ['nullable', 'string', 'max:500'],
         ]);
 
-        $this->toast(($withdrawal->partner?->name ?? __('admin.partners.table_name')).' — '.__('ui.status_completed'));
+        try {
+            $rejected = $withdrawals->reject(
+                $withdrawal,
+                $admin,
+                filled($validated['rejectNote'] ?? null) ? $validated['rejectNote'] : null,
+            );
+        } catch (ValidationException $e) {
+            $this->toast(collect($e->errors())->flatten()->first() ?: __('admin.payouts.validation.not_pending'), 'error');
 
-        $this->mount();
+            return;
+        }
+
+        $this->closeRejectModal();
+        $this->toast(__('admin.payouts.rejected_toast', [
+            'name' => $rejected->partner?->name ?? __('admin.partners.table_name'),
+        ]));
     }
 
     /**
-     * @return array<string, float>
+     * @return array<int, array<string, mixed>>
      */
-    public function stats(): array
+    protected function payoutRows(): array
     {
-        $pending = collect($this->payouts)
-            ->where('status', 'pending')
+        return Withdrawal::query()
+            ->with('partner')
+            ->orderByDesc('requested_at')
+            ->get()
+            ->map(fn (Withdrawal $withdrawal) => [
+                'id' => $withdrawal->id,
+                'partner' => $withdrawal->partner?->name,
+                'amount' => (float) $withdrawal->amount,
+                'method' => $withdrawal->method,
+                'details' => $withdrawal->payout_details,
+                'status' => $withdrawal->status,
+                'badge' => $withdrawal->statusBadgeType(),
+                'date' => $withdrawal->requested_at?->format('Y-m-d'),
+                'is_pending' => $withdrawal->isActionable(),
+            ])
+            ->all();
+    }
+
+    /**
+     * @return array{pending: float, completed_month: float}
+     */
+    protected function payoutStats(): array
+    {
+        $pending = (float) Withdrawal::query()
+            ->whereIn('status', [Withdrawal::STATUS_PENDING, Withdrawal::STATUS_PROCESSING])
             ->sum('amount');
 
-        $completedMonth = collect($this->payouts)
-            ->where('status', 'completed')
-            ->where('date', '>=', now()->startOfMonth()->format('Y-m-d'))
+        $completedMonth = (float) Withdrawal::query()
+            ->where('status', Withdrawal::STATUS_COMPLETED)
+            ->where('completed_at', '>=', now()->startOfMonth())
             ->sum('amount');
 
         return [
@@ -81,7 +146,8 @@ class Payouts extends Component
     public function render()
     {
         return $this->withLocalizedTitle(view('livewire.admin.payouts', [
-            'stats' => $this->stats(),
+            'payouts' => $this->payoutRows(),
+            'stats' => $this->payoutStats(),
             'breadcrumbs' => $this->adminBreadcrumbs(__('admin.nav.payouts')),
         ])->layout('layouts.admin', [
             'navItems' => $this->adminNavItems(),

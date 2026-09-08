@@ -139,6 +139,7 @@ class UserLoginApiTest extends TestCase
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'referral_code' => $promo->code,
+            'device_id' => 'login-device-001',
         ])->assertCreated();
 
         $login = $this->postJson('/api/user/login', [

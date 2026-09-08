@@ -38,23 +38,7 @@
     </div>
 
     <div class="mb-7 grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <!-- Daily Bar Chart -->
-        <x-ui.card :title="__('partner.dashboard.registrations_chart')">
-            <div class="mb-3 flex h-20 items-end gap-1.5">
-                @foreach($chartData as $bar)
-                    <div class="flex flex-1 flex-col items-center gap-1">
-                        <div
-                            class="w-full rounded-t bg-gradient-to-t from-brand-purple to-brand-cyan opacity-70 transition-opacity hover:opacity-100"
-                            style="height: {{ $bar['value'] }}%"
-                        ></div>
-                        <span class="text-[10px] text-brand-muted">{{ __('ui.days.'.$bar['label']) }}</span>
-                    </div>
-                @endforeach
-            </div>
-            <p class="text-xs text-brand-muted">
-                {{ __('partner.dashboard.week_total', ['count' => 23]) }}
-            </p>
-        </x-ui.card>
+        @include('livewire.partner.partials.registrations-chart')
 
         <!-- Monthly Trend -->
         <x-ui.card :title="__('partner.statistics.monthly_trend')">
@@ -109,11 +93,11 @@
         <div class="space-y-0 divide-y divide-brand-border">
             <div class="flex items-center justify-between py-3.5 text-sm">
                 <span class="text-brand-muted">{{ __('partner.dashboard.per_registration') }}</span>
-                <span class="font-bold">$1.50</span>
+                <span class="font-bold">{{ $stats['promo_reward'] }}</span>
             </div>
             <div class="flex items-center justify-between py-3.5 text-sm">
                 <span class="text-brand-muted">{{ __('partner.dashboard.per_purchase') }}</span>
-                <span class="font-bold">{{ __('partner.dashboard.commission', ['rate' => '10%']) }}</span>
+                <span class="font-bold">{{ __('partner.dashboard.commission', ['rate' => $stats['purchase_commission_rate']]) }}</span>
             </div>
             <div class="flex items-center justify-between py-3.5 text-sm">
                 <span class="text-brand-muted">{{ __('partner.dashboard.total_earned') }}</span>

@@ -4,6 +4,7 @@ namespace App\Services\User;
 
 use App\Models\PromoCode;
 use App\Models\User;
+use App\Services\Fraud\Contracts\DeviceFraudServiceInterface;
 use App\Services\Promo\PromoEligibilityService;
 use App\Services\Promo\PromoRedemptionService;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +14,7 @@ class UserRegistrationService
     public function __construct(
         protected PromoEligibilityService $eligibility,
         protected PromoRedemptionService $redemption,
+        protected DeviceFraudServiceInterface $fraud,
     ) {}
 
     /**
@@ -24,15 +26,20 @@ class UserRegistrationService
         string $phone,
         string $password,
         ?string $referralCode = null,
+        ?string $deviceId = null,
+        ?string $ip = null,
     ): array {
         $promo = $this->resolvePromo($referralCode, $email);
+        $this->fraud->assertCanRegister($deviceId, $ip, $promo !== null);
 
-        return DB::transaction(function () use ($name, $email, $phone, $password, $promo) {
+        return DB::transaction(function () use ($name, $email, $phone, $password, $promo, $deviceId, $ip) {
             $user = User::query()->create([
                 'name' => $name,
                 'email' => $email,
                 'phone' => $phone,
                 'password' => $password,
+                'device_id' => $deviceId,
+                'registration_ip' => $ip,
             ]);
 
             if ($promo === null) {

@@ -54,6 +54,10 @@
                                 <div class="mt-1 font-medium text-surface-text dark:text-brand-text">{{ number_format($partner['registrations']) }}</div>
                             </div>
                             <div>
+                                <div class="text-[11px] uppercase tracking-wide text-surface-muted dark:text-brand-muted">{{ __('admin.partners.table_wallet') }}</div>
+                                <div class="mt-1 font-medium text-surface-text dark:text-brand-text">${{ number_format($partner['balance'], 2) }}</div>
+                            </div>
+                            <div>
                                 <div class="text-[11px] uppercase tracking-wide text-surface-muted dark:text-brand-muted">{{ __('admin.partners.table_earnings') }}</div>
                                 <div class="mt-1 font-medium text-surface-text dark:text-brand-text">${{ number_format($partner['earnings'], 2) }}</div>
                             </div>
@@ -70,9 +74,7 @@
                         </div>
 
                         <div class="mt-4">
-                            <x-ui.button variant="secondary" size="sm" class="w-full" wire:click="openEdit('{{ $partner['id'] }}')">
-                                {{ __('ui.edit') }}
-                            </x-ui.button>
+                            @include('livewire.admin.partials.partner-actions', ['partnerId' => $partner['id']])
                         </div>
                     </div>
                 @endforeach
@@ -80,21 +82,23 @@
 
             {{-- Desktop table --}}
             <div class="hidden overflow-x-auto md:block">
-                <table class="w-full min-w-[860px] table-fixed border-collapse text-start">
+                <table class="w-full min-w-[980px] table-fixed border-collapse text-start">
                     <colgroup>
-                        <col class="w-[24%]">
+                        <col class="w-[18%]">
+                        <col class="w-[7%]">
                         <col class="w-[10%]">
-                        <col class="w-[14%]">
+                        <col class="w-[10%]">
+                        <col class="w-[10%]">
                         <col class="w-[12%]">
-                        <col class="w-[16%]">
-                        <col class="w-[12%]">
-                        <col class="w-[12%]">
+                        <col class="w-[10%]">
+                        <col class="w-[23%]">
                     </colgroup>
                     <thead>
                         <tr class="border-b border-surface-border text-[11px] uppercase tracking-wide text-surface-muted dark:border-brand-border dark:text-brand-muted">
                             <th class="pb-3.5 pe-4 text-start font-medium">{{ __('admin.partners.table_name') }}</th>
                             <th class="pb-3.5 pe-4 text-start font-medium">{{ __('admin.partners.table_level') }}</th>
                             <th class="pb-3.5 pe-4 text-start font-medium">{{ __('admin.partners.table_registrations') }}</th>
+                            <th class="pb-3.5 pe-4 text-start font-medium">{{ __('admin.partners.table_wallet') }}</th>
                             <th class="pb-3.5 pe-4 text-start font-medium">{{ __('admin.partners.table_earnings') }}</th>
                             <th class="pb-3.5 pe-4 text-start font-medium">{{ __('admin.partners.table_promo') }}</th>
                             <th class="pb-3.5 pe-4 text-start font-medium">{{ __('ui.status') }}</th>
@@ -114,6 +118,7 @@
                                     </span>
                                 </td>
                                 <td class="py-3.5 pe-4 align-middle">{{ number_format($partner['registrations']) }}</td>
+                                <td class="py-3.5 pe-4 align-middle font-semibold text-brand-green">${{ number_format($partner['balance'], 2) }}</td>
                                 <td class="py-3.5 pe-4 align-middle">${{ number_format($partner['earnings'], 2) }}</td>
                                 <td class="py-3.5 pe-4 align-middle">
                                     @if($partner['promo'])
@@ -128,9 +133,7 @@
                                     </x-ui.badge>
                                 </td>
                                 <td class="py-3.5 align-middle">
-                                    <x-ui.button variant="secondary" size="sm" wire:click="openEdit('{{ $partner['id'] }}')">
-                                        {{ __('ui.edit') }}
-                                    </x-ui.button>
+                                    @include('livewire.admin.partials.partner-actions', ['partnerId' => $partner['id']])
                                 </td>
                             </tr>
                         @endforeach
@@ -140,7 +143,7 @@
         @endif
     </x-ui.card>
 
-    <x-ui.modal wire:model="showEditModal" :title="__('ui.edit')" maxWidth="max-w-2xl">
+    <x-ui.modal wire:model="showProfileModal" :title="__('admin.partners.profile_modal_title', ['name' => $actingPartnerName])" maxWidth="max-w-2xl">
         <div class="space-y-5 text-sm">
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <x-ui.form-group :label="__('admin.partners.table_name')" required>
@@ -161,7 +164,7 @@
                     <x-ui.input wire:model="editInstagram" placeholder="https://instagram.com/username" />
                 </x-ui.form-group>
 
-                <x-ui.form-group :label="'Twitter (optional)'">
+                <x-ui.form-group :label="__('admin.partners.twitter')">
                     <x-ui.input wire:model="editTwitter" placeholder="https://twitter.com/username" />
                 </x-ui.form-group>
 
@@ -169,69 +172,161 @@
                     <x-ui.select wire:model="editStatus">
                         <option value="active">{{ __('ui.status_active') }}</option>
                         <option value="pending">{{ __('ui.status_pending') }}</option>
-                        <option value="blocked">Blocked</option>
+                        <option value="blocked">{{ __('ui.status_blocked') }}</option>
                     </x-ui.select>
                 </x-ui.form-group>
             </div>
 
-            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <x-ui.form-group :label="'Balance'" required>
-                    <x-ui.input wire:model="editBalance" type="number" step="0.01" min="0" />
-                </x-ui.form-group>
-
-                <x-ui.form-group :label="'Total earned'" required>
-                    <x-ui.input wire:model="editTotalEarned" type="number" step="0.01" min="0" />
-                </x-ui.form-group>
-            </div>
-
-            <div class="space-y-4 rounded-xl border border-surface-border p-4 dark:border-brand-border/40">
-                <div>
-                    <div class="text-sm font-semibold text-surface-text dark:text-brand-text">
-                        {{ __('admin.partners.password_section') }}
-                    </div>
-                    <p class="mt-1 text-xs text-surface-muted dark:text-brand-muted">
-                        {{ __('admin.partners.password_hint') }}
-                    </p>
-                </div>
-
-                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <x-ui.form-group :label="__('admin.partners.new_password')">
-                        <x-ui.input wire:model="editPassword" type="password" autocomplete="new-password" />
-                        @error('editPassword')
-                            <p class="mt-1 text-xs text-brand-red">{{ $message }}</p>
-                        @enderror
-                    </x-ui.form-group>
-
-                    <x-ui.form-group :label="__('admin.partners.confirm_password')">
-                        <x-ui.input wire:model="editPasswordConfirmation" type="password" autocomplete="new-password" />
-                        @error('editPasswordConfirmation')
-                            <p class="mt-1 text-xs text-brand-red">{{ $message }}</p>
-                        @enderror
-                    </x-ui.form-group>
-                </div>
-
-                <label class="flex items-start gap-3 text-sm text-surface-text dark:text-brand-text">
-                    <input
-                        type="checkbox"
-                        wire:model="editRevokeSessions"
-                        class="mt-1 rounded border-surface-border text-brand-cyan focus:ring-brand-cyan dark:border-brand-border"
-                    >
-                    <span>{{ __('admin.partners.revoke_sessions') }}</span>
-                </label>
-            </div>
-
             <div class="flex items-center justify-between border-t border-surface-border pt-3 dark:border-brand-border/40">
-                <span class="text-surface-muted dark:text-brand-muted">Created at</span>
+                <span class="text-surface-muted dark:text-brand-muted">{{ __('admin.partners.created_at') }}</span>
                 <span class="font-semibold text-surface-text dark:text-brand-text">{{ $editCreatedAt ?? '—' }}</span>
             </div>
 
             <div class="flex flex-col gap-3 sm:flex-row">
-                <x-ui.button variant="secondary" class="flex-1" wire:click="closeEdit">
+                <x-ui.button variant="secondary" class="flex-1" wire:click="closeProfile">
                     {{ __('ui.cancel') }}
                 </x-ui.button>
-                <x-ui.button variant="success" class="flex-1" wire:click="saveEdit">
+                <x-ui.button variant="success" class="flex-1" wire:click="saveProfile">
                     {{ __('ui.save') }}
                 </x-ui.button>
+            </div>
+        </div>
+    </x-ui.modal>
+
+    <x-ui.modal wire:model="showPasswordModal" :title="__('admin.partners.password_modal_title', ['name' => $actingPartnerName])">
+        <div class="space-y-5 text-sm">
+            <p class="text-xs text-surface-muted dark:text-brand-muted">
+                {{ __('admin.partners.password_hint') }}
+            </p>
+
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <x-ui.form-group :label="__('admin.partners.new_password')" required>
+                    <x-ui.input wire:model="editPassword" type="password" autocomplete="new-password" />
+                    @error('editPassword')
+                        <p class="mt-1 text-xs text-brand-red">{{ $message }}</p>
+                    @enderror
+                </x-ui.form-group>
+
+                <x-ui.form-group :label="__('admin.partners.confirm_password')" required>
+                    <x-ui.input wire:model="editPasswordConfirmation" type="password" autocomplete="new-password" />
+                    @error('editPasswordConfirmation')
+                        <p class="mt-1 text-xs text-brand-red">{{ $message }}</p>
+                    @enderror
+                </x-ui.form-group>
+            </div>
+
+            <label class="flex items-start gap-3 text-sm text-surface-text dark:text-brand-text">
+                <input
+                    type="checkbox"
+                    wire:model="editRevokeSessions"
+                    class="mt-1 rounded border-surface-border text-brand-cyan focus:ring-brand-cyan dark:border-brand-border"
+                >
+                <span>{{ __('admin.partners.revoke_sessions') }}</span>
+            </label>
+
+            <div class="flex flex-col gap-3 sm:flex-row">
+                <x-ui.button variant="secondary" class="flex-1" wire:click="closePassword">
+                    {{ __('ui.cancel') }}
+                </x-ui.button>
+                <x-ui.button variant="success" class="flex-1" wire:click="savePassword">
+                    {{ __('admin.partners.action_password') }}
+                </x-ui.button>
+            </div>
+        </div>
+    </x-ui.modal>
+
+    <x-ui.modal wire:model="showWalletModal" :title="__('admin.partners.wallet_modal_title', ['name' => $actingPartnerName])" maxWidth="max-w-2xl">
+        <div class="space-y-5 text-sm">
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div class="rounded-xl border border-surface-border bg-surface-card-alt/70 px-4 py-3 dark:border-brand-border dark:bg-brand-card-alt/40">
+                    <div class="text-[11px] uppercase tracking-wide text-surface-muted dark:text-brand-muted">{{ __('admin.partners.wallet.current') }}</div>
+                    <div class="mt-1 text-lg font-bold text-brand-green">${{ number_format((float) $walletBalance, 2) }}</div>
+                </div>
+                <div class="rounded-xl border border-surface-border bg-surface-card-alt/70 px-4 py-3 dark:border-brand-border dark:bg-brand-card-alt/40">
+                    <div class="text-[11px] uppercase tracking-wide text-surface-muted dark:text-brand-muted">{{ __('admin.partners.table_earnings') }}</div>
+                    <div class="mt-1 text-lg font-bold text-surface-text dark:text-brand-text">${{ number_format((float) $walletTotalEarned, 2) }}</div>
+                </div>
+            </div>
+
+            <p class="text-xs text-surface-muted dark:text-brand-muted">{{ __('admin.partners.wallet.help') }}</p>
+
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <x-ui.form-group :label="__('admin.partners.wallet.direction')" required>
+                    <x-ui.select wire:model="walletDirection">
+                        <option value="credit">{{ __('admin.partners.wallet.add') }}</option>
+                        <option value="debit">{{ __('admin.partners.wallet.deduct') }}</option>
+                    </x-ui.select>
+                </x-ui.form-group>
+                <x-ui.form-group :label="__('admin.partners.wallet.amount')" required>
+                    <x-ui.input wire:model="walletAmount" type="text" inputmode="decimal" />
+                    @error('walletAmount')
+                        <p class="mt-1 text-xs text-brand-red">{{ $message }}</p>
+                    @enderror
+                </x-ui.form-group>
+            </div>
+
+            <x-ui.form-group :label="__('admin.partners.wallet.note')" required>
+                <x-ui.input wire:model="walletNote" />
+                @error('walletNote')
+                    <p class="mt-1 text-xs text-brand-red">{{ $message }}</p>
+                @enderror
+            </x-ui.form-group>
+
+            <div class="flex flex-col gap-3 sm:flex-row">
+                <x-ui.button variant="secondary" class="flex-1" wire:click="closeWallet">
+                    {{ __('ui.cancel') }}
+                </x-ui.button>
+                <x-ui.button variant="success" class="flex-1" wire:click="adjustWallet" wire:confirm="{{ __('admin.partners.wallet.confirm') }}">
+                    {{ __('admin.partners.wallet.submit') }}
+                </x-ui.button>
+            </div>
+
+            <div>
+                <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-surface-muted dark:text-brand-muted">
+                    {{ __('admin.partners.wallet.history') }}
+                </div>
+                @if(count($walletTransactions) === 0)
+                    <p class="text-xs text-surface-muted dark:text-brand-muted">{{ __('admin.partners.wallet.empty') }}</p>
+                @else
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-[520px] table-fixed border-collapse text-start">
+                            <thead>
+                                <tr class="border-b border-surface-border text-[11px] uppercase tracking-wide text-surface-muted dark:border-brand-border dark:text-brand-muted">
+                                    <th class="pb-2 pe-3 text-start font-medium">{{ __('ui.date') }}</th>
+                                    <th class="pb-2 pe-3 text-start font-medium">{{ __('admin.partners.wallet.type') }}</th>
+                                    <th class="pb-2 pe-3 text-start font-medium">{{ __('ui.amount') }}</th>
+                                    <th class="pb-2 text-start font-medium">{{ __('admin.partners.wallet.balance_after') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-surface-border/80 dark:divide-brand-border/40">
+                                @foreach($walletTransactions as $entry)
+                                    <tr class="text-xs text-surface-text dark:text-brand-text" wire:key="wallet-{{ $entry['id'] }}">
+                                        <td class="py-2 pe-3 text-surface-muted dark:text-brand-muted">{{ $entry['date'] }}</td>
+                                        <td class="py-2 pe-3">
+                                            <span @class([
+                                                'font-semibold',
+                                                'text-brand-green' => $entry['type'] === 'credit',
+                                                'text-brand-red' => $entry['type'] !== 'credit',
+                                            ])>
+                                                {{ $entry['type'] === 'credit' ? __('admin.partners.wallet.credit') : __('admin.partners.wallet.debit') }}
+                                            </span>
+                                            <div class="text-[11px] text-surface-muted dark:text-brand-muted">
+                                                {{ __('admin.partners.wallet.categories.'.$entry['category']) }}
+                                                @if($entry['description'])
+                                                    · {{ $entry['description'] }}
+                                                @endif
+                                            </div>
+                                        </td>
+                                        <td class="py-2 pe-3 font-semibold">
+                                            {{ $entry['type'] === 'credit' ? '+' : '−' }}${{ number_format($entry['amount'], 2) }}
+                                        </td>
+                                        <td class="py-2 font-semibold">${{ number_format($entry['balance_after'], 2) }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
             </div>
         </div>
     </x-ui.modal>

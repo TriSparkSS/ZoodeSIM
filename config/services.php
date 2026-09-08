@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    'resellportal' => [
+        'base_url' => env('RESELLPORTAL_BASE_URL', 'https://panel.resellportal.com/wp-json/resellportal/v1/'),
+        'api_key' => env('RESELLPORTAL_API_KEY'),
+        'api_secret' => env('RESELLPORTAL_API_SECRET'),
+        'timeout' => (int) env('RESELLPORTAL_TIMEOUT', 15),
+    ],
+
 ];

@@ -7,6 +7,7 @@ use App\Models\Partner;
 use App\Models\PartnerApplication;
 use App\Models\PromoCode;
 use App\Services\Promo\PromoCodeService;
+use App\Services\Referral\ReferralProgramSettings;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -15,6 +16,7 @@ class PartnerApplicationService
     public function __construct(
         protected PartnerService $partners,
         protected PromoCodeService $promoCodes,
+        protected ReferralProgramSettings $program,
     ) {}
 
     /**
@@ -36,8 +38,8 @@ class PartnerApplicationService
             $promo = $this->promoCodes->create(new CreatePromoCodeData(
                 partnerId: $partner->id,
                 code: $normalized,
-                bonusMb: 200,
-                partnerReward: 1.50,
+                bonusMb: $this->program->defaultUserBonusMb(),
+                partnerReward: (float) $this->program->defaultRegistrationReward(),
                 type: 'standard',
                 expiresAt: now()->addDays(30),
                 maxUsage: null,

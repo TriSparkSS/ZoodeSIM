@@ -29,7 +29,10 @@
                 ])
             >
                 <span class="w-5 text-center text-lg">{{ $item['icon'] ?? '•' }}</span>
-                <span>{{ $item['label'] }}</span>
+                <span class="flex-1">{{ $item['label'] }}</span>
+                @if(($item['badge'] ?? 0) > 0)
+                    <span class="rounded-full bg-brand-cyan px-1.5 py-0.5 text-[10px] font-bold text-white">{{ $item['badge'] }}</span>
+                @endif
             </a>
         @endforeach
     </nav>
@@ -79,7 +82,10 @@
                         ])
                     >
                         <span>{{ $item['icon'] ?? '•' }}</span>
-                        <span>{{ $item['label'] }}</span>
+                        <span class="flex-1">{{ $item['label'] }}</span>
+                        @if(($item['badge'] ?? 0) > 0)
+                            <span class="rounded-full bg-brand-cyan px-1.5 py-0.5 text-[10px] font-bold text-white">{{ $item['badge'] }}</span>
+                        @endif
                     </a>
                 @endforeach
             </nav>

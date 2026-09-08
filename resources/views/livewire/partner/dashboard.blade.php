@@ -59,6 +59,10 @@
         />
     </div>
 
+    <div class="mb-7">
+        @include('livewire.partner.partials.registrations-chart')
+    </div>
+
     <div class="mb-7 grid grid-cols-1 gap-5 lg:grid-cols-2">
         <x-ui.card :title="__('partner.dashboard.earnings_breakdown')">
             <div class="space-y-0 divide-y divide-surface-border dark:divide-brand-border/40">
@@ -75,7 +79,7 @@
                     <span class="font-bold text-surface-muted dark:text-brand-muted">${{ number_format($stats['withdrawn'], 2) }}</span>
                 </div>
             </div>
-            <x-ui.button variant="success" class="mt-4 w-full" wire:click="requestWithdrawal">
+            <x-ui.button variant="success" class="mt-4 w-full" wire:click="openWithdrawModal">
                 {{ __('partner.dashboard.withdraw', ['amount' => '$'.number_format($stats['available_withdrawal'], 2)]) }}
             </x-ui.button>
         </x-ui.card>
@@ -174,4 +178,6 @@
             </div>
         @endif
     </x-ui.card>
+
+    @include('livewire.partner.partials.withdraw-modal')
 </div>

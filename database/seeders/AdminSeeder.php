@@ -13,7 +13,7 @@ class AdminSeeder extends Seeder
             ['email' => 'admin@zoodesim.test'],
             [
                 'name' => 'ZoodeSIM Admin',
-                'password' => 'password123',
+                'password' => '11223344',
             ],
         );
     }

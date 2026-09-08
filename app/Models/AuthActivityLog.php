@@ -21,6 +21,28 @@ class AuthActivityLog extends Model
 
     public const EVENT_SESSION_TERMINATED = 'session_terminated';
 
+    public const EVENT_PRICING_SLAB_CREATED = 'pricing_slab_created';
+
+    public const EVENT_PRICING_SLAB_UPDATED = 'pricing_slab_updated';
+
+    public const EVENT_PRICING_SLAB_ACTIVATED = 'pricing_slab_activated';
+
+    public const EVENT_PRICING_SLAB_DEACTIVATED = 'pricing_slab_deactivated';
+
+    public const EVENT_PRICING_SLAB_DELETED = 'pricing_slab_deleted';
+
+    public const EVENT_WITHDRAWAL_REQUESTED = 'withdrawal_requested';
+
+    public const EVENT_WITHDRAWAL_COMPLETED = 'withdrawal_completed';
+
+    public const EVENT_WITHDRAWAL_REJECTED = 'withdrawal_rejected';
+
+    public const EVENT_PARTNER_BALANCE_CREDITED = 'partner_balance_credited';
+
+    public const EVENT_PARTNER_BALANCE_DEBITED = 'partner_balance_debited';
+
+    public const EVENT_USER_UPDATED = 'user_updated';
+
     protected $fillable = [
         'authenticatable_type',
         'authenticatable_id',

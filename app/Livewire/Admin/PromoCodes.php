@@ -2,14 +2,14 @@
 
 namespace App\Livewire\Admin;
 
-use App\Livewire\Concerns\WithLocalizedTitle;
-
 use App\DataTransferObjects\CreatePromoCodeData;
 use App\Livewire\Concerns\WithAdminNavigation;
+use App\Livewire\Concerns\WithLocalizedTitle;
 use App\Livewire\Concerns\WithToast;
 use App\Models\Partner;
 use App\Models\PromoCode;
 use App\Services\Promo\PromoCodeService;
+use App\Services\Referral\ReferralProgramSettings;
 use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -46,9 +46,12 @@ class PromoCodes extends Component
 
     protected PromoCodeService $promoCodeService;
 
-    public function boot(PromoCodeService $promoCodeService): void
+    protected ReferralProgramSettings $program;
+
+    public function boot(PromoCodeService $promoCodeService, ReferralProgramSettings $program): void
     {
         $this->promoCodeService = $promoCodeService;
+        $this->program = $program;
     }
 
     public function openCreateModal(?string $partnerId = null): void
@@ -290,12 +293,17 @@ class PromoCodes extends Component
         $this->resetValidation();
         $this->formPartnerId = '';
         $this->formCode = '';
-        $this->formBonusMb = '200';
-        $this->formPartnerReward = '1.50';
+        $this->applySettingDefaults();
         $this->formType = 'standard';
         $this->formExpiresAt = '';
         $this->formMaxUsage = '';
         $this->formDeactivateExisting = true;
+    }
+
+    protected function applySettingDefaults(): void
+    {
+        $this->formBonusMb = (string) $this->program->defaultUserBonusMb();
+        $this->formPartnerReward = $this->program->defaultRegistrationReward();
     }
 
     public function render()

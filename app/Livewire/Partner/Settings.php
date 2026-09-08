@@ -6,6 +6,7 @@ use App\Livewire\Concerns\ResolvesAuthenticatedPartner;
 use App\Livewire\Concerns\WithLocalizedTitle;
 use App\Livewire\Concerns\WithPartnerNavigation;
 use App\Livewire\Concerns\WithToast;
+use App\Models\Withdrawal;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -14,8 +15,8 @@ use Livewire\Component;
 class Settings extends Component
 {
     use ResolvesAuthenticatedPartner;
-    use WithPartnerNavigation;
     use WithLocalizedTitle;
+    use WithPartnerNavigation;
     use WithToast;
 
     public string $firstName = '';
@@ -26,7 +27,7 @@ class Settings extends Component
 
     public string $phone = '';
 
-    public string $payoutMethod = 'paypal';
+    public string $payoutMethod = Withdrawal::METHOD_CARD;
 
     public string $payoutDetails = '';
 
@@ -42,7 +43,10 @@ class Settings extends Component
         $this->firstName = $parts[0] ?? '';
         $this->lastName = $parts[1] ?? '';
         $this->email = $partner->email;
-        $this->payoutDetails = $partner->email;
+        $this->payoutMethod = $partner->payout_method ?: Withdrawal::METHOD_CARD;
+        $this->payoutDetails = $partner->payout_details ?: $partner->email;
+        $this->emailNotifications = (bool) $partner->email_notifications;
+        $this->telegramNotifications = (bool) $partner->telegram_notifications;
     }
 
     public function save(): void
@@ -54,13 +58,19 @@ class Settings extends Component
             'firstName' => ['required', 'string', 'max:100'],
             'lastName' => ['nullable', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:255', 'unique:partners,email,'.$partner->id.',id'],
-            'payoutMethod' => ['required', 'string', 'max:50'],
-            'payoutDetails' => ['nullable', 'string', 'max:255'],
+            'payoutMethod' => ['required', 'in:'.implode(',', Withdrawal::methods())],
+            'payoutDetails' => ['required', 'string', 'max:255'],
+            'emailNotifications' => ['boolean'],
+            'telegramNotifications' => ['boolean'],
         ]);
 
         $partner->update([
             'name' => trim($validated['firstName'].' '.($validated['lastName'] ?? '')),
             'email' => $validated['email'],
+            'payout_method' => $validated['payoutMethod'],
+            'payout_details' => $validated['payoutDetails'],
+            'email_notifications' => (bool) $this->emailNotifications,
+            'telegram_notifications' => (bool) $this->telegramNotifications,
         ]);
 
         $this->toast(__('partner.settings.saved'));

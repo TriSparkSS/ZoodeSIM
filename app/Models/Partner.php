@@ -27,6 +27,10 @@ class Partner extends Authenticatable
         'status',
         'balance',
         'total_earned',
+        'payout_method',
+        'payout_details',
+        'email_notifications',
+        'telegram_notifications',
     ];
 
     protected $hidden = [
@@ -41,6 +45,8 @@ class Partner extends Authenticatable
             'balance' => 'decimal:2',
             'total_earned' => 'decimal:2',
             'password' => 'hashed',
+            'email_notifications' => 'boolean',
+            'telegram_notifications' => 'boolean',
         ];
     }
 
@@ -66,6 +72,11 @@ class Partner extends Authenticatable
     public function withdrawals(): HasMany
     {
         return $this->hasMany(Withdrawal::class, 'partner_id', 'id');
+    }
+
+    public function transactions(): MorphMany
+    {
+        return $this->morphMany(Transaction::class, 'transactable');
     }
 
     public function authSessions(): MorphMany
