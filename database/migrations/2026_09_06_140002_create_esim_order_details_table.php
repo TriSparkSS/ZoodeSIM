@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('esim_order_details', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('esim_order_id');
-            $table->unsignedBigInteger('service_id');
+            $table->string('service_id');
             $table->string('iccid')->nullable();
             $table->text('qr_code_url')->nullable();
             $table->text('activation_url')->nullable();

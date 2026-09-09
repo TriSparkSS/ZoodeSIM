@@ -81,10 +81,10 @@ class ResellPortalClient implements ResellPortalClientInterface
     /**
      * @return array<string, mixed>
      */
-    public function createEsimOrder(int $clientId, string $packageCode): array
+    public function createEsimOrder(string $clientId, string $packageCode): array
     {
         return $this->post('orders', [
-            'client_id' => $clientId,
+            'client_id' => ctype_digit($clientId) ? (int) $clientId : $clientId,
             'product_key' => 'esim',
             'package_code' => $packageCode,
         ]);
@@ -109,12 +109,13 @@ class ResellPortalClient implements ResellPortalClientInterface
 
         $normalizedPath = ltrim($path, '/');
         $verb = strtoupper($method);
+        [$payload, $testModeHeaders] = $this->applyTestMode($verb, $normalizedPath, $payload);
         $url = $this->absoluteUrl($normalizedPath, $query);
         $requestBody = $verb === 'GET' ? $query : $payload;
         $started = hrtime(true);
 
         try {
-            $pending = $this->http();
+            $pending = $this->http($testModeHeaders);
 
             $response = match ($verb) {
                 'GET' => $pending->get($normalizedPath, $query),
@@ -135,6 +136,7 @@ class ResellPortalClient implements ResellPortalClientInterface
                 null,
                 $this->apiLogger->elapsedMs($started),
                 $reason.': '.$e->getMessage(),
+                $testModeHeaders,
             );
             $this->logFailure($normalizedPath, $method, $reason, $e->getMessage());
 
@@ -149,6 +151,7 @@ class ResellPortalClient implements ResellPortalClientInterface
             $response,
             $this->apiLogger->elapsedMs($started),
             $this->thirdPartyErrorMessage($response),
+            $testModeHeaders,
         );
 
         return $this->decode($response, $normalizedPath, $method);
@@ -204,7 +207,10 @@ class ResellPortalClient implements ResellPortalClientInterface
         return $json;
     }
 
-    protected function http(): PendingRequest
+    /**
+     * @param  array<string, string>  $extraHeaders
+     */
+    protected function http(array $extraHeaders = []): PendingRequest
     {
         $baseUrl = rtrim((string) config('services.resellportal.base_url'), '/').'/';
 
@@ -212,11 +218,44 @@ class ResellPortalClient implements ResellPortalClientInterface
             ->timeout((int) config('services.resellportal.timeout', 15))
             ->acceptJson()
             ->asJson()
-            ->withHeaders([
+            ->withHeaders(array_merge([
                 'X-API-Key' => (string) config('services.resellportal.api_key'),
                 'X-API-Secret' => (string) config('services.resellportal.api_secret'),
                 'Content-Type' => 'application/json',
-            ]);
+            ], $extraHeaders));
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array{0: array<string, mixed>, 1: array<string, string>}
+     */
+    protected function applyTestMode(string $method, string $path, array $payload): array
+    {
+        if ($this->isLiveMode() || ! $this->supportsTestMode($method, $path)) {
+            return [$payload, []];
+        }
+
+        if (in_array($method, ['POST', 'PUT', 'PATCH'], true)) {
+            $payload['test_mode'] = true;
+        }
+
+        return [$payload, ['X-RP-Test-Mode' => '1']];
+    }
+
+    protected function supportsTestMode(string $method, string $path): bool
+    {
+        $path = trim($path, '/');
+
+        if ($method === 'POST' && in_array($path, ['clients', 'orders'], true)) {
+            return true;
+        }
+
+        return $method === 'DELETE' && preg_match('#^(clients|services)/[^/]+$#', $path) === 1;
+    }
+
+    protected function isLiveMode(): bool
+    {
+        return (bool) config('services.resellportal.live_mode', true);
     }
 
     protected function assertConfigured(): void
@@ -243,6 +282,7 @@ class ResellPortalClient implements ResellPortalClientInterface
 
     /**
      * @param  array<string, mixed>|null  $requestBody
+     * @param  array<string, string>  $extraHeaders
      */
     protected function recordThirdPartyLog(
         string $method,
@@ -252,6 +292,7 @@ class ResellPortalClient implements ResellPortalClientInterface
         ?Response $response,
         int $responseTimeMs,
         ?string $errorMessage,
+        array $extraHeaders = [],
     ): void {
         try {
             $this->apiLogger->logHttp(
@@ -260,12 +301,12 @@ class ResellPortalClient implements ResellPortalClientInterface
                 method: $method,
                 endpoint: '/'.$endpoint,
                 fullUrl: $url,
-                requestHeaders: [
+                requestHeaders: array_merge([
                     'Accept' => 'application/json',
                     'Content-Type' => 'application/json',
                     'X-API-Key' => (string) config('services.resellportal.api_key'),
                     'X-API-Secret' => (string) config('services.resellportal.api_secret'),
-                ],
+                ], $extraHeaders),
                 requestBody: $requestBody,
                 responseStatus: $response?->status(),
                 responseHeaders: $response?->headers() ?? [],

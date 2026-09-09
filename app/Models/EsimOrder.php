@@ -64,8 +64,6 @@ class EsimOrder extends Model
             'discount_amount' => 'decimal:2',
             'charged_amount' => 'decimal:2',
             'package_duration' => 'integer',
-            'resellportal_client_id' => 'integer',
-            'resellportal_service_id' => 'integer',
         ];
     }
 

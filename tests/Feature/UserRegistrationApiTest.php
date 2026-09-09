@@ -90,7 +90,9 @@ class UserRegistrationApiTest extends TestCase
         $user = User::query()->where('email', 'user@example.com')->first();
         $this->assertNotNull($user);
         $this->assertSame($user->id, $response->json('data.user.id'));
-        $this->assertSame(123, $user->resellportal_client_id);
+        $this->assertSame('123', $user->resellportal_client_id);
+        $response->assertJsonMissingPath('data.would_charge')
+            ->assertJsonMissingPath('data.test_mode');
 
         $this->assertDatabaseHas('promo_usage', [
             'user_id' => $user->id,

@@ -6,7 +6,7 @@ use App\Models\User;
 
 interface ResellPortalUserClientServiceInterface
 {
-    public function resolve(User $user): int;
+    public function resolve(User $user): string;
 
-    public function tryEnsure(User $user): ?int;
+    public function tryEnsure(User $user): ?string;
 }

@@ -34,12 +34,23 @@ class EsimOrderResource extends JsonResource
                 'status' => $this->order_status,
             ],
             'esim' => $detail === null ? null : [
-                'service_id' => $detail->service_id,
+                'service_id' => $this->publicProviderId($detail->service_id),
                 'iccid' => $detail->iccid,
                 'qr_code_url' => $detail->qr_code_url,
                 'activation_url' => $detail->activation_url,
                 'status' => $detail->esim_status,
             ],
         ];
+    }
+
+    protected function publicProviderId(mixed $id): int|string|null
+    {
+        if ($id === null || $id === '') {
+            return $id;
+        }
+
+        $id = (string) $id;
+
+        return ctype_digit($id) ? (int) $id : $id;
     }
 }

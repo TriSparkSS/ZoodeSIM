@@ -37,5 +37,6 @@
         <env name="RESELLPORTAL_API_SECRET" value="test-api-secret"/>
         <env name="RESELLPORTAL_TIMEOUT" value="5"/>
         <env name="RESELLPORTAL_BALANCE_CACHE_TTL" value="60"/>
+        <env name="LIVEMODE" value="false"/>
     </php>
 </phpunit>

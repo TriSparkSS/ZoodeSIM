@@ -180,8 +180,8 @@ class EsimOrderApiTest extends TestCase
         $this->assertEquals(5.00, (float) $order->markup_percentage);
         $this->assertEquals(0.09, (float) $order->markup_amount);
         $this->assertEquals(1.89, (float) $order->customer_price);
-        $this->assertSame(123, $order->resellportal_client_id);
-        $this->assertSame(789, $order->resellportal_service_id);
+        $this->assertSame('123', $order->resellportal_client_id);
+        $this->assertSame('789', $order->resellportal_service_id);
     }
 
     public function test_resellportal_client_is_created_once_and_reused(): void
@@ -193,7 +193,7 @@ class EsimOrderApiTest extends TestCase
         $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])->assertCreated();
         $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])->assertCreated();
 
-        $this->assertSame(123, $user->fresh()->resellportal_client_id);
+        $this->assertSame('123', $user->fresh()->resellportal_client_id);
         $this->assertSame(1, User::query()->whereNotNull('resellportal_client_id')->count());
         $this->assertSame(1, $this->recordedPostCount('clients'));
     }
@@ -207,7 +207,7 @@ class EsimOrderApiTest extends TestCase
         $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])
             ->assertCreated();
 
-        $this->assertSame(555, EsimOrder::query()->first()->resellportal_client_id);
+        $this->assertSame('555', EsimOrder::query()->first()->resellportal_client_id);
         Http::assertNotSent(fn ($request) => str_ends_with(strtok($request->url(), '?'), '/clients'));
     }
 
@@ -327,6 +327,52 @@ class EsimOrderApiTest extends TestCase
         ]);
         $this->assertDatabaseCount('esim_order_details', 0);
         Http::assertNotSent(fn ($request) => $request->method() === 'POST' && str_contains($request->url(), '/orders'));
+    }
+
+    public function test_test_mode_provider_ids_are_persisted_without_leaking_charge_flags(): void
+    {
+        Http::fake([
+            '*/esim-packages*' => Http::response($this->packagePayload(), 200),
+            '*/clients' => Http::response([
+                'success' => true,
+                'client_id' => 'test_cli_123',
+                'would_charge' => 0,
+                'test_mode' => true,
+            ], 200),
+            '*/orders' => Http::response([
+                'success' => true,
+                'service_id' => 'test_svc_789',
+                'would_charge' => 1.80,
+                'test_mode' => true,
+                'esim_details' => [
+                    'qr_code_url' => 'https://example.test/qr.png',
+                    'activation_url' => 'https://example.test/activate',
+                    'iccid' => '8901234567890123456',
+                    'esim_status' => 'active',
+                ],
+            ], 200),
+        ]);
+
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP']);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.esim.service_id', 'test_svc_789')
+            ->assertJsonMissingPath('data.would_charge')
+            ->assertJsonMissingPath('data.test_mode')
+            ->assertJsonMissingPath('data.esim.would_charge')
+            ->assertJsonMissingPath('data.esim.test_mode');
+
+        $this->assertSame('test_cli_123', $user->fresh()->resellportal_client_id);
+        $this->assertDatabaseHas('esim_orders', [
+            'resellportal_client_id' => 'test_cli_123',
+            'resellportal_service_id' => 'test_svc_789',
+        ]);
+        $this->assertDatabaseHas('esim_order_details', [
+            'service_id' => 'test_svc_789',
+        ]);
     }
 
     public function test_credentials_never_appear_in_response_or_logs(): void

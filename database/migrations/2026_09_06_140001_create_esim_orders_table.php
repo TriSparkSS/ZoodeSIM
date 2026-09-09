@@ -12,7 +12,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('user_id');
             $table->string('idempotency_key');
-            $table->unsignedBigInteger('resellportal_client_id')->nullable();
+            $table->string('resellportal_client_id')->nullable();
             $table->string('package_code');
             $table->string('package_name');
             $table->string('package_location')->nullable();
@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('currency', 8)->default('USD');
             $table->string('payment_status')->default('pending');
             $table->string('order_status')->default('pending_payment');
-            $table->unsignedBigInteger('resellportal_service_id')->nullable();
+            $table->string('resellportal_service_id')->nullable();
             $table->string('failure_reason')->nullable();
             $table->timestamps();
 

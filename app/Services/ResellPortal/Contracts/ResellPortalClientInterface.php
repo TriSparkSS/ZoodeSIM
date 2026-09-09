@@ -34,7 +34,7 @@ interface ResellPortalClientInterface
     /**
      * @return array<string, mixed>
      */
-    public function createEsimOrder(int $clientId, string $packageCode): array;
+    public function createEsimOrder(string $clientId, string $packageCode): array;
 
     /**
      * @return array<string, mixed>

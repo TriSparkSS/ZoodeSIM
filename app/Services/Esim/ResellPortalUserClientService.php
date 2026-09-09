@@ -7,6 +7,7 @@ use App\Exceptions\ResellPortalException;
 use App\Models\User;
 use App\Services\Esim\Contracts\ResellPortalUserClientServiceInterface;
 use App\Services\ResellPortal\Contracts\ResellPortalClientInterface;
+use App\Support\ResellPortalProviderId;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -17,27 +18,30 @@ class ResellPortalUserClientService implements ResellPortalUserClientServiceInte
         protected ResellPortalClientInterface $client,
     ) {}
 
-    public function resolve(User $user): int
+    public function resolve(User $user): string
     {
-        if ($user->resellportal_client_id) {
+        $existing = ResellPortalProviderId::from($user->resellportal_client_id);
+
+        if ($existing !== null) {
             Log::info('ResellPortal client reused', [
                 'user_id' => $user->id,
-                'client_id' => $user->resellportal_client_id,
+                'client_id' => $existing,
             ]);
 
-            return (int) $user->resellportal_client_id;
+            return $existing;
         }
 
-        return (int) DB::transaction(function () use ($user) {
+        return (string) DB::transaction(function () use ($user) {
             $fresh = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+            $existing = ResellPortalProviderId::from($fresh->resellportal_client_id);
 
-            if ($fresh->resellportal_client_id) {
+            if ($existing !== null) {
                 Log::info('ResellPortal client reused', [
                     'user_id' => $fresh->id,
-                    'client_id' => $fresh->resellportal_client_id,
+                    'client_id' => $existing,
                 ]);
 
-                return (int) $fresh->resellportal_client_id;
+                return $existing;
             }
 
             $payload = $this->client->createClient(
@@ -46,9 +50,9 @@ class ResellPortalUserClientService implements ResellPortalUserClientServiceInte
                 $fresh->phone,
             );
 
-            $clientId = (int) ($payload['client_id'] ?? 0);
+            $clientId = ResellPortalProviderId::from($payload['client_id'] ?? null);
 
-            if ($clientId < 1) {
+            if ($clientId === null) {
                 throw new EsimPurchaseException('api.esim.purchase_failed', 503, 'ResellPortal client_id missing');
             }
 
@@ -63,7 +67,7 @@ class ResellPortalUserClientService implements ResellPortalUserClientServiceInte
         });
     }
 
-    public function tryEnsure(User $user): ?int
+    public function tryEnsure(User $user): ?string
     {
         try {
             return $this->resolve($user);

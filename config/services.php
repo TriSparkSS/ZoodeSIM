@@ -41,6 +41,7 @@ return [
         'api_secret' => env('RESELLPORTAL_API_SECRET'),
         'timeout' => (int) env('RESELLPORTAL_TIMEOUT', 15),
         'balance_cache_ttl' => (int) env('RESELLPORTAL_BALANCE_CACHE_TTL', 60),
+        'live_mode' => filter_var(env('LIVEMODE', true), FILTER_VALIDATE_BOOLEAN),
     ],
 
 ];

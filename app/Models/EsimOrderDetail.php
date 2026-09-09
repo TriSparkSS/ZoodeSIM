@@ -22,13 +22,6 @@ class EsimOrderDetail extends Model
         'esim_status',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'service_id' => 'integer',
-        ];
-    }
-
     protected static function booted(): void
     {
         static::creating(function (EsimOrderDetail $detail) {

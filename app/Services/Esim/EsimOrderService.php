@@ -19,6 +19,7 @@ use App\Services\Referral\Contracts\PurchaseOfferServiceInterface;
 use App\Services\Referral\Contracts\PurchaseSettlementServiceInterface;
 use App\Services\ResellPortal\Contracts\ResellPortalClientInterface;
 use App\Support\ApiLogContext;
+use App\Support\ResellPortalProviderId;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -165,8 +166,19 @@ class EsimOrderService implements EsimOrderServiceInterface
         ]);
 
         try {
+            $clientId = ResellPortalProviderId::from($order->resellportal_client_id);
+
+            if ($clientId === null) {
+                $order->update([
+                    'order_status' => EsimOrder::STATUS_FAILED,
+                    'failure_reason' => 'missing_client_id',
+                ]);
+
+                throw new EsimPurchaseException('api.esim.provisioning_failed', 502, 'ResellPortal client_id missing');
+            }
+
             $payload = $this->provider->createEsimOrder(
-                (int) $order->resellportal_client_id,
+                $clientId,
                 $order->package_code,
             );
         } catch (ResellPortalException $e) {
@@ -183,9 +195,9 @@ class EsimOrderService implements EsimOrderServiceInterface
             throw new EsimPurchaseException('api.esim.provisioning_failed', 502, 'ResellPortal eSIM provisioning failed', $e);
         }
 
-        $serviceId = (int) ($payload['service_id'] ?? 0);
+        $serviceId = ResellPortalProviderId::from($payload['service_id'] ?? null);
 
-        if ($serviceId < 1) {
+        if ($serviceId === null) {
             $order->update([
                 'order_status' => EsimOrder::STATUS_FAILED,
                 'failure_reason' => 'missing_service_id',
@@ -230,7 +242,7 @@ class EsimOrderService implements EsimOrderServiceInterface
         EsimPackageData $package,
         EsimPriceQuote $quote,
         PurchaseOffer $offer,
-        int $clientId,
+        string $clientId,
         string $idempotencyKey,
     ): EsimOrder {
         return DB::transaction(function () use ($user, $package, $quote, $offer, $clientId, $idempotencyKey) {
