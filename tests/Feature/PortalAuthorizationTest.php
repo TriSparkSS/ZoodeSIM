@@ -116,6 +116,48 @@ class PortalAuthorizationTest extends TestCase
         $this->assertGuest('partner');
     }
 
+    public function test_pending_partner_login_shows_waiting_for_approval(): void
+    {
+        $this->makePartner('Pending', 'pending@example.com', 'password123', 'pending');
+
+        $login = Livewire::test(PartnerLogin::class)
+            ->set('email', 'pending@example.com')
+            ->set('password', 'password123')
+            ->call('login');
+
+        $login->assertHasErrors(['email']);
+        $this->assertSame(__('auth.partner.pending_approval'), $login->errors()->first('email'));
+        $this->assertGuest('partner');
+    }
+
+    public function test_blocked_partner_login_uses_generic_failed_message(): void
+    {
+        $this->makePartner('Blocked', 'blocked-login@example.com', 'password123', 'blocked');
+
+        $login = Livewire::test(PartnerLogin::class)
+            ->set('email', 'blocked-login@example.com')
+            ->set('password', 'password123')
+            ->call('login');
+
+        $login->assertHasErrors(['email']);
+        $this->assertSame(__('auth.failed'), $login->errors()->first('email'));
+        $this->assertGuest('partner');
+    }
+
+    public function test_pending_partner_cannot_remain_authenticated(): void
+    {
+        $partner = $this->makePartner('Pending', 'pending-session@example.com', 'password123', 'pending');
+
+        Auth::guard('partner')->login($partner);
+
+        $this->get(route('partner.dashboard'))
+            ->assertRedirect(route('login'))
+            ->assertSessionHasErrors(['email']);
+
+        $this->assertGuest('partner');
+        $this->assertSame(__('auth.partner.pending_approval'), session('errors')->first('email'));
+    }
+
     public function test_blocked_partner_cannot_remain_authenticated(): void
     {
         $partner = $this->makePartner('Blocked', 'blocked@example.com', 'password123', 'blocked');

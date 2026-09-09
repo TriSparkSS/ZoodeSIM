@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Admin\PreviewPricingController;
 use App\Http\Controllers\Api\Admin\PricingSlabController;
 use App\Http\Controllers\Api\Promo\ValidatePromoController;
+use App\Http\Controllers\Api\User\EsimCountryController;
 use App\Http\Controllers\Api\User\EsimPackageController;
 use App\Http\Controllers\Api\User\LoginController;
 use App\Http\Controllers\Api\User\LogoutController;
@@ -32,6 +33,7 @@ Route::prefix('user')->group(function () {
         Route::get('notifications', [NotificationController::class, 'index'])->name('api.user.notifications.index');
         Route::post('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('api.user.notifications.read-all');
         Route::post('notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('api.user.notifications.read');
+        Route::get('esim/countries', EsimCountryController::class)->name('api.user.esim.countries');
         Route::get('esim/packages', EsimPackageController::class)->name('api.user.esim.packages');
         Route::post('esim/orders', StoreEsimOrderController::class)->name('api.user.esim.orders.store');
         Route::get('esim/orders/{order}', ShowEsimOrderController::class)->name('api.user.esim.orders.show');

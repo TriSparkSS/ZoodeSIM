@@ -17,6 +17,7 @@ return [
     'partner' => [
         'title' => 'Partner Login',
         'subtitle' => 'Sign in to access your referral dashboard and earnings.',
+        'pending_approval' => 'Your account is waiting for admin approval.',
     ],
 
     'admin' => [

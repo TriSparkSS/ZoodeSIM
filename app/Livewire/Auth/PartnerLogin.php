@@ -49,7 +49,19 @@ class PartnerLogin extends Component
             remember: $this->remember,
             logoutOtherGuards: ['admin'],
             afterAuthenticate: function ($user): void {
-                if (! $user instanceof Partner || ! $user->isActive()) {
+                if (! $user instanceof Partner) {
+                    throw ValidationException::withMessages([
+                        'email' => __('auth.failed'),
+                    ]);
+                }
+
+                if ($user->isPending()) {
+                    throw ValidationException::withMessages([
+                        'email' => __('auth.partner.pending_approval'),
+                    ]);
+                }
+
+                if (! $user->isActive()) {
                     throw ValidationException::withMessages([
                         'email' => __('auth.failed'),
                     ]);

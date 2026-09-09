@@ -36,6 +36,7 @@ return [
 
     'esim' => [
         'packages_retrieved' => 'تم جلب حزم eSIM بنجاح.',
+        'countries_retrieved' => 'تم جلب الدول بنجاح.',
         'unavailable' => 'خدمة eSIM غير متاحة مؤقتاً.',
         'invalid_country' => 'دولة غير صالحة.',
         'purchased' => 'تم شراء eSIM بنجاح.',

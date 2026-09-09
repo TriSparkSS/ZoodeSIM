@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\Country\Contracts\CountryServiceInterface;
+use App\Services\Country\CountryService;
 use App\Services\Esim\Contracts\EsimOrderServiceInterface;
 use App\Services\Esim\Contracts\EsimPackageServiceInterface;
 use App\Services\Esim\Contracts\EsimPaymentGatewayInterface;
@@ -59,6 +61,7 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->singleton(CountryServiceInterface::class, CountryService::class);
         $this->app->singleton(LocaleManager::class);
         $this->app->singleton(ApiLogContext::class);
         $this->app->singleton(ApiLoggerServiceInterface::class, ApiLoggerService::class);

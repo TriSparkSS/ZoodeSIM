@@ -36,6 +36,7 @@ return [
 
     'esim' => [
         'packages_retrieved' => 'Пакеты eSIM успешно получены.',
+        'countries_retrieved' => 'Страны успешно получены.',
         'unavailable' => 'Сервис eSIM временно недоступен.',
         'invalid_country' => 'Недействительная страна.',
         'purchased' => 'eSIM успешно куплен.',

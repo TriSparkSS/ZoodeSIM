@@ -46,6 +46,26 @@
                         <x-ui.input wire:model="phone" placeholder="+992 XX XXX XXXX" :error="$errors->first('phone')" />
                     </x-ui.form-group>
 
+                    <x-ui.form-group :label="__('apply.form.password')" required :error="$errors->first('password')">
+                        <x-ui.input
+                            type="password"
+                            wire:model="password"
+                            :placeholder="__('apply.form.password_placeholder')"
+                            autocomplete="new-password"
+                            :error="$errors->first('password')"
+                        />
+                    </x-ui.form-group>
+
+                    <x-ui.form-group :label="__('apply.form.password_confirmation')" required :error="$errors->first('passwordConfirmation')">
+                        <x-ui.input
+                            type="password"
+                            wire:model="passwordConfirmation"
+                            :placeholder="__('apply.form.password_confirmation_placeholder')"
+                            autocomplete="new-password"
+                            :error="$errors->first('passwordConfirmation')"
+                        />
+                    </x-ui.form-group>
+
                     <x-ui.form-group :label="__('apply.form.platforms')" :required="true" :error="$errors->first('platforms')">
                         <p class="mb-3 text-xs text-brand-muted">{{ __('apply.form.platforms_hint') }}</p>
                         <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
@@ -117,8 +137,8 @@
                     <x-ui.form-group :label="__('apply.form.country')">
                         <x-ui.select wire:model="country">
                             <option value="">{{ __('apply.form.country_placeholder') }}</option>
-                            @foreach(['tajikistan', 'uzbekistan', 'kazakhstan', 'russia', 'uae', 'other'] as $countryKey)
-                                <option value="{{ $countryKey }}">{{ __('ui.countries.'.$countryKey) }}</option>
+                            @foreach($countries as $countryOption)
+                                <option value="{{ $countryOption->code }}">{{ $countryOption->name }}</option>
                             @endforeach
                         </x-ui.select>
                     </x-ui.form-group>

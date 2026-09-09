@@ -2,13 +2,14 @@
 
 namespace App\Livewire\Admin;
 
-use App\Livewire\Concerns\WithLocalizedTitle;
-
 use App\Livewire\Concerns\WithAdminNavigation;
+use App\Livewire\Concerns\WithLocalizedTitle;
 use App\Livewire\Concerns\WithToast;
+use App\Models\Country;
 use App\Models\PartnerApplication;
 use App\Models\PromoCode;
 use App\Services\Partner\PartnerApplicationService;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use RuntimeException;
@@ -239,10 +240,12 @@ class Applications extends Component
      */
     protected function fetchApplications(): array
     {
+        $countryNames = Country::query()->pluck('name', 'code');
+
         return PartnerApplication::query()
             ->latest('created_at')
             ->get()
-            ->map(function (PartnerApplication $app) {
+            ->map(function (PartnerApplication $app) use ($countryNames) {
                 $name = trim($app->first_name.' '.($app->last_name ?? ''));
 
                 $promo = null;
@@ -268,6 +271,7 @@ class Applications extends Component
                     'followers' => $app->followers,
                     'niche' => $app->niche,
                     'country' => $app->country,
+                    'country_label' => $this->countryLabel($app->country, $countryNames),
                     'about' => $app->about,
                     'status' => $app->status,
                     'date' => $app->created_at?->format('Y-m-d'),
@@ -276,6 +280,27 @@ class Applications extends Component
                 ];
             })
             ->all();
+    }
+
+    /**
+     * @param  Collection<string, string>  $countryNames
+     */
+    protected function countryLabel(?string $code, $countryNames): string
+    {
+        if ($code === null || $code === '') {
+            return '—';
+        }
+
+        $normalized = strtoupper($code);
+
+        if ($countryNames->has($normalized)) {
+            return (string) $countryNames->get($normalized);
+        }
+
+        $key = 'ui.countries.'.$code;
+        $translated = __($key);
+
+        return $translated === $key ? $code : $translated;
     }
 
     protected function approveApplication(string $applicationId, string $promoCode, bool $fromModal = false): void

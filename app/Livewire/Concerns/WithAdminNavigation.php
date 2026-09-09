@@ -13,6 +13,7 @@ trait WithAdminNavigation
             ['label' => __('admin.nav.promo_codes'), 'href' => route('admin.promo-codes'), 'icon' => '🎟️', 'active' => request()->routeIs('admin.promo-codes')],
             ['label' => __('admin.nav.promo_audit'), 'href' => route('admin.promo-audit'), 'icon' => '🧾', 'active' => request()->routeIs('admin.promo-audit')],
             ['label' => __('admin.nav.pricing_slabs'), 'href' => route('admin.pricing-slabs'), 'icon' => '💲', 'active' => request()->routeIs('admin.pricing-slabs')],
+            ['label' => __('admin.nav.countries'), 'href' => route('admin.countries'), 'icon' => '🌍', 'active' => request()->routeIs('admin.countries')],
             ['label' => __('admin.nav.payouts'), 'href' => route('admin.payouts'), 'icon' => '💰', 'active' => request()->routeIs('admin.payouts')],
             ['label' => __('admin.nav.transactions'), 'href' => route('admin.transactions'), 'icon' => '📒', 'active' => request()->routeIs('admin.transactions')],
             ['label' => __('admin.nav.statistics'), 'href' => route('admin.statistics'), 'icon' => '📊', 'active' => request()->routeIs('admin.statistics')],

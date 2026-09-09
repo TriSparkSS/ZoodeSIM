@@ -64,6 +64,11 @@ class Partner extends Authenticatable
         return $this->status === 'active';
     }
 
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
+    }
+
     public function promoCodes(): HasMany
     {
         return $this->hasMany(PromoCode::class, 'partner_id', 'id');

@@ -6,7 +6,11 @@ use App\Livewire\Concerns\WithLocalizedTitle;
 use App\Livewire\Concerns\WithToast;
 use App\Models\PartnerApplication;
 use App\Services\Content\ContentBlockService;
+use App\Services\Country\Contracts\CountryServiceInterface;
+use App\Services\Partner\PartnerService;
 use App\Services\Referral\ReferralProgramSettings;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -43,6 +47,10 @@ class ApplyForm extends Component
 
     public string $about = '';
 
+    public string $password = '';
+
+    public string $passwordConfirmation = '';
+
     public bool $submitted = false;
 
     public function togglePlatform(string $platform): void
@@ -54,13 +62,15 @@ class ApplyForm extends Component
         }
     }
 
-    public function submit(): void
+    public function submit(PartnerService $partners): void
     {
-        $validated = $this->validate([
+        $this->validate([
             'firstName' => ['required', 'string', 'max:100'],
             'lastName' => ['nullable', 'string', 'max:100'],
-            'email' => ['required', 'email', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:partners,email'],
             'phone' => ['required', 'string', 'max:30'],
+            'password' => ['required', 'string', 'min:8', 'same:passwordConfirmation'],
+            'passwordConfirmation' => ['required', 'string'],
             'platforms' => ['required', 'array', 'min:1'],
             'instagram' => ['nullable', 'string', 'max:255'],
             'telegram' => ['nullable', 'string', 'max:255'],
@@ -68,17 +78,24 @@ class ApplyForm extends Component
             'youtube' => ['nullable', 'string', 'max:255'],
             'followers' => ['required', 'string'],
             'niche' => ['required', 'string'],
-            'country' => ['nullable', 'string', 'max:100'],
+            'country' => ['nullable', 'string', 'size:2', Rule::exists('countries', 'code')->where('is_active', true)],
             'about' => ['nullable', 'string', 'max:2000'],
         ], [
             'firstName.required' => __('apply.validation.required_fields'),
             'email.required' => __('apply.validation.required_fields'),
             'email.email' => __('apply.validation.email_invalid'),
+            'email.unique' => __('apply.validation.email_taken'),
             'phone.required' => __('apply.validation.required_fields'),
+            'password.required' => __('apply.validation.required_fields'),
+            'password.min' => __('apply.validation.password_min'),
+            'password.same' => __('apply.validation.password_confirmed'),
+            'passwordConfirmation.required' => __('apply.validation.required_fields'),
             'platforms.required' => __('apply.validation.platform_required'),
             'platforms.min' => __('apply.validation.platform_required'),
             'followers.required' => __('apply.validation.followers_required'),
             'niche.required' => __('apply.validation.niche_required'),
+            'country.size' => __('apply.validation.country_invalid'),
+            'country.exists' => __('apply.validation.country_invalid'),
         ]);
 
         // PDF requirement: contact (Telegram/Instagram) + link to their account.
@@ -99,27 +116,37 @@ class ApplyForm extends Component
             throw ValidationException::withMessages($contactErrors);
         }
 
-        PartnerApplication::query()->create([
-            'first_name' => $this->firstName,
-            'last_name' => $this->lastName !== '' ? $this->lastName : null,
-            'email' => $this->email,
-            'phone' => $this->phone,
-            'platforms' => array_values($this->platforms),
-            'instagram' => $this->instagram !== '' ? $this->instagram : null,
-            'telegram' => $this->telegram !== '' ? $this->telegram : null,
-            'tiktok' => $this->tiktok !== '' ? $this->tiktok : null,
-            'youtube' => $this->youtube !== '' ? $this->youtube : null,
-            'followers' => $this->followers,
-            'niche' => $this->niche,
-            'country' => $this->country !== '' ? $this->country : null,
-            'about' => $this->about !== '' ? $this->about : null,
-            'status' => 'pending',
-        ]);
+        DB::transaction(function () use ($partners) {
+            $application = PartnerApplication::query()->create([
+                'first_name' => $this->firstName,
+                'last_name' => $this->lastName !== '' ? $this->lastName : null,
+                'email' => $this->email,
+                'phone' => $this->phone,
+                'platforms' => array_values($this->platforms),
+                'instagram' => $this->instagram !== '' ? $this->instagram : null,
+                'telegram' => $this->telegram !== '' ? $this->telegram : null,
+                'tiktok' => $this->tiktok !== '' ? $this->tiktok : null,
+                'youtube' => $this->youtube !== '' ? $this->youtube : null,
+                'followers' => $this->followers,
+                'niche' => $this->niche,
+                'country' => $this->country !== '' ? strtoupper($this->country) : null,
+                'about' => $this->about !== '' ? $this->about : null,
+                'status' => 'pending',
+            ]);
 
+            $created = $partners->createFromApplication($application, $this->password, 'pending');
+
+            $application->update([
+                'partner_id' => $created['partner']->id,
+            ]);
+        });
+
+        $this->password = '';
+        $this->passwordConfirmation = '';
         $this->submitted = true;
     }
 
-    public function render(ContentBlockService $content, ReferralProgramSettings $program)
+    public function render(ContentBlockService $content, ReferralProgramSettings $program, CountryServiceInterface $countries)
     {
         $hero = $content->pair(
             'apply.hero.title',
@@ -133,6 +160,7 @@ class ApplyForm extends Component
             'registrationReward' => '$'.$program->defaultRegistrationReward(),
             'purchaseCommission' => $program->percentLabel($program->firstPurchaseCommissionPercent()),
             'userBonus' => $program->defaultUserBonusMb().' MB',
+            'countries' => $countries->active(),
         ]), 'apply.form.title');
     }
 }

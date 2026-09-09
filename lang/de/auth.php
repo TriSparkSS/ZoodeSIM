@@ -17,6 +17,7 @@ return [
     'partner' => [
         'title' => 'Partner-Anmeldung',
         'subtitle' => 'Melde dich an, um auf dein Referral-Dashboard und Einnahmen zuzugreifen.',
+        'pending_approval' => 'Dein Konto wartet auf die Freigabe durch einen Admin.',
     ],
 
     'admin' => [

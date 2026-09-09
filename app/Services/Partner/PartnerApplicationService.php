@@ -32,8 +32,8 @@ class PartnerApplicationService
         $this->promoCodes->assertCodeIsAvailable($normalized);
 
         return DB::transaction(function () use ($application, $normalized) {
-            $created = $this->partners->createFromApplication($application);
-            $partner = $created['partner'];
+            $resolved = $this->resolvePartnerForApproval($application);
+            $partner = $resolved['partner'];
 
             $promo = $this->promoCodes->create(new CreatePromoCodeData(
                 partnerId: $partner->id,
@@ -55,7 +55,7 @@ class PartnerApplicationService
                 'partner' => $partner,
                 'promo' => $promo,
                 'application' => $application->fresh(),
-                'plain_password' => $created['plain_password'],
+                'plain_password' => $resolved['plain_password'],
             ];
         });
     }
@@ -66,9 +66,17 @@ class PartnerApplicationService
             throw new RuntimeException('Only pending applications can be rejected.');
         }
 
-        $application->update(['status' => 'rejected']);
+        return DB::transaction(function () use ($application) {
+            $application->update(['status' => 'rejected']);
 
-        return $application->fresh();
+            $partner = $this->existingPartner($application);
+
+            if ($partner !== null && $partner->isPending()) {
+                $partner->update(['status' => 'blocked']);
+            }
+
+            return $application->fresh();
+        });
     }
 
     public function suggestPromoCode(PartnerApplication $application): string
@@ -76,5 +84,35 @@ class PartnerApplicationService
         $name = trim($application->first_name.' '.($application->last_name ?? ''));
 
         return $this->promoCodes->suggestForName($name !== '' ? $name : $application->first_name);
+    }
+
+    /**
+     * @return array{partner: Partner, plain_password: string}
+     */
+    protected function resolvePartnerForApproval(PartnerApplication $application): array
+    {
+        $existing = $this->existingPartner($application);
+
+        if ($existing !== null) {
+            return [
+                'partner' => $this->partners->activateFromApplication($existing, $application),
+                'plain_password' => '',
+            ];
+        }
+
+        return $this->partners->createFromApplication($application);
+    }
+
+    protected function existingPartner(PartnerApplication $application): ?Partner
+    {
+        if ($application->partner_id) {
+            $byId = Partner::query()->whereKey($application->partner_id)->first();
+
+            if ($byId !== null) {
+                return $byId;
+            }
+        }
+
+        return Partner::query()->where('email', $application->email)->first();
     }
 }

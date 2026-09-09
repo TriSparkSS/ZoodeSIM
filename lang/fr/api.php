@@ -36,6 +36,7 @@ return [
 
     'esim' => [
         'packages_retrieved' => 'Forfaits eSIM récupérés avec succès.',
+        'countries_retrieved' => 'Pays récupérés avec succès.',
         'unavailable' => 'Le service eSIM est temporairement indisponible.',
         'invalid_country' => 'Pays invalide.',
         'purchased' => 'eSIM acheté avec succès.',

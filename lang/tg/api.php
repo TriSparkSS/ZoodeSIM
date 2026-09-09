@@ -36,6 +36,7 @@ return [
 
     'esim' => [
         'packages_retrieved' => 'Бастаҳои eSIM бомуваффақият гирифта шуданд.',
+        'countries_retrieved' => 'Кишварҳо бомуваффақият гирифта шуданд.',
         'unavailable' => 'Хидмати eSIM муваққатан дастрас нест.',
         'invalid_country' => 'Кишвари нодуруст.',
         'purchased' => 'eSIM бомуваффақият харида шуд.',

@@ -33,6 +33,18 @@ class EnsurePartnerAuthenticated
         /** @var Partner $partner */
         $partner = Auth::guard('partner')->user();
 
+        if ($partner->isPending()) {
+            Auth::guard('partner')->logout();
+
+            if ($this->wantsJsonDenial($request)) {
+                abort(403, 'Unauthorized.');
+            }
+
+            return redirect()
+                ->route('login')
+                ->withErrors(['email' => __('auth.partner.pending_approval')]);
+        }
+
         if (! $partner->isActive()) {
             Auth::guard('partner')->logout();
 

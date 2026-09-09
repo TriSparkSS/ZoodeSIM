@@ -178,7 +178,7 @@
                 </div>
                 <div class="flex items-center justify-between border-b border-surface-border py-2.5 dark:border-brand-border/40">
                     <span class="text-surface-muted dark:text-brand-muted">{{ __('apply.form.country') }}</span>
-                    <span class="font-semibold">{{ __('ui.countries.'.$viewingApplication['country']) }}</span>
+                    <span class="font-semibold">{{ $viewingApplication['country_label'] ?? $viewingApplication['country'] }}</span>
                 </div>
                 @if(filled($viewingApplication['about']))
                     <div class="flex items-start justify-between border-b border-surface-border py-2.5 dark:border-brand-border/40">

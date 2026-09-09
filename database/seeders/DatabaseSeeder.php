@@ -24,5 +24,6 @@ class DatabaseSeeder extends Seeder
         $this->call(PartnerSeeder::class);
         $this->call(TranslatableContentSeeder::class);
         $this->call(PricingSlabSeeder::class);
+        $this->call(CountrySeeder::class);
     }
 }

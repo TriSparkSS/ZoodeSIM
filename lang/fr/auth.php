@@ -17,6 +17,7 @@ return [
     'partner' => [
         'title' => 'Connexion partenaire',
         'subtitle' => 'Connectez-vous pour accéder à votre tableau de bord et vos gains.',
+        'pending_approval' => 'Votre compte est en attente d\'approbation par un administrateur.',
     ],
 
     'admin' => [

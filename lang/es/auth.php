@@ -17,6 +17,7 @@ return [
     'partner' => [
         'title' => 'Inicio de sesión de socios',
         'subtitle' => 'Inicia sesión para acceder a tu panel de referidos y ganancias.',
+        'pending_approval' => 'Tu cuenta está esperando la aprobación del administrador.',
     ],
 
     'admin' => [
