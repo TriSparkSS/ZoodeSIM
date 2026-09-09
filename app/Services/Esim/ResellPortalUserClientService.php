@@ -3,12 +3,15 @@
 namespace App\Services\Esim;
 
 use App\Exceptions\EsimPurchaseException;
+use App\Exceptions\ResellPortalException;
 use App\Models\User;
+use App\Services\Esim\Contracts\ResellPortalUserClientServiceInterface;
 use App\Services\ResellPortal\Contracts\ResellPortalClientInterface;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class ResellPortalUserClientService
+class ResellPortalUserClientService implements ResellPortalUserClientServiceInterface
 {
     public function __construct(
         protected ResellPortalClientInterface $client,
@@ -58,5 +61,19 @@ class ResellPortalUserClientService
 
             return $clientId;
         });
+    }
+
+    public function tryEnsure(User $user): ?int
+    {
+        try {
+            return $this->resolve($user);
+        } catch (ResellPortalException|EsimPurchaseException|QueryException $e) {
+            Log::warning('ResellPortal client not provisioned during registration', [
+                'user_id' => $user->id,
+                'reason' => $e instanceof ResellPortalException ? $e->reason : $e::class,
+            ]);
+
+            return null;
+        }
     }
 }

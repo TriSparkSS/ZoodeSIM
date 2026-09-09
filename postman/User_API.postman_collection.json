@@ -1,89 +1,15 @@
 {
   "info": {
-    "_postman_id": "b8d4f2e1-5c3a-4f9b-8d22-esim-user-api",
+    "_postman_id": "64600a01-8f13-43ad-84c6-d8d50c82a382",
     "name": "ZoodeSIM User API",
-    "description": "User registration, login, logout, and profile endpoints.\n\n**Setup**\n1. Import this collection and `User_API.postman_environment.json`.\n2. Select the **ZoodeSIM User API — Local** environment.\n3. Set `baseUrl` if needed (`http://esim.test` for Herd, or `http://localhost`).\n4. Register and Login both save `token` automatically for protected requests.\n\n**Locale**\nUse `lang` (`en`, `es`, `ru`, `fr`, `de`, `tg`) as `?lang=` or `Accept-Language`.\n\n**Envelope**\n```json\n{ \"success\": true, \"message\": \"...\", \"data\": {}, \"errors\": null }\n{ \"success\": false, \"message\": \"...\", \"data\": null, \"errors\": {} }\n```",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "description": "Mirrors `routes/api.php`.\n\n**User (Sanctum Bearer `token`)**\n- `POST /api/promo/validate`\n- `POST /api/user/register` · `POST /api/user/login` · `POST /api/user/logout` · `GET /api/user/profile`\n- `GET /api/user/notifications` · `POST /api/user/notifications/read-all` · `POST /api/user/notifications/{notification}/read`\n- `GET /api/user/esim/packages` · `POST /api/user/esim/orders` · `GET /api/user/esim/orders/{order}`\n\n**Admin (session `admin.auth`, not Bearer)**\n- `GET|POST /api/admin/pricing/slabs`\n- `PUT|DELETE /api/admin/pricing/slabs/{slab}`\n- `POST /api/admin/pricing/preview`\n\n**Setup**\n1. Import this collection and `User_API.postman_environment.json`.\n2. Select the **ZoodeSIM User API — Local** environment.\n3. Set `baseUrl` if needed (`https://esim.test` for Herd, or `http://localhost`).\n4. Register and Login both save `token` for protected user requests.\n5. Admin pricing needs an admin session cookie from `/admin/login` (Postman Interceptor / cookie jar).\n\n**Locale**\nUse `lang` (`en`, `es`, `ru`, `fr`, `de`, `tg`) as `?lang=` or `Accept-Language`.\n\n**Envelope**\n```json\n{ \"success\": true, \"message\": \"...\", \"data\": {}, \"errors\": null }\n{ \"success\": false, \"message\": \"...\", \"data\": null, \"errors\": {} }\n```",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "29209019"
   },
-  "auth": {
-    "type": "bearer",
-    "bearer": [
-      {
-        "key": "token",
-        "value": "{{token}}",
-        "type": "string"
-      }
-    ]
-  },
-  "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://esim.test"
-    },
-    {
-      "key": "lang",
-      "value": "en"
-    },
-    {
-      "key": "token",
-      "value": ""
-    }
-  ],
   "item": [
     {
       "name": "Register",
       "item": [
-        {
-          "name": "Register without referral code",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 201', function () {",
-                  "    pm.response.to.have.status(201);",
-                  "});",
-                  "const json = pm.response.json();",
-                  "if (json.success && json.data && json.data.token) {",
-                  "    pm.environment.set('token', json.data.token);",
-                  "    pm.collectionVariables.set('token', json.data.token);",
-                  "}",
-                  "pm.test('Envelope includes token and bonus_mb 0', function () {",
-                  "    pm.expect(json.success).to.eql(true);",
-                  "    pm.expect(json.errors).to.eql(null);",
-                  "    pm.expect(json.data.bonus_mb).to.eql(0);",
-                  "    pm.expect(json.data.token_type).to.eql('Bearer');",
-                  "    pm.expect(json.data.token).to.be.a('string').and.not.empty;",
-                  "    pm.expect(json.data.user).to.include.keys('id', 'name', 'email', 'phone');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": { "type": "noauth" },
-            "method": "POST",
-            "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept-Language", "value": "{{lang}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"name\": \"{{name}}\",\n    \"email\": \"{{email}}\",\n    \"phone\": \"{{phone}}\",\n    \"password\": \"{{password}}\",\n    \"password_confirmation\": \"{{password}}\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/user/register?lang={{lang}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "user", "register"],
-              "query": [
-                { "key": "lang", "value": "{{lang}}" }
-              ]
-            },
-            "description": "Creates a user with no referral. Returns Bearer token, safe user fields, and `{ bonus_mb: 0 }`. Saves `token` for Profile and Logout."
-          }
-        },
         {
           "name": "Register with valid referral code",
           "event": [
@@ -111,12 +37,23 @@
             }
           ],
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept-Language", "value": "{{lang}}" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -124,95 +61,24 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/user/register?lang={{lang}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "user", "register"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "register"
+              ],
               "query": [
-                { "key": "lang", "value": "{{lang}}" }
+                {
+                  "key": "lang",
+                  "value": "{{lang}}"
+                }
               ]
             },
-            "description": "Set `referral_code` to an active partner promo. Returns Bearer token, user, and `{ bonus_mb }`. Use a unique email/phone each run."
-          }
-        },
-        {
-          "name": "Register — missing phone",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 422', function () {",
-                  "    pm.response.to.have.status(422);",
-                  "});",
-                  "pm.test('Error envelope', function () {",
-                  "    const json = pm.response.json();",
-                  "    pm.expect(json.success).to.eql(false);",
-                  "    pm.expect(json.data).to.eql(null);",
-                  "    pm.expect(json.errors.phone).to.be.an('array');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": { "type": "noauth" },
-            "method": "POST",
-            "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"name\": \"{{name}}\",\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\",\n    \"password_confirmation\": \"{{password}}\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/user/register",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "user", "register"]
-            },
-            "description": "Phone is required. Expect 422 with `errors.phone`."
-          }
-        },
-        {
-          "name": "Register — invalid referral code",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 422', function () {",
-                  "    pm.response.to.have.status(422);",
-                  "});",
-                  "pm.test('Localized invalid-code message', function () {",
-                  "    const json = pm.response.json();",
-                  "    pm.expect(json.success).to.eql(false);",
-                  "    pm.expect(json.data).to.eql(null);",
-                  "    pm.expect(json.errors.referral_code).to.be.an('array');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": { "type": "noauth" },
-            "method": "POST",
-            "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept-Language", "value": "ru" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"name\": \"{{name}}\",\n    \"email\": \"new-user@example.com\",\n    \"phone\": \"+15550001111\",\n    \"password\": \"{{password}}\",\n    \"password_confirmation\": \"{{password}}\",\n    \"referral_code\": \"MISSING1\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/user/register",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "user", "register"]
-            },
-            "description": "Invalid / expired / inactive / exhausted codes return 422. This request uses `Accept-Language: ru`."
-          }
+            "description": "Set `referral_code` to an active partner promo. Also provisions a ResellPortal client server-side (not returned in JSON). Returns Bearer token, user, and `{ bonus_mb }`. Use a unique email/phone each run."
+          },
+          "response": []
         }
       ]
     },
@@ -246,12 +112,23 @@
             }
           ],
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept-Language", "value": "{{lang}}" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -259,53 +136,24 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/user/login?lang={{lang}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "user", "login"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "login"
+              ],
               "query": [
-                { "key": "lang", "value": "{{lang}}" }
+                {
+                  "key": "lang",
+                  "value": "{{lang}}"
+                }
               ]
             },
             "description": "Saves `token` into the active environment for Profile and Logout."
-          }
-        },
-        {
-          "name": "Login — invalid credentials",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 401', function () {",
-                  "    pm.response.to.have.status(401);",
-                  "});",
-                  "pm.test('Error envelope', function () {",
-                  "    const json = pm.response.json();",
-                  "    pm.expect(json.success).to.eql(false);",
-                  "    pm.expect(json.data).to.eql(null);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": { "type": "noauth" },
-            "method": "POST",
-            "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"email\": \"{{email}}\",\n    \"password\": \"wrong-password\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/user/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "user", "login"]
-            },
-            "description": "Expect 401. Five failed attempts for the same email/IP are then throttled with 429."
-          }
+          },
+          "response": []
         },
         {
           "name": "Profile",
@@ -331,48 +179,35 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Accept-Language", "value": "{{lang}}" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/user/profile?lang={{lang}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "user", "profile"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "profile"
+              ],
               "query": [
-                { "key": "lang", "value": "{{lang}}" }
+                {
+                  "key": "lang",
+                  "value": "{{lang}}"
+                }
               ]
             },
             "description": "Requires Bearer token from Login. Returns the authenticated user's safe fields plus `bonus_mb`."
-          }
-        },
-        {
-          "name": "Profile — unauthenticated",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 401', function () {",
-                  "    pm.response.to.have.status(401);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": { "type": "noauth" },
-            "method": "GET",
-            "header": [
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/user/profile",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "user", "profile"]
-            },
-            "description": "No token. Expect 401."
-          }
+          },
+          "response": []
         },
         {
           "name": "Logout",
@@ -396,19 +231,35 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Accept-Language", "value": "{{lang}}" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/user/logout?lang={{lang}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "user", "logout"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "logout"
+              ],
               "query": [
-                { "key": "lang", "value": "{{lang}}" }
+                {
+                  "key": "lang",
+                  "value": "{{lang}}"
+                }
               ]
             },
             "description": "Revokes the current Sanctum token and clears the saved `token` variable."
-          }
+          },
+          "response": []
         }
       ]
     },
@@ -417,60 +268,133 @@
       "item": [
         {
           "name": "List all packages",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns priced packages', function () {",
+                  "    pm.expect(json.success).to.eql(true);",
+                  "    pm.expect(json.data.packages).to.be.an('array');",
+                  "});",
+                  "if (json.success && json.data && json.data.packages && json.data.packages[0]) {",
+                  "    pm.collectionVariables.set('package_code', json.data.packages[0].package_code);",
+                  "    pm.environment.set('package_code', json.data.packages[0].package_code);",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Accept-Language", "value": "{{lang}}" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/user/esim/packages?lang={{lang}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "user", "esim", "packages"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "esim",
+                "packages"
+              ],
               "query": [
-                { "key": "lang", "value": "{{lang}}" }
+                {
+                  "key": "lang",
+                  "value": "{{lang}}"
+                }
               ]
             },
-            "description": "Authenticated. Returns ResellPortal package_code, name, price, and location. Price is the provider price (no markup yet)."
-          }
+            "description": "Authenticated. Packages without a pricing slab are omitted. Each item includes `package_code`, `name`, `price` (charged after first-purchase discount), `list_price`, `discount_amount`, `discount_percentage`, `currency`, `location`."
+          },
+          "response": []
         },
         {
           "name": "List packages by country",
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Accept-Language", "value": "{{lang}}" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/user/esim/packages?country=US&lang={{lang}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "user", "esim", "packages"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "esim",
+                "packages"
+              ],
               "query": [
-                { "key": "country", "value": "US" },
-                { "key": "lang", "value": "{{lang}}" }
+                {
+                  "key": "country",
+                  "value": "US"
+                },
+                {
+                  "key": "lang",
+                  "value": "{{lang}}"
+                }
               ]
             },
-            "description": "country is a 2-letter ISO code. Laravel sends it to ResellPortal as location."
-          }
+            "description": "Optional `country` is a 2-letter ISO code (sent to ResellPortal as `location`). Same priced payload as List all packages."
+          },
+          "response": []
         },
         {
           "name": "List packages — invalid country",
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/user/esim/packages?country=USA",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "user", "esim", "packages"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "esim",
+                "packages"
+              ],
               "query": [
-                { "key": "country", "value": "USA" }
+                {
+                  "key": "country",
+                  "value": "USA"
+                }
               ]
             },
             "description": "Expect 422 Invalid country."
-          }
+          },
+          "response": []
         }
       ]
     },
@@ -479,50 +403,129 @@
       "item": [
         {
           "name": "Purchase eSIM",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data && json.data.order && json.data.order.id) {",
+                  "    pm.collectionVariables.set('order_id', json.data.order.id);",
+                  "    pm.environment.set('order_id', json.data.order.id);",
+                  "}",
+                  "pm.test('Returns order and optional esim', function () {",
+                  "    pm.expect(json.success).to.eql(true);",
+                  "    pm.expect(json.data.order).to.include.keys('id', 'package_code', 'price', 'currency', 'status');",
+                  "});"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept-Language", "value": "{{lang}}" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}", "disabled": true }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "disabled": true
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"package_code\": \"PHAJHEAYP\"\n}"
+              "raw": "{\n    \"package_code\": \"{{package_code}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/user/esim/orders?lang={{lang}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "user", "esim", "orders"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "esim",
+                "orders"
+              ],
               "query": [
-                { "key": "lang", "value": "{{lang}}" }
+                {
+                  "key": "lang",
+                  "value": "{{lang}}"
+                }
               ]
             },
-            "description": "Authenticated. Send only package_code. Price, user_id, client_id, and service_id are ignored. Optional Idempotency-Key prevents duplicate provisioning."
-          }
+            "description": "Authenticated. Body is only `package_code`. Optional `Idempotency-Key` header prevents duplicate provisioning. Saves `order_id` for Get eSIM order."
+          },
+          "response": []
         },
         {
           "name": "Get eSIM order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Returns owned order', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.eql(true);",
+                  "    pm.expect(json.data.order.id).to.eql(pm.collectionVariables.get('order_id') || json.data.order.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Accept-Language", "value": "{{lang}}" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/user/esim/orders/:order?lang={{lang}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "user", "esim", "orders", ":order"],
-              "query": [
-                { "key": "lang", "value": "{{lang}}" }
+              "raw": "{{baseUrl}}/api/user/esim/orders/{{order_id}}?lang={{lang}}",
+              "host": [
+                "{{baseUrl}}"
               ],
-              "variable": [
-                { "key": "order", "value": "" }
+              "path": [
+                "api",
+                "user",
+                "esim",
+                "orders",
+                "{{order_id}}"
+              ],
+              "query": [
+                {
+                  "key": "lang",
+                  "value": "{{lang}}"
+                }
               ]
             },
-            "description": "Returns the authenticated user's own order only."
-          }
+            "description": "Returns the authenticated user's own order only (`order` + `esim`). Run Purchase eSIM first to set `order_id`."
+          },
+          "response": []
         }
       ]
     },
@@ -532,12 +535,23 @@
         {
           "name": "Validate promo code",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept-Language", "value": "{{lang}}" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -545,14 +559,24 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/promo/validate?lang={{lang}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "promo", "validate"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "promo",
+                "validate"
+              ],
               "query": [
-                { "key": "lang", "value": "{{lang}}" }
+                {
+                  "key": "lang",
+                  "value": "{{lang}}"
+                }
               ]
             },
-            "description": "Live validation for the registration screen. Always 200 with `{ valid, bonus_mb, partner_name }`."
-          }
+            "description": "Live validation for the registration screen. Always 200 with `{ valid, bonus_mb, partner_name, reason }`. `email` is optional (used for first-use / fraud checks)."
+          },
+          "response": []
         }
       ]
     },
@@ -561,41 +585,211 @@
       "item": [
         {
           "name": "List notifications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns unread_count and notifications', function () {",
+                  "    pm.expect(json.success).to.eql(true);",
+                  "    pm.expect(json.data).to.include.keys('unread_count', 'notifications');",
+                  "});",
+                  "if (json.success && json.data && json.data.notifications && json.data.notifications[0]) {",
+                  "    pm.collectionVariables.set('notification_id', json.data.notifications[0].id);",
+                  "    pm.environment.set('notification_id', json.data.notifications[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Accept-Language", "value": "{{lang}}" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/user/notifications?lang={{lang}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "user", "notifications"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "notifications"
+              ],
               "query": [
-                { "key": "lang", "value": "{{lang}}" }
+                {
+                  "key": "lang",
+                  "value": "{{lang}}"
+                }
               ]
-            }
-          }
+            },
+            "description": "Authenticated. Latest 50 notifications plus `unread_count`. Saves `notification_id` from the first row."
+          },
+          "response": []
         },
         {
-          "name": "Mark all notifications read",
+          "name": "Mark notification read",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Marks the notification read', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.eql(true);",
+                  "    pm.expect(json.data.notification.read_at).to.be.a('string').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Accept", "value": "application/json" },
-              { "key": "Accept-Language", "value": "{{lang}}" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/notifications/{{notification_id}}/read?lang={{lang}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "notifications",
+                "{{notification_id}}",
+                "read"
+              ],
+              "query": [
+                {
+                  "key": "lang",
+                  "value": "{{lang}}"
+                }
+              ]
+            },
+            "description": "Authenticated. Marks one of the current user's notifications as read. Unknown IDs return 404. Run List notifications first."
+          },
+          "response": []
+        },
+        {
+          "name": "Mark all notifications read",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('unread_count is 0', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.eql(true);",
+                  "    pm.expect(json.data.unread_count).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/user/notifications/read-all?lang={{lang}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "user", "notifications", "read-all"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "notifications",
+                "read-all"
+              ],
               "query": [
-                { "key": "lang", "value": "{{lang}}" }
+                {
+                  "key": "lang",
+                  "value": "{{lang}}"
+                }
               ]
-            }
-          }
+            },
+            "description": "Authenticated. Marks every unread notification as read."
+          },
+          "response": []
         }
       ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://esim.test"
+    },
+    {
+      "key": "lang",
+      "value": "en"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "package_code",
+      "value": "PHAJHEAYP"
+    },
+    {
+      "key": "order_id",
+      "value": ""
+    },
+    {
+      "key": "notification_id",
+      "value": ""
+    },
+    {
+      "key": "slab_id",
+      "value": ""
     }
   ]
 }

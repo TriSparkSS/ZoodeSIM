@@ -14,6 +14,7 @@ use App\Services\Esim\Contracts\EsimOrderServiceInterface;
 use App\Services\Esim\Contracts\EsimPackageServiceInterface;
 use App\Services\Esim\Contracts\EsimPaymentGatewayInterface;
 use App\Services\Esim\Contracts\EsimPricingServiceInterface;
+use App\Services\Esim\Contracts\ResellPortalUserClientServiceInterface;
 use App\Services\Referral\Contracts\PurchaseOfferServiceInterface;
 use App\Services\Referral\Contracts\PurchaseSettlementServiceInterface;
 use App\Services\ResellPortal\Contracts\ResellPortalClientInterface;
@@ -28,7 +29,7 @@ class EsimOrderService implements EsimOrderServiceInterface
         protected EsimPackageServiceInterface $packages,
         protected EsimPricingServiceInterface $pricing,
         protected EsimPaymentGatewayInterface $payments,
-        protected ResellPortalUserClientService $clients,
+        protected ResellPortalUserClientServiceInterface $clients,
         protected ResellPortalClientInterface $provider,
         protected PurchaseOfferServiceInterface $offers,
         protected PurchaseSettlementServiceInterface $settlement,

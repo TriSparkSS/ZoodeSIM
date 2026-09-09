@@ -12,6 +12,13 @@ class DeviceFraudTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->fakeResellPortalClientCreate();
+    }
+
     public function test_referral_registration_requires_device_id(): void
     {
         $this->makePromo($this->makePartner());

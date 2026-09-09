@@ -9,12 +9,21 @@ use App\Models\User;
 use App\Services\Promo\PromoRedemptionService;
 use Carbon\CarbonInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 class UserRegistrationApiTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->fakeResellPortalClientCreate();
+    }
 
     public function test_user_can_register_without_referral_code(): void
     {
@@ -35,9 +44,24 @@ class UserRegistrationApiTest extends TestCase
         $this->assertDatabaseHas('users', [
             'email' => 'user@example.com',
             'phone' => '+1234567890',
+            'resellportal_client_id' => 123,
         ]);
         $this->assertDatabaseCount('promo_usage', 0);
         $this->assertDatabaseCount('personal_access_tokens', 1);
+
+        $response->assertJsonMissingPath('data.user.resellportal_client_id')
+            ->assertJsonMissingPath('data.resellportal_client_id');
+        $this->assertStringNotContainsString('test-api-key', (string) $response->getContent());
+        $this->assertStringNotContainsString('test-api-secret', (string) $response->getContent());
+
+        Http::assertSent(function ($request) {
+            return $request->method() === 'POST'
+                && str_ends_with((string) strtok($request->url(), '?'), '/clients')
+                && $request['name'] === 'Ada Lovelace'
+                && $request['email'] === 'user@example.com'
+                && $request['phone'] === '+1234567890';
+        });
+        Http::assertSentCount(1);
 
         $this->withToken($response->json('data.token'))
             ->getJson('/api/user/profile')
@@ -66,6 +90,7 @@ class UserRegistrationApiTest extends TestCase
         $user = User::query()->where('email', 'user@example.com')->first();
         $this->assertNotNull($user);
         $this->assertSame($user->id, $response->json('data.user.id'));
+        $this->assertSame(123, $user->resellportal_client_id);
 
         $this->assertDatabaseHas('promo_usage', [
             'user_id' => $user->id,
@@ -279,6 +304,37 @@ class UserRegistrationApiTest extends TestCase
             ->assertJson([
                 'message' => trans('api.promo.invalid', [], 'de'),
             ]);
+    }
+
+    public function test_registration_succeeds_when_resellportal_client_is_unauthorized(): void
+    {
+        $this->replaceHttpFake([
+            '*/clients' => Http::response(['success' => false, 'message' => 'Invalid API Key'], 401),
+        ]);
+
+        $response = $this->postJson('/api/user/register', $this->validPayload());
+
+        $response->assertCreated()
+            ->assertJsonPath('data.user.email', 'user@example.com')
+            ->assertJsonMissingPath('data.user.resellportal_client_id');
+
+        $this->assertNull(User::query()->where('email', 'user@example.com')->value('resellportal_client_id'));
+        $this->assertStringNotContainsString('test-api-key', (string) $response->getContent());
+        $this->assertStringNotContainsString('Invalid API Key', (string) $response->getContent());
+    }
+
+    public function test_registration_succeeds_when_resellportal_client_times_out(): void
+    {
+        $this->replaceHttpFake(function () {
+            throw new ConnectionException('cURL error 28: Operation timed out');
+        });
+
+        $response = $this->postJson('/api/user/register', $this->validPayload());
+
+        $response->assertCreated()
+            ->assertJsonPath('data.bonus_mb', 0);
+
+        $this->assertNull(User::query()->where('email', 'user@example.com')->value('resellportal_client_id'));
     }
 
     /**

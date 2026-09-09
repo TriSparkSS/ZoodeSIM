@@ -4,6 +4,7 @@ namespace App\Services\User;
 
 use App\Models\PromoCode;
 use App\Models\User;
+use App\Services\Esim\Contracts\ResellPortalUserClientServiceInterface;
 use App\Services\Fraud\Contracts\DeviceFraudServiceInterface;
 use App\Services\Promo\PromoEligibilityService;
 use App\Services\Promo\PromoRedemptionService;
@@ -15,6 +16,7 @@ class UserRegistrationService
         protected PromoEligibilityService $eligibility,
         protected PromoRedemptionService $redemption,
         protected DeviceFraudServiceInterface $fraud,
+        protected ResellPortalUserClientServiceInterface $clients,
     ) {}
 
     /**
@@ -32,7 +34,7 @@ class UserRegistrationService
         $promo = $this->resolvePromo($referralCode, $email);
         $this->fraud->assertCanRegister($deviceId, $ip, $promo !== null);
 
-        return DB::transaction(function () use ($name, $email, $phone, $password, $promo, $deviceId, $ip) {
+        $result = DB::transaction(function () use ($name, $email, $phone, $password, $promo, $deviceId, $ip) {
             $user = User::query()->create([
                 'name' => $name,
                 'email' => $email,
@@ -56,6 +58,12 @@ class UserRegistrationService
                 'bonus_mb' => (int) $usage->bonus_mb_given,
             ];
         });
+
+        if ($this->clients->tryEnsure($result['user']) !== null) {
+            $result['user']->refresh();
+        }
+
+        return $result;
     }
 
     protected function resolvePromo(?string $referralCode, string $email): ?PromoCode

@@ -132,6 +132,8 @@ class UserLoginApiTest extends TestCase
             'max_usage' => null,
         ]);
 
+        $this->fakeResellPortalClientCreate();
+
         $this->postJson('/api/user/register', [
             'name' => 'Ada Lovelace',
             'email' => 'ada@example.com',
