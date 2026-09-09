@@ -2,6 +2,7 @@
 
 return [
     'nav' => [
+        'dashboard' => 'Панел',
         'applications' => 'Дархостҳо',
         'partners' => 'Шарикон',
         'users' => 'Корбарон',
@@ -256,6 +257,16 @@ return [
         'monthly_trend' => 'Раванди моҳона',
         'top_partners' => 'Шарикони беҳтарин',
         'recent_applications' => 'Дархостҳои охирин',
+        'resellportal_balance' => 'Тавозуни ResellPortal',
+        'balance_cached' => 'Аз кэш',
+        'balance_refresh' => 'Навсозӣ',
+        'balance_unavailable' => 'Тавозун ҳоло дастрас нест.',
+        'balance_refreshed' => 'Тавозуни ResellPortal навсозӣ шуд.',
+    ],
+    'dashboard' => [
+        'title' => 'Панел',
+        'subtitle' => 'Шарҳи платформа, омор ва тавозуни API-и провайдер.',
+        'view_statistics' => 'Дидани омор',
     ],
     'settings' => [
         'title' => 'Танзимот',

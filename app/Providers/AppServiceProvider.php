@@ -37,7 +37,9 @@ use App\Services\Referral\PurchaseOfferService;
 use App\Services\Referral\PurchaseSettlementService;
 use App\Services\Referral\ReferralMilestoneService;
 use App\Services\Referral\ReferralProgramSettings;
+use App\Services\ResellPortal\Contracts\ResellPortalBalanceServiceInterface;
 use App\Services\ResellPortal\Contracts\ResellPortalClientInterface;
+use App\Services\ResellPortal\ResellPortalBalanceService;
 use App\Services\ResellPortal\ResellPortalClient;
 use App\Services\User\Contracts\UserAdminServiceInterface;
 use App\Services\User\UserAdminService;
@@ -59,6 +61,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(ApiLogContext::class);
         $this->app->singleton(ApiLoggerServiceInterface::class, ApiLoggerService::class);
         $this->app->singleton(ResellPortalClientInterface::class, ResellPortalClient::class);
+        $this->app->singleton(ResellPortalBalanceServiceInterface::class, ResellPortalBalanceService::class);
         $this->app->singleton(EsimPackageServiceInterface::class, EsimPackageService::class);
         $this->app->singleton(PricingService::class);
         $this->app->singleton(PricingServiceInterface::class, PricingService::class);

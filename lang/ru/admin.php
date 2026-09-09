@@ -2,6 +2,7 @@
 
 return [
     'nav' => [
+        'dashboard' => 'Панель',
         'applications' => 'Заявки',
         'partners' => 'Партнёры',
         'users' => 'Пользователи',
@@ -256,6 +257,16 @@ return [
         'monthly_trend' => 'Месячная динамика',
         'top_partners' => 'Топ партнёры',
         'recent_applications' => 'Недавние заявки',
+        'resellportal_balance' => 'Баланс ResellPortal',
+        'balance_cached' => 'Из кэша',
+        'balance_refresh' => 'Обновить',
+        'balance_unavailable' => 'Баланс сейчас недоступен.',
+        'balance_refreshed' => 'Баланс ResellPortal обновлён.',
+    ],
+    'dashboard' => [
+        'title' => 'Панель',
+        'subtitle' => 'Обзор платформы, статистика и баланс API провайдера.',
+        'view_statistics' => 'Открыть статистику',
     ],
     'settings' => [
         'title' => 'Настройки',

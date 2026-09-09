@@ -6,6 +6,7 @@ use App\Http\Controllers\LocaleController;
 use App\Livewire\Admin\ApiLogs;
 use App\Livewire\Admin\ApiLogShow;
 use App\Livewire\Admin\Applications;
+use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Livewire\Admin\Partners;
 use App\Livewire\Admin\Payouts;
 use App\Livewire\Admin\PricingSlabs;
@@ -56,7 +57,7 @@ Route::prefix('partner')->name('partner.')->middleware('partner.auth')->group(fu
 });
 
 Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function () {
-    Route::redirect('/', '/admin/applications');
+    Route::get('/', AdminDashboard::class)->name('dashboard');
     Route::get('/applications', Applications::class)->name('applications');
     Route::get('/partners', Partners::class)->name('partners');
     Route::get('/users', Users::class)->name('users');

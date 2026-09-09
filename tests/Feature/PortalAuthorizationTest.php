@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\Auth\AdminLogin;
+use App\Livewire\Auth\PartnerLogin;
 use App\Models\Admin;
 use App\Models\Partner;
 use App\Models\PromoCode;
@@ -9,6 +11,7 @@ use App\Policies\PromoCodePolicy;
 use App\Services\Partner\PartnerPortalDataService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -26,13 +29,14 @@ class PortalAuthorizationTest extends TestCase
     public function test_admin_routes_require_authentication(): void
     {
         $this->get(route('admin.applications'))->assertRedirect(route('admin.login'));
+        $this->get(route('admin.dashboard'))->assertRedirect(route('admin.login'));
     }
 
     public function test_partner_can_login_and_access_partner_panel(): void
     {
         $partner = $this->makePartner('Partner One', 'partner1@example.com', 'password123');
 
-        Livewire::test(\App\Livewire\Auth\PartnerLogin::class)
+        Livewire::test(PartnerLogin::class)
             ->set('email', 'partner1@example.com')
             ->set('password', 'password123')
             ->call('login')
@@ -52,21 +56,34 @@ class PortalAuthorizationTest extends TestCase
             'password' => 'password123',
         ]);
 
-        Livewire::test(\App\Livewire\Auth\AdminLogin::class)
+        Livewire::test(AdminLogin::class)
             ->set('email', 'admin@example.com')
             ->set('password', 'password123')
             ->call('login')
-            ->assertRedirect(route('admin.applications'));
+            ->assertRedirect(route('admin.dashboard'));
 
         $this->assertAuthenticatedAs($admin, 'admin');
         $this->assertGuest('partner');
 
+        Http::fake([
+            '*/balance' => Http::response([
+                'success' => true,
+                'balance' => 10.00,
+                'currency' => 'USD',
+            ], 200),
+        ]);
+
+        $this->get(route('admin.dashboard'))->assertOk();
         $this->get(route('admin.applications'))->assertOk();
     }
 
     public function test_partner_cannot_access_admin_panel(): void
     {
         $partner = $this->makePartner('Partner One', 'partner1@example.com', 'password123');
+
+        $this->actingAs($partner, 'partner')
+            ->get(route('admin.dashboard'))
+            ->assertForbidden();
 
         $this->actingAs($partner, 'partner')
             ->get(route('admin.applications'))
@@ -90,7 +107,7 @@ class PortalAuthorizationTest extends TestCase
     {
         $this->makePartner('Partner One', 'partner1@example.com', 'password123');
 
-        Livewire::test(\App\Livewire\Auth\PartnerLogin::class)
+        Livewire::test(PartnerLogin::class)
             ->set('email', 'partner1@example.com')
             ->set('password', 'wrong-password')
             ->call('login')
@@ -149,7 +166,7 @@ class PortalAuthorizationTest extends TestCase
 
         Auth::guard('admin')->login($admin);
 
-        Livewire::test(\App\Livewire\Auth\PartnerLogin::class)
+        Livewire::test(PartnerLogin::class)
             ->set('email', 'partner1@example.com')
             ->set('password', 'password123')
             ->call('login');

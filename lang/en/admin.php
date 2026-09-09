@@ -2,6 +2,7 @@
 
 return [
     'nav' => [
+        'dashboard' => 'Dashboard',
         'applications' => 'Applications',
         'partners' => 'Partners',
         'users' => 'Users',
@@ -267,6 +268,16 @@ return [
         'monthly_trend' => 'Monthly trend',
         'top_partners' => 'Top partners',
         'recent_applications' => 'Recent applications',
+        'resellportal_balance' => 'ResellPortal balance',
+        'balance_cached' => 'Cached',
+        'balance_refresh' => 'Refresh',
+        'balance_unavailable' => 'Balance is currently unavailable.',
+        'balance_refreshed' => 'ResellPortal balance updated.',
+    ],
+    'dashboard' => [
+        'title' => 'Dashboard',
+        'subtitle' => 'Platform overview, statistics, and provider API balance.',
+        'view_statistics' => 'View statistics',
     ],
     'settings' => [
         'title' => 'Settings',

@@ -2,6 +2,7 @@
 
 return [
     'nav' => [
+        'dashboard' => 'Panel',
         'applications' => 'Solicitudes',
         'partners' => 'Socios',
         'users' => 'Usuarios',
@@ -256,6 +257,16 @@ return [
         'monthly_trend' => 'Tendencia mensual',
         'top_partners' => 'Mejores socios',
         'recent_applications' => 'Solicitudes recientes',
+        'resellportal_balance' => 'Saldo de ResellPortal',
+        'balance_cached' => 'En caché',
+        'balance_refresh' => 'Actualizar',
+        'balance_unavailable' => 'El saldo no está disponible en este momento.',
+        'balance_refreshed' => 'Saldo de ResellPortal actualizado.',
+    ],
+    'dashboard' => [
+        'title' => 'Panel',
+        'subtitle' => 'Resumen de la plataforma, estadísticas y saldo de la API del proveedor.',
+        'view_statistics' => 'Ver estadísticas',
     ],
     'settings' => [
         'title' => 'Configuración',

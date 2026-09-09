@@ -2,6 +2,7 @@
 
 return [
     'nav' => [
+        'dashboard' => 'Dashboard',
         'applications' => 'Bewerbungen',
         'partners' => 'Partner',
         'users' => 'Nutzer',
@@ -256,6 +257,16 @@ return [
         'monthly_trend' => 'Monatlicher Trend',
         'top_partners' => 'Top-Partner',
         'recent_applications' => 'Aktuelle Bewerbungen',
+        'resellportal_balance' => 'ResellPortal-Guthaben',
+        'balance_cached' => 'Aus dem Cache',
+        'balance_refresh' => 'Aktualisieren',
+        'balance_unavailable' => 'Guthaben ist derzeit nicht verfügbar.',
+        'balance_refreshed' => 'ResellPortal-Guthaben aktualisiert.',
+    ],
+    'dashboard' => [
+        'title' => 'Dashboard',
+        'subtitle' => 'Plattformübersicht, Statistiken und Provider-API-Guthaben.',
+        'view_statistics' => 'Statistiken anzeigen',
     ],
     'settings' => [
         'title' => 'Einstellungen',

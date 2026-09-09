@@ -52,7 +52,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->redirectUsersTo(function (Request $request) {
             if (Auth::guard('admin')->check() || $request->is('admin/login')) {
-                return route('admin.applications');
+                return route('admin.dashboard');
             }
 
             if (Auth::guard('partner')->check() || $request->is('login')) {

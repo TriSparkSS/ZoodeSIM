@@ -10,7 +10,7 @@ use App\Services\Admin\AdminStatisticsService;
 use App\Services\ResellPortal\Contracts\ResellPortalBalanceServiceInterface;
 use Livewire\Component;
 
-class Statistics extends Component
+class Dashboard extends Component
 {
     use RefreshesResellPortalBalance;
     use WithAdminNavigation;
@@ -19,21 +19,13 @@ class Statistics extends Component
 
     public function render(AdminStatisticsService $statistics, ResellPortalBalanceServiceInterface $balance)
     {
-        $monthlyTrend = $statistics->monthlyTrend();
-        $maxEarnings = collect($monthlyTrend)->max('earnings') ?: 1;
-        $maxRegistrations = collect($monthlyTrend)->max('registrations') ?: 1;
-
-        return $this->withLocalizedTitle(view('livewire.admin.statistics', [
+        return $this->withLocalizedTitle(view('livewire.admin.dashboard', [
             'stats' => $statistics->summary(),
             'providerBalance' => $balance->current(),
-            'monthlyTrend' => $monthlyTrend,
-            'maxEarnings' => $maxEarnings,
-            'maxRegistrations' => $maxRegistrations,
-            'topPartners' => $statistics->topPartners(),
             'recentApplications' => $statistics->recentApplications(),
-            'breadcrumbs' => $this->adminBreadcrumbs(__('admin.nav.statistics')),
+            'breadcrumbs' => $this->adminBreadcrumbs(__('admin.nav.dashboard')),
         ])->layout('layouts.admin', [
             'navItems' => $this->adminNavItems(),
-        ]), 'admin.nav.statistics');
+        ]), 'admin.dashboard.title');
     }
 }

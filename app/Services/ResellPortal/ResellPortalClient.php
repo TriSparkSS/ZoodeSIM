@@ -91,6 +91,14 @@ class ResellPortalClient implements ResellPortalClientInterface
     }
 
     /**
+     * @return array<string, mixed>
+     */
+    public function getBalance(): array
+    {
+        return $this->get('balance');
+    }
+
+    /**
      * @param  array<string, mixed>  $query
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>

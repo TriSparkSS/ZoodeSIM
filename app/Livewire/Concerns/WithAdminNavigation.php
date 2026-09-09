@@ -7,7 +7,7 @@ trait WithAdminNavigation
     protected function adminNavItems(): array
     {
         return [
-            ['label' => __('admin.nav.applications'), 'href' => route('admin.applications'), 'icon' => '📋', 'active' => request()->routeIs('admin.applications')],
+            ['label' => __('admin.nav.dashboard'), 'href' => route('admin.dashboard'), 'icon' => '🏠', 'active' => request()->routeIs('admin.dashboard')],
             ['label' => __('admin.nav.partners'), 'href' => route('admin.partners'), 'icon' => '👥', 'active' => request()->routeIs('admin.partners')],
             ['label' => __('admin.nav.users'), 'href' => route('admin.users'), 'icon' => '👤', 'active' => request()->routeIs('admin.users')],
             ['label' => __('admin.nav.promo_codes'), 'href' => route('admin.promo-codes'), 'icon' => '🎟️', 'active' => request()->routeIs('admin.promo-codes')],
@@ -27,7 +27,7 @@ trait WithAdminNavigation
     protected function adminBreadcrumbs(string $current): array
     {
         return [
-            ['label' => __('ui.admin_panel'), 'href' => route('admin.applications')],
+            ['label' => __('ui.admin_panel'), 'href' => route('admin.dashboard')],
             ['label' => $current, 'active' => true],
         ];
     }

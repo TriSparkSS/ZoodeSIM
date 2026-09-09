@@ -2,6 +2,7 @@
 
 return [
     'nav' => [
+        'dashboard' => 'Tableau de bord',
         'applications' => 'Candidatures',
         'partners' => 'Partenaires',
         'users' => 'Utilisateurs',
@@ -256,6 +257,16 @@ return [
         'monthly_trend' => 'Tendance mensuelle',
         'top_partners' => 'Meilleurs partenaires',
         'recent_applications' => 'Candidatures récentes',
+        'resellportal_balance' => 'Solde ResellPortal',
+        'balance_cached' => 'En cache',
+        'balance_refresh' => 'Actualiser',
+        'balance_unavailable' => 'Le solde est actuellement indisponible.',
+        'balance_refreshed' => 'Solde ResellPortal mis à jour.',
+    ],
+    'dashboard' => [
+        'title' => 'Tableau de bord',
+        'subtitle' => 'Aperçu de la plateforme, statistiques et solde API du fournisseur.',
+        'view_statistics' => 'Voir les statistiques',
     ],
     'settings' => [
         'title' => 'Paramètres',

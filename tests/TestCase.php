@@ -15,6 +15,7 @@ abstract class TestCase extends BaseTestCase
             'services.resellportal.api_key' => 'test-api-key',
             'services.resellportal.api_secret' => 'test-api-secret',
             'services.resellportal.timeout' => 5,
+            'services.resellportal.balance_cache_ttl' => 60,
         ]);
     }
 }

@@ -2,6 +2,7 @@
 
 return [
     'nav' => [
+        'dashboard' => 'لوحة التحكم',
         'applications' => 'الطلبات',
         'partners' => 'الشركاء',
         'users' => 'المستخدمون',
@@ -218,6 +219,17 @@ return [
         'monthly_trend' => 'الاتجاه الشهري',
         'top_partners' => 'أفضل الشركاء',
         'recent_applications' => 'الطلبات الأخيرة',
+        'resellportal_balance' => 'رصيد ResellPortal',
+        'balance_cached' => 'من الذاكرة المؤقتة',
+        'balance_refresh' => 'تحديث',
+        'balance_unavailable' => 'الرصيد غير متاح حالياً.',
+        'balance_refreshed' => 'تم تحديث رصيد ResellPortal.',
+    ],
+
+    'dashboard' => [
+        'title' => 'لوحة التحكم',
+        'subtitle' => 'نظرة عامة على المنصة والإحصائيات ورصيد واجهة المزود.',
+        'view_statistics' => 'عرض الإحصائيات',
     ],
 
     'settings' => [

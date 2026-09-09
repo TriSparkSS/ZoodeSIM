@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\Auth\AdminLogin;
 use App\Models\Admin;
 use App\Models\AuthActivityLog;
 use App\Models\AuthSession;
@@ -24,6 +25,7 @@ class AdminAuthTest extends TestCase
     public function test_admin_routes_require_authentication(): void
     {
         $this->get(route('admin.applications'))->assertRedirect(route('admin.login'));
+        $this->get(route('admin.dashboard'))->assertRedirect(route('admin.login'));
     }
 
     public function test_admin_can_login_and_creates_session_and_log(): void
@@ -34,11 +36,11 @@ class AdminAuthTest extends TestCase
             'password' => 'password123',
         ]);
 
-        Livewire::test(\App\Livewire\Auth\AdminLogin::class)
+        Livewire::test(AdminLogin::class)
             ->set('email', 'admin@zoodesim.test')
             ->set('password', 'password123')
             ->call('login')
-            ->assertRedirect(route('admin.applications'));
+            ->assertRedirect(route('admin.dashboard'));
 
         $this->assertAuthenticatedAs($admin, 'admin');
 
@@ -56,7 +58,7 @@ class AdminAuthTest extends TestCase
 
     public function test_failed_login_is_logged(): void
     {
-        Livewire::test(\App\Livewire\Auth\AdminLogin::class)
+        Livewire::test(AdminLogin::class)
             ->set('email', 'nobody@example.com')
             ->set('password', 'wrongpass')
             ->call('login')

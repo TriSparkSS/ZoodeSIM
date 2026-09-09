@@ -61,7 +61,7 @@ class ApiLogShow extends Component
         return $this->withLocalizedTitle(view('livewire.admin.api-log-show', [
             'log' => $this->detail(app(SensitiveDataRedactor::class)),
             'breadcrumbs' => [
-                ['label' => __('ui.admin_panel'), 'href' => route('admin.applications')],
+                ['label' => __('ui.admin_panel'), 'href' => route('admin.dashboard')],
                 ['label' => __('admin.nav.api_logs'), 'href' => route('admin.api-logs')],
                 ['label' => __('admin.api_logs.details_title'), 'active' => true],
             ],

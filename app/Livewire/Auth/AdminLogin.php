@@ -22,7 +22,7 @@ class AdminLogin extends Component
     public function mount(): void
     {
         if (Auth::guard('admin')->check()) {
-            $this->redirectRoute('admin.applications', absolute: false);
+            $this->redirectRoute('admin.dashboard', absolute: false);
         }
     }
 
@@ -48,7 +48,7 @@ class AdminLogin extends Component
             logoutOtherGuards: ['partner'],
         );
 
-        $this->redirectRoute('admin.applications', absolute: false);
+        $this->redirectRoute('admin.dashboard', absolute: false);
     }
 
     public function render()
