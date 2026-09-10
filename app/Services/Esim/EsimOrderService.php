@@ -20,6 +20,7 @@ use App\Services\Referral\Contracts\PurchaseSettlementServiceInterface;
 use App\Services\ResellPortal\Contracts\ResellPortalClientInterface;
 use App\Support\ApiLogContext;
 use App\Support\ResellPortalProviderId;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -35,6 +36,7 @@ class EsimOrderService implements EsimOrderServiceInterface
         protected PurchaseOfferServiceInterface $offers,
         protected PurchaseSettlementServiceInterface $settlement,
         protected ApiLogContext $logContext,
+        protected EsimOrderQueryService $queries,
     ) {}
 
     public function purchase(User $user, string $packageCode, ?string $idempotencyKey = null): EsimOrder
@@ -70,6 +72,20 @@ class EsimOrderService implements EsimOrderServiceInterface
         }
 
         return $order;
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return Collection<int, EsimOrder>
+     */
+    public function listOwned(User $user, array $filters = []): Collection
+    {
+        return $this->queries->filteredQuery($filters)
+            ->with('detail')
+            ->where('user_id', $user->id)
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get();
     }
 
     protected function advance(EsimOrder $order): EsimOrder
@@ -198,6 +214,10 @@ class EsimOrderService implements EsimOrderServiceInterface
 
             throw new EsimPurchaseException('api.esim.provisioning_failed', 502, 'ResellPortal eSIM provisioning failed', $e);
         }
+
+        $order->update([
+            'resellportal_response' => $payload,
+        ]);
 
         $serviceId = ResellPortalProviderId::from($payload['service_id'] ?? null);
 

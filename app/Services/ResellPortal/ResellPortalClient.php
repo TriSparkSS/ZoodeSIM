@@ -91,6 +91,31 @@ class ResellPortalClient implements ResellPortalClientInterface
     }
 
     /**
+     * @param  array<string, mixed>  $query
+     * @return array<string, mixed>
+     */
+    public function getEsimOrders(array $query = []): array
+    {
+        $normalized = [];
+
+        foreach (['client_id', 'status', 'package_code', 'location', 'date_from', 'date_to'] as $key) {
+            if (! filled($query[$key] ?? null)) {
+                continue;
+            }
+
+            $value = trim((string) $query[$key]);
+
+            $normalized[$key] = match ($key) {
+                'client_id' => ctype_digit($value) ? (int) $value : $value,
+                'location' => strtoupper($value),
+                default => $value,
+            };
+        }
+
+        return $this->get('orders', $normalized);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function getBalance(): array

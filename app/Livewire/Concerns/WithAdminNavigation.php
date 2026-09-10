@@ -10,6 +10,7 @@ trait WithAdminNavigation
             ['label' => __('admin.nav.dashboard'), 'href' => route('admin.dashboard'), 'icon' => '🏠', 'active' => request()->routeIs('admin.dashboard')],
             ['label' => __('admin.nav.partners'), 'href' => route('admin.partners'), 'icon' => '👥', 'active' => request()->routeIs('admin.partners')],
             ['label' => __('admin.nav.users'), 'href' => route('admin.users'), 'icon' => '👤', 'active' => request()->routeIs('admin.users')],
+            ['label' => __('admin.nav.orders'), 'href' => route('admin.orders'), 'icon' => '📦', 'active' => request()->routeIs('admin.orders')],
             ['label' => __('admin.nav.promo_codes'), 'href' => route('admin.promo-codes'), 'icon' => '🎟️', 'active' => request()->routeIs('admin.promo-codes')],
             ['label' => __('admin.nav.promo_audit'), 'href' => route('admin.promo-audit'), 'icon' => '🧾', 'active' => request()->routeIs('admin.promo-audit')],
             ['label' => __('admin.nav.pricing_slabs'), 'href' => route('admin.pricing-slabs'), 'icon' => '💲', 'active' => request()->routeIs('admin.pricing-slabs')],

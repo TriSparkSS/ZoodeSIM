@@ -50,6 +50,7 @@ return [
         'invalid_country' => 'Кишвари нодуруст.',
         'purchased' => 'eSIM бомуваффақият харида шуд.',
         'order_retrieved' => 'Фармоиши eSIM бомуваффақият гирифта шуд.',
+        'orders_retrieved' => 'Фармоишҳои eSIM бомуваффақият гирифта шуданд.',
         'purchase_failed' => 'Хариди eSIM имконнопазир аст.',
         'package_not_found' => 'Баста ёфт нашуд.',
         'package_unavailable' => 'Баста дастрас нест.',

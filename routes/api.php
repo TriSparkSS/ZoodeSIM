@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Admin\PricingSlabController;
 use App\Http\Controllers\Api\Promo\ValidatePromoController;
 use App\Http\Controllers\Api\User\EsimCountryController;
 use App\Http\Controllers\Api\User\EsimPackageController;
+use App\Http\Controllers\Api\User\IndexEsimOrderController;
 use App\Http\Controllers\Api\User\LoginController;
 use App\Http\Controllers\Api\User\LogoutController;
 use App\Http\Controllers\Api\User\NotificationController;
@@ -42,6 +43,7 @@ Route::prefix('user')->group(function () {
         Route::get('esim/countries', EsimCountryController::class)->name('api.user.esim.countries');
         Route::get('esim/packages', EsimPackageController::class)->name('api.user.esim.packages');
         Route::post('esim/orders', StoreEsimOrderController::class)->name('api.user.esim.orders.store');
+        Route::get('esim/orders', IndexEsimOrderController::class)->name('api.user.esim.orders.index');
         Route::get('esim/orders/{order}', ShowEsimOrderController::class)->name('api.user.esim.orders.show');
     });
 });

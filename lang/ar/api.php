@@ -50,6 +50,7 @@ return [
         'invalid_country' => 'دولة غير صالحة.',
         'purchased' => 'تم شراء eSIM بنجاح.',
         'order_retrieved' => 'تم جلب طلب eSIM بنجاح.',
+        'orders_retrieved' => 'تم جلب طلبات eSIM بنجاح.',
         'purchase_failed' => 'تعذر شراء eSIM.',
         'package_not_found' => 'الحزمة غير موجودة.',
         'package_unavailable' => 'الحزمة غير متاحة.',

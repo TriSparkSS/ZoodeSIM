@@ -50,6 +50,7 @@ class EsimOrder extends Model
         'payment_status',
         'order_status',
         'resellportal_service_id',
+        'resellportal_response',
         'failure_reason',
     ];
 
@@ -64,6 +65,7 @@ class EsimOrder extends Model
             'discount_amount' => 'decimal:2',
             'charged_amount' => 'decimal:2',
             'package_duration' => 'integer',
+            'resellportal_response' => 'array',
         ];
     }
 
@@ -94,5 +96,31 @@ class EsimOrder extends Model
     public function isFailed(): bool
     {
         return $this->order_status === self::STATUS_FAILED;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function statuses(): array
+    {
+        return [
+            self::STATUS_PENDING_PAYMENT,
+            self::STATUS_PAID,
+            self::STATUS_PROVISIONING,
+            self::STATUS_ACTIVE,
+            self::STATUS_FAILED,
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function paymentStatuses(): array
+    {
+        return [
+            self::PAYMENT_PENDING,
+            self::PAYMENT_PAID,
+            self::PAYMENT_FAILED,
+        ];
     }
 }

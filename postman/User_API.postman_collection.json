@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "64600a01-8f13-43ad-84c6-d8d50c82a382",
     "name": "ZoodeSIM User API",
-    "description": "Mirrors `routes/api.php`.\n\n**User (Sanctum Bearer `token`)**\n- `POST /api/promo/validate`\n- `POST /api/user/register` · `POST /api/user/login` · `POST /api/user/logout` · `GET /api/user/profile`\n- `GET /api/user/notifications` · `POST /api/user/notifications/read-all` · `POST /api/user/notifications/{notification}/read`\n- `GET /api/user/esim/countries` · `GET /api/user/esim/packages` · `POST /api/user/esim/orders` · `GET /api/user/esim/orders/{order}`\n\n**Admin (session `admin.auth`, not Bearer)**\n- `GET|POST /api/admin/pricing/slabs`\n- `PUT|DELETE /api/admin/pricing/slabs/{slab}`\n- `POST /api/admin/pricing/preview`\n\n**Setup**\n1. Import this collection and `User_API.postman_environment.json`.\n2. Select the **ZoodeSIM User API — Local** environment.\n3. Set `baseUrl` if needed (`https://esim.test` for Herd, or `http://localhost`).\n4. Register and Login both save `token` for protected user requests.\n5. Admin pricing needs an admin session cookie from `/admin/login` (Postman Interceptor / cookie jar).\n\n**Locale**\nUse `lang` (`en`, `es`, `ru`, `fr`, `de`, `tg`) as `?lang=` or `Accept-Language`.\n\n**Envelope**\n```json\n{ \"success\": true, \"message\": \"...\", \"data\": {}, \"errors\": null }\n{ \"success\": false, \"message\": \"...\", \"data\": null, \"errors\": {} }\n```",
+    "description": "Mirrors `routes/api.php`.\n\n**User (Sanctum Bearer `token`)**\n- `POST /api/promo/validate`\n- `POST /api/user/register` · `POST /api/user/login` · `POST /api/user/logout` · `GET /api/user/profile`\n- `GET /api/user/notifications` · `POST /api/user/notifications/read-all` · `POST /api/user/notifications/{notification}/read`\n- `GET /api/user/esim/countries` · `GET /api/user/esim/packages` · `GET /api/user/esim/orders` · `POST /api/user/esim/orders` · `GET /api/user/esim/orders/{order}`\n\n**Admin (session `admin.auth`, not Bearer)**\n- `GET|POST /api/admin/pricing/slabs`\n- `PUT|DELETE /api/admin/pricing/slabs/{slab}`\n- `POST /api/admin/pricing/preview`\n\n**Setup**\n1. Import this collection and `User_API.postman_environment.json`.\n2. Select the **ZoodeSIM User API — Local** environment.\n3. Set `baseUrl` if needed (`https://esim.test` for Herd, or `http://localhost`).\n4. Register and Login both save `token` for protected user requests.\n5. Admin pricing needs an admin session cookie from `/admin/login` (Postman Interceptor / cookie jar).\n\n**Locale**\nUse `lang` (`en`, `es`, `ru`, `fr`, `de`, `tg`) as `?lang=` or `Accept-Language`.\n\n**Envelope**\n```json\n{ \"success\": true, \"message\": \"...\", \"data\": {}, \"errors\": null }\n{ \"success\": false, \"message\": \"...\", \"data\": null, \"errors\": {} }\n```",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "29209019"
   },
@@ -456,6 +456,65 @@
       "name": "eSIM Orders",
       "item": [
         {
+          "name": "List orders",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns orders', function () {",
+                  "    pm.expect(json.success).to.eql(true);",
+                  "    pm.expect(json.data.orders).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/esim/orders?client_id=&lang={{lang}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "esim",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "client_id",
+                  "value": "",
+                  "description": "Optional ResellPortal client_id. Leave blank to list all of the authenticated user's orders."
+                },
+                {
+                  "key": "lang",
+                  "value": "{{lang}}"
+                }
+              ]
+            },
+            "description": "Authenticated. Lists the current user's portal eSIM orders (latest 50) as mapped `order` + `esim` only. The ResellPortal POST /orders JSON is stored server-side and is not returned. Optional `client_id` filters by `resellportal_client_id`. A client_id that is not on this user returns an empty list."
+          },
+          "response": []
+        },
+        {
           "name": "Purchase eSIM",
           "event": [
             {
@@ -522,7 +581,7 @@
                 }
               ]
             },
-            "description": "Authenticated. Body is only `package_code`. Optional `Idempotency-Key` header prevents duplicate provisioning. Saves `order_id` for Get eSIM order."
+            "description": "Authenticated. Body is only `package_code`. Optional `Idempotency-Key` header prevents duplicate provisioning. Saves `order_id` for Get eSIM order. The full ResellPortal POST /orders JSON is stored on the order server-side and is not returned in this response."
           },
           "response": []
         },
@@ -577,7 +636,7 @@
                 }
               ]
             },
-            "description": "Returns the authenticated user's own order only (`order` + `esim`). Run Purchase eSIM first to set `order_id`."
+            "description": "Returns the authenticated user's own order only (`order` + `esim`). The stored ResellPortal JSON is not included. Run Purchase eSIM first to set `order_id`."
           },
           "response": []
         }

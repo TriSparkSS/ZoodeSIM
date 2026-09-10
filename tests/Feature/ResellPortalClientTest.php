@@ -198,4 +198,22 @@ class ResellPortalClientTest extends TestCase
                 && ! str_contains($request->body(), 'test_mode');
         });
     }
+
+    public function test_order_list_get_never_sends_test_mode(): void
+    {
+        Http::fake([
+            '*/orders*' => Http::response(['success' => true, 'orders' => []], 200),
+        ]);
+
+        $client = app(ResellPortalClientInterface::class);
+        $client->getEsimOrders(['client_id' => '123']);
+
+        Http::assertSent(function ($request) {
+            return $request->method() === 'GET'
+                && str_contains(strtok($request->url(), '?') ?: $request->url(), '/orders')
+                && str_contains($request->url(), 'client_id=123')
+                && ! $request->hasHeader('X-RP-Test-Mode')
+                && ! str_contains($request->body(), 'test_mode');
+        });
+    }
 }

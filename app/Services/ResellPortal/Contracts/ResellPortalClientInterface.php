@@ -37,6 +37,12 @@ interface ResellPortalClientInterface
     public function createEsimOrder(string $clientId, string $packageCode): array;
 
     /**
+     * @param  array<string, mixed>  $query
+     * @return array<string, mixed>
+     */
+    public function getEsimOrders(array $query = []): array;
+
+    /**
      * @return array<string, mixed>
      */
     public function getBalance(): array;

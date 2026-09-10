@@ -50,6 +50,7 @@ return [
         'invalid_country' => 'País no válido.',
         'purchased' => 'eSIM comprado correctamente.',
         'order_retrieved' => 'Pedido eSIM obtenido correctamente.',
+        'orders_retrieved' => 'Pedidos eSIM obtenidos correctamente.',
         'purchase_failed' => 'No se pudo comprar el eSIM.',
         'package_not_found' => 'Paquete no encontrado.',
         'package_unavailable' => 'Paquete no disponible.',

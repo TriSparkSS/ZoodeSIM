@@ -50,6 +50,7 @@ return [
         'invalid_country' => 'Invalid country.',
         'purchased' => 'eSIM purchased successfully.',
         'order_retrieved' => 'eSIM order retrieved successfully.',
+        'orders_retrieved' => 'eSIM orders retrieved successfully.',
         'purchase_failed' => 'Unable to purchase eSIM.',
         'package_not_found' => 'Package not found.',
         'package_unavailable' => 'Package unavailable.',
