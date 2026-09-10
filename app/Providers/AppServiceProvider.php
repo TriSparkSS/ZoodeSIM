@@ -46,7 +46,9 @@ use App\Services\ResellPortal\Contracts\ResellPortalClientInterface;
 use App\Services\ResellPortal\ResellPortalBalanceService;
 use App\Services\ResellPortal\ResellPortalClient;
 use App\Services\User\Contracts\UserAdminServiceInterface;
+use App\Services\User\Contracts\UserBalanceAdjustmentServiceInterface;
 use App\Services\User\UserAdminService;
+use App\Services\User\UserBalanceAdjustmentService;
 use App\Services\Wallet\Contracts\TransactionIdGeneratorInterface;
 use App\Services\Wallet\Contracts\WalletLedgerServiceInterface;
 use App\Services\Wallet\TransactionIdGenerator;
@@ -89,6 +91,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(PartnerBalanceAdjustmentServiceInterface::class, PartnerBalanceAdjustmentService::class);
         $this->app->singleton(WithdrawalServiceInterface::class, WithdrawalService::class);
         $this->app->singleton(UserAdminServiceInterface::class, UserAdminService::class);
+        $this->app->singleton(UserBalanceAdjustmentServiceInterface::class, UserBalanceAdjustmentService::class);
     }
 
     public function boot(): void

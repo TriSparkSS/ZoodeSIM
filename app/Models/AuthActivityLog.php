@@ -43,6 +43,10 @@ class AuthActivityLog extends Model
 
     public const EVENT_USER_UPDATED = 'user_updated';
 
+    public const EVENT_USER_BALANCE_CREDITED = 'user_balance_credited';
+
+    public const EVENT_USER_BALANCE_DEBITED = 'user_balance_debited';
+
     protected $fillable = [
         'authenticatable_type',
         'authenticatable_id',

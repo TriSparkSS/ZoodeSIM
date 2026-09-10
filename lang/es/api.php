@@ -11,6 +11,15 @@ return [
         'profile' => 'Perfil obtenido correctamente.',
     ],
 
+    'wallet' => [
+        'retrieved' => 'Billetera obtenida correctamente.',
+        'adjusted' => 'Billetera actualizada correctamente.',
+        'direction_invalid' => 'Elige si añadir o descontar fondos.',
+        'amount_required' => 'Introduce un importe.',
+        'amount_format' => 'Introduce un importe válido con hasta 2 decimales.',
+        'insufficient_balance' => 'Tu billetera no tiene fondos suficientes.',
+    ],
+
     'promo' => [
         'invalid' => 'Código de referido no válido.',
         'inactive' => 'Este código de referido está inactivo.',
@@ -46,6 +55,7 @@ return [
         'package_unavailable' => 'Paquete no disponible.',
         'payment_required' => 'Pago requerido.',
         'payment_failed' => 'La verificación del pago falló.',
+        'insufficient_balance' => 'Saldo de billetera insuficiente para comprar este plan.',
         'provisioning_failed' => 'Error al provisionar el eSIM.',
         'already_processed' => 'El pedido ya fue procesado.',
         'unauthorized_order' => 'Acceso no autorizado al pedido.',

@@ -10,11 +10,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
+use Tests\Concerns\FundsUserWallet;
 use Tests\Concerns\SeedsDefaultPricingSlabs;
 use Tests\TestCase;
 
 class ApiLoggingTest extends TestCase
 {
+    use FundsUserWallet;
     use RefreshDatabase;
     use SeedsDefaultPricingSlabs;
 
@@ -229,7 +231,7 @@ class ApiLoggingTest extends TestCase
             ], 200),
         ]);
 
-        $user = User::factory()->create();
+        $user = $this->fundedUser();
         Sanctum::actingAs($user);
 
         $orderId = $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])

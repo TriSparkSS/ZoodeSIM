@@ -7,6 +7,8 @@ use App\Models\PricingSlab;
 use App\Services\Pricing\PricingService;
 use App\Support\Money;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class PricingServiceTest extends TestCase
@@ -161,6 +163,25 @@ class PricingServiceTest extends TestCase
         $this->assertSame('9.00', $quote->markupPercentage);
         $this->assertSame(405, $quote->markupAmount->cents);
         $this->assertSame(4905, $quote->customerPrice->cents);
+    }
+
+    public function test_stale_incomplete_class_cache_is_rebuilt(): void
+    {
+        $incomplete = unserialize(serialize(new \stdClass), ['allowed_classes' => false]);
+
+        $this->assertInstanceOf(\__PHP_Incomplete_Class::class, $incomplete);
+
+        Cache::put((string) config('pricing.cache_key'), $incomplete);
+
+        $slabs = app(PricingService::class)->activeSlabs();
+
+        $this->assertInstanceOf(Collection::class, $slabs);
+        $this->assertTrue($slabs->isNotEmpty());
+        $this->assertTrue($slabs->every(fn (mixed $slab): bool => $slab instanceof PricingSlab));
+
+        $quote = app(PricingService::class)->quoteFromProviderCost('40.00');
+
+        $this->assertSame('5.00', $quote->markupPercentage);
     }
 
     public function test_money_rejects_invalid_amounts(): void

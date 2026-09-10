@@ -11,6 +11,15 @@ return [
         'profile' => 'Profile retrieved successfully.',
     ],
 
+    'wallet' => [
+        'retrieved' => 'Wallet retrieved successfully.',
+        'adjusted' => 'Wallet updated successfully.',
+        'direction_invalid' => 'Choose whether to add or deduct funds.',
+        'amount_required' => 'Please enter an amount.',
+        'amount_format' => 'Enter a valid amount with up to 2 decimal places.',
+        'insufficient_balance' => 'Your wallet does not have enough funds.',
+    ],
+
     'promo' => [
         'invalid' => 'Invalid referral code.',
         'inactive' => 'This referral code is inactive.',
@@ -46,6 +55,7 @@ return [
         'package_unavailable' => 'Package unavailable.',
         'payment_required' => 'Payment required.',
         'payment_failed' => 'Payment verification failed.',
+        'insufficient_balance' => 'Insufficient wallet balance to purchase this plan.',
         'provisioning_failed' => 'eSIM provisioning failed.',
         'already_processed' => 'Order already processed.',
         'unauthorized_order' => 'Unauthorized order access.',

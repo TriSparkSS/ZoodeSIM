@@ -11,6 +11,15 @@ return [
         'profile' => 'Profil erfolgreich abgerufen.',
     ],
 
+    'wallet' => [
+        'retrieved' => 'Wallet erfolgreich abgerufen.',
+        'adjusted' => 'Wallet erfolgreich aktualisiert.',
+        'direction_invalid' => 'Wählen Sie, ob Guthaben hinzugefügt oder abgezogen werden soll.',
+        'amount_required' => 'Bitte einen Betrag eingeben.',
+        'amount_format' => 'Geben Sie einen gültigen Betrag mit bis zu 2 Dezimalstellen ein.',
+        'insufficient_balance' => 'Ihr Wallet hat nicht genug Guthaben.',
+    ],
+
     'promo' => [
         'invalid' => 'Ungültiger Empfehlungscode.',
         'inactive' => 'Dieser Empfehlungscode ist inaktiv.',
@@ -46,6 +55,7 @@ return [
         'package_unavailable' => 'Paket nicht verfügbar.',
         'payment_required' => 'Zahlung erforderlich.',
         'payment_failed' => 'Zahlungsprüfung fehlgeschlagen.',
+        'insufficient_balance' => 'Nicht genug Wallet-Guthaben für diesen Tarif.',
         'provisioning_failed' => 'eSIM-Bereitstellung fehlgeschlagen.',
         'already_processed' => 'Die Bestellung wurde bereits verarbeitet.',
         'unauthorized_order' => 'Unbefugter Zugriff auf die Bestellung.',

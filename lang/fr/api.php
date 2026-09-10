@@ -11,6 +11,15 @@ return [
         'profile' => 'Profil récupéré avec succès.',
     ],
 
+    'wallet' => [
+        'retrieved' => 'Portefeuille récupéré avec succès.',
+        'adjusted' => 'Portefeuille mis à jour avec succès.',
+        'direction_invalid' => 'Choisissez d’ajouter ou de retirer des fonds.',
+        'amount_required' => 'Veuillez saisir un montant.',
+        'amount_format' => 'Saisissez un montant valide avec 2 décimales maximum.',
+        'insufficient_balance' => 'Votre portefeuille n’a pas assez de fonds.',
+    ],
+
     'promo' => [
         'invalid' => 'Code de parrainage invalide.',
         'inactive' => 'Ce code de parrainage est inactif.',
@@ -46,6 +55,7 @@ return [
         'package_unavailable' => 'Forfait indisponible.',
         'payment_required' => 'Paiement requis.',
         'payment_failed' => 'La vérification du paiement a échoué.',
+        'insufficient_balance' => 'Solde du portefeuille insuffisant pour acheter ce forfait.',
         'provisioning_failed' => 'Échec de l’activation de l’eSIM.',
         'already_processed' => 'La commande a déjà été traitée.',
         'unauthorized_order' => 'Accès non autorisé à la commande.',

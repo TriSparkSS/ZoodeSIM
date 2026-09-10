@@ -21,8 +21,7 @@ class TransactionQueryService
      *     date_to?: string,
      *     amount_min?: string,
      *     amount_max?: string,
-     *     promo?: string,
-     *     currency?: string
+     *     promo?: string
      * }  $filters
      * @return Builder<Transaction>
      */
@@ -30,6 +29,7 @@ class TransactionQueryService
     {
         return Transaction::query()
             ->with(['transactable', 'promoCode:id,code'])
+            ->where('currency', '!=', 'MB')
             ->when(filled($filters['transaction_id'] ?? null), function (Builder $query) use ($filters) {
                 $query->where('transaction_id', 'like', '%'.trim((string) $filters['transaction_id']).'%');
             })
@@ -53,17 +53,6 @@ class TransactionQueryService
             })
             ->when(filled($filters['amount_max'] ?? null), function (Builder $query) use ($filters) {
                 $query->where('amount', '<=', $filters['amount_max']);
-            })
-            ->when(filled($filters['currency'] ?? null), function (Builder $query) use ($filters) {
-                if ($filters['currency'] === 'mb') {
-                    $query->where('currency', 'MB');
-
-                    return;
-                }
-
-                if ($filters['currency'] === 'amount') {
-                    $query->where('currency', '!=', 'MB');
-                }
             })
             ->when(filled($filters['user'] ?? null), function (Builder $query) use ($filters) {
                 $term = '%'.trim((string) $filters['user']).'%';

@@ -40,7 +40,7 @@ class AdminTransactionsTest extends TestCase
 
         $ledger = app(WalletLedgerServiceInterface::class);
 
-        $userCredit = $ledger->credit(
+        $userMbCredit = $ledger->credit(
             $user,
             Money::fromDecimal('100', 'MB'),
             Transaction::CATEGORY_PROMO_BONUS,
@@ -49,6 +49,15 @@ class AdminTransactionsTest extends TestCase
             'Promo registration bonus',
             promoCodeId: $promo->id,
             meta: ['promo_code' => 'FILTER10'],
+        );
+
+        $userUsdCredit = $ledger->credit(
+            $user,
+            Money::fromDecimal('25.00', 'USD'),
+            Transaction::CATEGORY_ADMIN_CREDIT,
+            'admin',
+            $admin->id,
+            'Manual wallet top-up',
         );
 
         $partnerCredit = $ledger->credit(
@@ -76,22 +85,25 @@ class AdminTransactionsTest extends TestCase
 
         $this->get(route('admin.transactions'))
             ->assertOk()
-            ->assertSee($userCredit->transaction_id)
+            ->assertDontSee($userMbCredit->transaction_id)
+            ->assertSee($userUsdCredit->transaction_id)
             ->assertSee($partnerCredit->transaction_id)
             ->assertSee($partnerDebit->transaction_id);
 
         Livewire::test(Transactions::class)
             ->assertSee('Ada Lovelace')
             ->assertSee('Filter Partner')
-            ->assertSee($userCredit->transaction_id)
+            ->assertDontSee($userMbCredit->transaction_id)
+            ->assertSee($userUsdCredit->transaction_id)
             ->assertSee($partnerCredit->transaction_id)
             ->assertSee($partnerDebit->transaction_id)
-            ->set('transactionId', $userCredit->transaction_id)
+            ->set('transactionId', $userUsdCredit->transaction_id)
             ->assertSee('Ada Lovelace')
             ->assertDontSee('Filter Partner')
             ->set('transactionId', '')
             ->set('user', 'ada@example.com')
             ->assertSee('Ada Lovelace')
+            ->assertSee($userUsdCredit->transaction_id)
             ->assertDontSee('Filter Partner')
             ->set('user', '')
             ->set('partner', 'Filter Partner')
@@ -100,32 +112,28 @@ class AdminTransactionsTest extends TestCase
             ->set('partner', '')
             ->set('type', Transaction::TYPE_DEBIT)
             ->assertSee($partnerDebit->transaction_id)
-            ->assertDontSee($userCredit->transaction_id)
+            ->assertDontSee($userUsdCredit->transaction_id)
+            ->assertDontSee($userMbCredit->transaction_id)
             ->set('type', '')
             ->set('category', Transaction::CATEGORY_PROMO_REWARD)
             ->assertSee($partnerCredit->transaction_id)
-            ->assertDontSee($userCredit->transaction_id)
+            ->assertDontSee($userUsdCredit->transaction_id)
+            ->assertDontSee($userMbCredit->transaction_id)
             ->set('category', '')
             ->set('promo', 'FILTER10')
-            ->assertSee($userCredit->transaction_id)
+            ->assertDontSee($userMbCredit->transaction_id)
             ->assertSee($partnerCredit->transaction_id)
             ->assertDontSee($partnerDebit->transaction_id)
             ->set('promo', '')
             ->set('amountMin', '2')
-            ->assertSee($userCredit->transaction_id)
+            ->assertSee($userUsdCredit->transaction_id)
             ->assertDontSee($partnerCredit->transaction_id)
+            ->assertDontSee($userMbCredit->transaction_id)
             ->set('amountMin', '')
-            ->set('currency', 'mb')
-            ->assertSee($userCredit->transaction_id)
-            ->assertDontSee($partnerCredit->transaction_id)
-            ->set('currency', 'amount')
-            ->assertSee($partnerCredit->transaction_id)
-            ->assertSee($partnerDebit->transaction_id)
-            ->assertDontSee($userCredit->transaction_id)
-            ->set('currency', '')
             ->set('status', Transaction::STATUS_COMPLETED)
-            ->assertSee($userCredit->transaction_id)
-            ->assertSee($partnerDebit->transaction_id);
+            ->assertSee($userUsdCredit->transaction_id)
+            ->assertSee($partnerDebit->transaction_id)
+            ->assertDontSee($userMbCredit->transaction_id);
     }
 
     public function test_guest_cannot_open_transactions(): void

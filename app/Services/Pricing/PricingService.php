@@ -77,19 +77,63 @@ class PricingService implements EsimPricingServiceInterface, PricingServiceInter
      */
     public function activeSlabs(): Collection
     {
-        return Cache::remember(
-            (string) config('pricing.cache_key', 'pricing_slabs_active'),
-            (int) config('pricing.cache_ttl', 3600),
-            fn () => PricingSlab::query()
-                ->active()
-                ->orderBy('priority')
-                ->orderBy('min_amount')
-                ->get(),
-        );
+        $key = (string) config('pricing.cache_key', 'pricing_slabs_active');
+        $ttl = (int) config('pricing.cache_ttl', 3600);
+        $cached = Cache::get($key);
+        $rows = $this->slabAttributeRows($cached);
+
+        if ($rows === null) {
+            if ($cached !== null) {
+                Cache::forget($key);
+            }
+
+            $rows = Cache::remember($key, $ttl, fn () => $this->loadActiveSlabAttributes());
+            $rows = $this->slabAttributeRows($rows) ?? $this->loadActiveSlabAttributes();
+        }
+
+        return PricingSlab::hydrate($rows);
     }
 
     public static function forgetCache(): void
     {
         Cache::forget((string) config('pricing.cache_key', 'pricing_slabs_active'));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    protected function loadActiveSlabAttributes(): array
+    {
+        return PricingSlab::query()
+            ->active()
+            ->orderBy('priority')
+            ->orderBy('min_amount')
+            ->get()
+            ->map(fn (PricingSlab $slab) => $slab->getAttributes())
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array<string, mixed>>|null
+     */
+    protected function slabAttributeRows(mixed $cached): ?array
+    {
+        if (is_array($cached)) {
+            return array_is_list($cached) ? $cached : array_values($cached);
+        }
+
+        if ($cached instanceof Collection) {
+            if ($cached->contains(fn (mixed $slab): bool => ! $slab instanceof PricingSlab)) {
+                return null;
+            }
+
+            return $cached
+                ->map(fn (PricingSlab $slab) => $slab->getAttributes())
+                ->values()
+                ->all();
+        }
+
+        return null;
     }
 }

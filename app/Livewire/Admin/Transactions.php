@@ -49,9 +49,6 @@ class Transactions extends Component
     #[Url]
     public string $promo = '';
 
-    #[Url]
-    public string $currency = '';
-
     protected TransactionQueryService $transactions;
 
     public function boot(TransactionQueryService $transactions): void
@@ -80,7 +77,6 @@ class Transactions extends Component
             'amountMin',
             'amountMax',
             'promo',
-            'currency',
         ]);
         $this->resetPage();
     }
@@ -102,7 +98,6 @@ class Transactions extends Component
             'amount_min' => $this->amountMin,
             'amount_max' => $this->amountMax,
             'promo' => $this->promo,
-            'currency' => $this->currency,
         ];
     }
 

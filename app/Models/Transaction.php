@@ -31,6 +31,12 @@ class Transaction extends Model
 
     public const CATEGORY_ADMIN_DEBIT = 'admin_debit';
 
+    public const CATEGORY_WALLET_CREDIT = 'wallet_credit';
+
+    public const CATEGORY_WALLET_DEBIT = 'wallet_debit';
+
+    public const CATEGORY_ESIM_PURCHASE = 'esim_purchase';
+
     public const CATEGORY_PURCHASE_CASHBACK = 'purchase_cashback';
 
     public const CATEGORY_PURCHASE_COMMISSION = 'purchase_commission';
@@ -122,6 +128,9 @@ class Transaction extends Model
             self::CATEGORY_WITHDRAWAL_REFUND,
             self::CATEGORY_ADMIN_CREDIT,
             self::CATEGORY_ADMIN_DEBIT,
+            self::CATEGORY_WALLET_CREDIT,
+            self::CATEGORY_WALLET_DEBIT,
+            self::CATEGORY_ESIM_PURCHASE,
             self::CATEGORY_PURCHASE_CASHBACK,
             self::CATEGORY_PURCHASE_COMMISSION,
             self::CATEGORY_REFERRAL_MILESTONE,

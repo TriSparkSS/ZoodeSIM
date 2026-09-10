@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\DataTransferObjects\EsimPaymentResult;
 use App\Models\EsimOrder;
+use App\Models\Transaction;
 use App\Models\User;
 use App\Services\Esim\Contracts\EsimPaymentGatewayInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -12,11 +13,13 @@ use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
+use Tests\Concerns\FundsUserWallet;
 use Tests\Concerns\SeedsDefaultPricingSlabs;
 use Tests\TestCase;
 
 class EsimOrderApiTest extends TestCase
 {
+    use FundsUserWallet;
     use RefreshDatabase;
     use SeedsDefaultPricingSlabs;
 
@@ -78,7 +81,8 @@ class EsimOrderApiTest extends TestCase
     public function test_authenticated_user_can_purchase_an_esim(): void
     {
         $this->fakeSuccessfulProvider();
-        Sanctum::actingAs(User::factory()->create());
+        $user = $this->fundedUser();
+        Sanctum::actingAs($user);
 
         $response = $this->postJson('/api/user/esim/orders', [
             'package_code' => 'PHAJHEAYP',
@@ -127,6 +131,17 @@ class EsimOrderApiTest extends TestCase
             'service_id' => 789,
             'iccid' => '8901234567890123456',
         ]);
+        $this->assertSame('498.20', (string) $user->fresh()->balance);
+        $this->assertDatabaseHas('transactions', [
+            'transactable_type' => User::class,
+            'transactable_id' => $user->id,
+            'type' => Transaction::TYPE_DEBIT,
+            'category' => Transaction::CATEGORY_ESIM_PURCHASE,
+            'amount' => '1.80',
+            'balance_before' => '500.00',
+            'balance_after' => '498.20',
+            'reference_type' => 'esim_order',
+        ]);
     }
 
     public function test_unauthenticated_user_cannot_create_an_order(): void
@@ -142,7 +157,7 @@ class EsimOrderApiTest extends TestCase
             '*/esim-packages*' => Http::response($this->packagePayload(), 200),
         ]);
 
-        Sanctum::actingAs(User::factory()->create());
+        Sanctum::actingAs($this->fundedUser());
 
         $this->postJson('/api/user/esim/orders', [
             'package_code' => 'MISSING',
@@ -160,7 +175,7 @@ class EsimOrderApiTest extends TestCase
     public function test_frontend_cannot_manipulate_prices_or_ids(): void
     {
         $this->fakeSuccessfulProvider();
-        Sanctum::actingAs(User::factory()->create());
+        Sanctum::actingAs($this->fundedUser());
 
         $this->postJson('/api/user/esim/orders', [
             'package_code' => 'PHAJHEAYP',
@@ -187,7 +202,7 @@ class EsimOrderApiTest extends TestCase
     public function test_resellportal_client_is_created_once_and_reused(): void
     {
         $this->fakeSuccessfulProvider();
-        $user = User::factory()->create();
+        $user = $this->fundedUser();
         Sanctum::actingAs($user);
 
         $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])->assertCreated();
@@ -201,7 +216,7 @@ class EsimOrderApiTest extends TestCase
     public function test_existing_resellportal_client_is_reused(): void
     {
         $this->fakeSuccessfulProvider();
-        $user = User::factory()->create(['resellportal_client_id' => 555]);
+        $user = $this->fundedUser(['resellportal_client_id' => 555]);
         Sanctum::actingAs($user);
 
         $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])
@@ -219,7 +234,7 @@ class EsimOrderApiTest extends TestCase
             '*/orders' => Http::response(['success' => false, 'message' => 'Insufficient wallet balance'], 400),
         ]);
 
-        Sanctum::actingAs(User::factory()->create());
+        Sanctum::actingAs($this->fundedUser());
 
         $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])
             ->assertStatus(502)
@@ -251,7 +266,7 @@ class EsimOrderApiTest extends TestCase
             throw new ConnectionException('cURL error 28: Operation timed out');
         });
 
-        Sanctum::actingAs(User::factory()->create());
+        Sanctum::actingAs($this->fundedUser());
 
         $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])
             ->assertStatus(502)
@@ -263,7 +278,7 @@ class EsimOrderApiTest extends TestCase
     public function test_duplicate_request_is_idempotent(): void
     {
         $this->fakeSuccessfulProvider();
-        Sanctum::actingAs(User::factory()->create());
+        Sanctum::actingAs($this->fundedUser());
 
         $headers = ['Idempotency-Key' => 'order-abc-123'];
 
@@ -279,11 +294,11 @@ class EsimOrderApiTest extends TestCase
     public function test_user_cannot_access_another_users_order(): void
     {
         $this->fakeSuccessfulProvider();
-        $owner = User::factory()->create();
+        $owner = $this->fundedUser();
         Sanctum::actingAs($owner);
         $orderId = $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])->json('data.order.id');
 
-        Sanctum::actingAs(User::factory()->create());
+        Sanctum::actingAs($this->fundedUser());
 
         $this->getJson('/api/user/esim/orders/'.$orderId)
             ->assertNotFound()
@@ -296,7 +311,7 @@ class EsimOrderApiTest extends TestCase
     public function test_owner_can_view_own_order(): void
     {
         $this->fakeSuccessfulProvider();
-        $user = User::factory()->create();
+        $user = $this->fundedUser();
         Sanctum::actingAs($user);
 
         $orderId = $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])->json('data.order.id');
@@ -315,7 +330,7 @@ class EsimOrderApiTest extends TestCase
             $mock->shouldReceive('settle')->once()->andReturn(EsimPaymentResult::failed());
         });
 
-        Sanctum::actingAs(User::factory()->create());
+        Sanctum::actingAs($this->fundedUser());
 
         $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])
             ->assertStatus(402)
@@ -327,6 +342,24 @@ class EsimOrderApiTest extends TestCase
         ]);
         $this->assertDatabaseCount('esim_order_details', 0);
         Http::assertNotSent(fn ($request) => $request->method() === 'POST' && str_contains($request->url(), '/orders'));
+    }
+
+    public function test_insufficient_wallet_balance_rejects_purchase(): void
+    {
+        $this->fakeSuccessfulProvider();
+        Sanctum::actingAs(User::factory()->create(['balance' => '0.00']));
+
+        $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])
+            ->assertStatus(402)
+            ->assertJsonPath('message', __('api.esim.insufficient_balance'));
+
+        $this->assertDatabaseHas('esim_orders', [
+            'order_status' => EsimOrder::STATUS_FAILED,
+            'payment_status' => EsimOrder::PAYMENT_FAILED,
+            'failure_reason' => 'insufficient_balance',
+        ]);
+        $this->assertDatabaseCount('transactions', 0);
+        $this->assertDatabaseCount('esim_order_details', 0);
     }
 
     public function test_test_mode_provider_ids_are_persisted_without_leaking_charge_flags(): void
@@ -353,7 +386,7 @@ class EsimOrderApiTest extends TestCase
             ], 200),
         ]);
 
-        $user = User::factory()->create();
+        $user = $this->fundedUser();
         Sanctum::actingAs($user);
 
         $response = $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP']);
@@ -383,7 +416,7 @@ class EsimOrderApiTest extends TestCase
         });
 
         $this->fakeSuccessfulProvider();
-        Sanctum::actingAs(User::factory()->create());
+        Sanctum::actingAs($this->fundedUser());
 
         $content = $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])->getContent();
 
@@ -411,7 +444,7 @@ class EsimOrderApiTest extends TestCase
     public function test_purchase_message_is_localized(): void
     {
         $this->fakeSuccessfulProvider();
-        Sanctum::actingAs(User::factory()->create());
+        Sanctum::actingAs($this->fundedUser());
 
         $this->postJson('/api/user/esim/orders?lang=ru', ['package_code' => 'PHAJHEAYP'])
             ->assertCreated()

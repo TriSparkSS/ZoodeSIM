@@ -5,17 +5,18 @@ namespace Tests\Feature;
 use App\DataTransferObjects\EsimPaymentResult;
 use App\Models\EsimOrder;
 use App\Models\PricingSlab;
-use App\Models\User;
 use App\Services\Esim\Contracts\EsimPaymentGatewayInterface;
 use App\Services\Pricing\PricingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
+use Tests\Concerns\FundsUserWallet;
 use Tests\Concerns\SeedsDefaultPricingSlabs;
 use Tests\TestCase;
 
 class EsimPricingOrderTest extends TestCase
 {
+    use FundsUserWallet;
     use RefreshDatabase;
     use SeedsDefaultPricingSlabs;
 
@@ -71,7 +72,7 @@ class EsimPricingOrderTest extends TestCase
     {
         $this->seedDefaultPricingSlabs();
         $this->fakeProvider(50.00);
-        Sanctum::actingAs(User::factory()->create());
+        Sanctum::actingAs($this->fundedUser());
 
         $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])
             ->assertCreated()
@@ -93,7 +94,7 @@ class EsimPricingOrderTest extends TestCase
     {
         $this->seedDefaultPricingSlabs();
         $this->fakeProvider(50.00);
-        Sanctum::actingAs(User::factory()->create());
+        Sanctum::actingAs($this->fundedUser());
 
         $orderId = $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])
             ->assertCreated()
@@ -117,7 +118,7 @@ class EsimPricingOrderTest extends TestCase
     {
         $this->seedDefaultPricingSlabs();
         $this->fakeProvider(50.00);
-        Sanctum::actingAs(User::factory()->create());
+        Sanctum::actingAs($this->fundedUser());
 
         $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])->assertCreated();
 
@@ -156,7 +157,7 @@ class EsimPricingOrderTest extends TestCase
                 ->andReturn(EsimPaymentResult::paid());
         });
 
-        Sanctum::actingAs(User::factory()->create());
+        Sanctum::actingAs($this->fundedUser());
 
         $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])
             ->assertCreated()
@@ -167,7 +168,7 @@ class EsimPricingOrderTest extends TestCase
     {
         $this->seedDefaultPricingSlabs();
         $this->fakeProvider(50.00);
-        Sanctum::actingAs(User::factory()->create());
+        Sanctum::actingAs($this->fundedUser());
 
         $this->postJson('/api/user/esim/orders', [
             'package_code' => 'PHAJHEAYP',
@@ -191,7 +192,7 @@ class EsimPricingOrderTest extends TestCase
     {
         $this->seedDefaultPricingSlabs();
         $this->fakeProvider(200.00);
-        Sanctum::actingAs(User::factory()->create());
+        Sanctum::actingAs($this->fundedUser());
 
         $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])
             ->assertUnprocessable()

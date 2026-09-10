@@ -17,11 +17,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
 use Livewire\Livewire;
+use Tests\Concerns\FundsUserWallet;
 use Tests\Concerns\SeedsDefaultPricingSlabs;
 use Tests\TestCase;
 
 class PurchaseRewardsTest extends TestCase
 {
+    use FundsUserWallet;
     use RefreshDatabase;
     use SeedsDefaultPricingSlabs;
 
@@ -83,7 +85,7 @@ class PurchaseRewardsTest extends TestCase
     public function test_first_paid_order_within_seven_days_applies_discount(): void
     {
         $this->fakeSuccessfulProvider();
-        Sanctum::actingAs(User::factory()->create());
+        Sanctum::actingAs($this->fundedUser());
 
         $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])
             ->assertCreated()
@@ -102,7 +104,7 @@ class PurchaseRewardsTest extends TestCase
     public function test_first_purchase_after_seven_days_has_no_discount(): void
     {
         $this->fakeSuccessfulProvider();
-        Sanctum::actingAs(User::factory()->create([
+        Sanctum::actingAs($this->fundedUser([
             'created_at' => now()->subDays(8),
         ]));
 
@@ -120,7 +122,7 @@ class PurchaseRewardsTest extends TestCase
     public function test_second_paid_order_has_no_discount(): void
     {
         $this->fakeSuccessfulProvider();
-        $user = User::factory()->create();
+        $user = $this->fundedUser();
         Sanctum::actingAs($user);
 
         $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])->assertCreated();
@@ -137,13 +139,19 @@ class PurchaseRewardsTest extends TestCase
     public function test_cashback_credits_user_wallet_when_charged_above_ten(): void
     {
         $this->fakeSuccessfulProvider(50.00);
-        $user = User::factory()->create();
+        $user = $this->fundedUser();
         Sanctum::actingAs($user);
 
         $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])->assertCreated();
 
         $user->refresh();
-        $this->assertSame('4.94', (string) $user->balance);
+        $this->assertSame('455.54', (string) $user->balance);
+        $this->assertDatabaseHas('transactions', [
+            'transactable_type' => User::class,
+            'transactable_id' => $user->id,
+            'category' => Transaction::CATEGORY_ESIM_PURCHASE,
+            'amount' => '49.40',
+        ]);
         $this->assertDatabaseHas('transactions', [
             'transactable_type' => User::class,
             'transactable_id' => $user->id,
@@ -155,15 +163,23 @@ class PurchaseRewardsTest extends TestCase
     public function test_cashback_is_not_granted_at_or_below_ten(): void
     {
         $this->fakeSuccessfulProvider(9.52);
-        Sanctum::actingAs(User::factory()->create([
+        $user = $this->fundedUser([
             'created_at' => now()->subDays(8),
-        ]));
+        ]);
+        Sanctum::actingAs($user);
 
         $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])->assertCreated();
 
         $order = EsimOrder::query()->first();
         $this->assertSame('10.00', (string) $order->charged_amount);
-        $this->assertDatabaseCount('transactions', 0);
+        $this->assertSame('490.00', (string) $user->fresh()->balance);
+        $this->assertDatabaseHas('transactions', [
+            'category' => Transaction::CATEGORY_ESIM_PURCHASE,
+            'amount' => '10.00',
+        ]);
+        $this->assertDatabaseMissing('transactions', [
+            'category' => Transaction::CATEGORY_PURCHASE_CASHBACK,
+        ]);
     }
 
     public function test_referred_first_paid_order_credits_ten_percent_commission(): void
@@ -211,7 +227,7 @@ class PurchaseRewardsTest extends TestCase
     public function test_unreferred_purchase_has_no_partner_commission(): void
     {
         $this->fakeSuccessfulProvider(50.00);
-        Sanctum::actingAs(User::factory()->create());
+        Sanctum::actingAs($this->fundedUser());
 
         $this->postJson('/api/user/esim/orders', ['package_code' => 'PHAJHEAYP'])->assertCreated();
 
@@ -347,7 +363,7 @@ class PurchaseRewardsTest extends TestCase
     {
         $partner = $this->makePartner();
         $promo = $this->makePromo($partner);
-        $user = User::factory()->create();
+        $user = $this->fundedUser();
 
         DB::transaction(fn () => app(PromoRedemptionService::class)->redeem($user, $promo));
 

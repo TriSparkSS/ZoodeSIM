@@ -11,6 +11,15 @@ return [
         'profile' => 'تم جلب الملف الشخصي بنجاح.',
     ],
 
+    'wallet' => [
+        'retrieved' => 'تم جلب المحفظة بنجاح.',
+        'adjusted' => 'تم تحديث المحفظة بنجاح.',
+        'direction_invalid' => 'اختر إضافة الرصيد أو خصمه.',
+        'amount_required' => 'يرجى إدخال مبلغ.',
+        'amount_format' => 'أدخل مبلغاً صالحاً حتى منزلتين عشريتين.',
+        'insufficient_balance' => 'محفظتك لا تحتوي على رصيد كافٍ.',
+    ],
+
     'promo' => [
         'invalid' => 'رمز الإحالة غير صالح.',
         'inactive' => 'رمز الإحالة هذا غير نشط.',
@@ -47,6 +56,7 @@ return [
         'payment_required' => 'الدفع مطلوب.',
         'provisioning_failed' => 'فشل توفير eSIM.',
         'payment_failed' => 'فشل التحقق من الدفع.',
+        'insufficient_balance' => 'رصيد المحفظة غير كافٍ لشراء هذه الباقة.',
         'already_processed' => 'تمت معالجة الطلب بالفعل.',
         'unauthorized_order' => 'وصول غير مصرح به إلى الطلب.',
         'pricing_unavailable' => 'التسعير غير متاح حالياً لهذه الحزمة.',

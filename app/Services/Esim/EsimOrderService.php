@@ -129,7 +129,11 @@ class EsimOrderService implements EsimOrderServiceInterface
                 'reason' => $result->reason,
             ]);
 
-            throw new EsimPurchaseException('api.esim.payment_failed', 402, 'eSIM payment verification failed');
+            $messageKey = $result->reason === 'insufficient_balance'
+                ? 'api.esim.insufficient_balance'
+                : 'api.esim.payment_failed';
+
+            throw new EsimPurchaseException($messageKey, 402, 'eSIM payment verification failed');
         }
 
         $order->update([

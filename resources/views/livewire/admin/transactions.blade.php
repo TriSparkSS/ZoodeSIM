@@ -46,13 +46,6 @@
             <x-ui.form-group :label="__('admin.transactions.filter_to')">
                 <x-ui.input wire:model.live="dateTo" type="date" />
             </x-ui.form-group>
-            <x-ui.form-group :label="__('admin.transactions.filter_unit')">
-                <x-ui.select wire:model.live="currency">
-                    <option value="">{{ __('admin.transactions.filter_all') }}</option>
-                    <option value="amount">{{ __('admin.transactions.units.amount') }}</option>
-                    <option value="mb">{{ __('admin.transactions.units.mb') }}</option>
-                </x-ui.select>
-            </x-ui.form-group>
             <x-ui.form-group :label="__('admin.transactions.filter_amount_min')">
                 <x-ui.input wire:model.live.debounce.400ms="amountMin" type="text" inputmode="decimal" />
             </x-ui.form-group>
@@ -119,14 +112,13 @@
                                 </td>
                                 <td class="py-3 pe-3 align-middle">{{ __('admin.partners.wallet.categories.'.$row->category) }}</td>
                                 <td class="py-3 pe-3 align-middle font-semibold">
-                                    {{ $row->type === 'credit' ? '+' : '−' }}
-                                    {{ $row->currency === 'MB' ? number_format((float) $row->amount, 0).' MB' : '$'.number_format((float) $row->amount, 2) }}
+                                    {{ $row->type === 'credit' ? '+' : '−' }}${{ number_format((float) $row->amount, 2) }}
                                 </td>
                                 <td class="py-3 pe-3 align-middle text-surface-muted dark:text-brand-muted">
-                                    {{ $row->currency === 'MB' ? number_format((float) $row->balance_before, 0).' MB' : '$'.number_format((float) $row->balance_before, 2) }}
+                                    ${{ number_format((float) $row->balance_before, 2) }}
                                 </td>
                                 <td class="py-3 pe-3 align-middle font-semibold">
-                                    {{ $row->currency === 'MB' ? number_format((float) $row->balance_after, 0).' MB' : '$'.number_format((float) $row->balance_after, 2) }}
+                                    ${{ number_format((float) $row->balance_after, 2) }}
                                 </td>
                                 <td class="py-3 pe-3 align-middle text-xs">
                                     {{ $row->promoCode?->code ?? ($row->meta['promo_code'] ?? '—') }}
