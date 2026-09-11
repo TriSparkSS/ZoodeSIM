@@ -35,5 +35,6 @@ return [
         'subject' => 'Empfehlungsbonus gutgeschrieben',
         'title' => 'Empfehlungsbonus',
         'body' => 'Du hast :bonus MB über einen Empfehlungscode erhalten.',
+        'body_usd' => 'Du hast $:bonus über einen Empfehlungscode erhalten.',
     ],
 ];

@@ -51,10 +51,14 @@ class PromoCodeService
                 $this->deactivateActiveForPartner($data->partnerId);
             }
 
+            [$bonusType, $bonusAmount, $bonusMb] = $this->normalizedBonus($data);
+
             $promo = PromoCode::query()->create([
                 'partner_id' => $data->partnerId,
                 'code' => $code,
-                'bonus_mb' => $data->bonusMb,
+                'bonus_mb' => $bonusMb,
+                'bonus_type' => $bonusType,
+                'bonus_amount' => $bonusAmount,
                 'partner_reward' => $data->partnerReward,
                 'type' => $data->type,
                 'expires_at' => $data->expiresAt,
@@ -82,17 +86,40 @@ class PromoCodeService
         ?int $maxUsage = null,
         bool $deactivateExistingActive = true,
     ): PromoCode {
+        $mb = $bonusMb ?? $this->program->defaultUserBonusMb();
+
         return $this->create(new CreatePromoCodeData(
             partnerId: $partner->id,
             code: $code,
-            bonusMb: $bonusMb ?? $this->program->defaultUserBonusMb(),
+            bonusMb: $mb,
             partnerReward: $partnerReward ?? (float) $this->program->defaultRegistrationReward(),
             type: $type,
             expiresAt: $expiresAt ?? now()->addDays(30),
             maxUsage: $maxUsage,
             isActive: true,
             deactivateExistingActive: $deactivateExistingActive,
+            bonusType: PromoCode::BONUS_TYPE_MB,
+            bonusAmount: (float) $mb,
         ));
+    }
+
+    /**
+     * @return array{0: string, 1: string, 2: int}
+     */
+    protected function normalizedBonus(CreatePromoCodeData $data): array
+    {
+        $type = $data->bonusType === PromoCode::BONUS_TYPE_USD
+            ? PromoCode::BONUS_TYPE_USD
+            : PromoCode::BONUS_TYPE_MB;
+        $amount = $data->bonusAmount ?? (float) $data->bonusMb;
+
+        if ($type === PromoCode::BONUS_TYPE_USD) {
+            return [$type, number_format($amount, 2, '.', ''), 0];
+        }
+
+        $mb = (int) round($amount);
+
+        return [$type, number_format($mb, 2, '.', ''), $mb];
     }
 
     public function deactivate(PromoCode $promoCode): PromoCode

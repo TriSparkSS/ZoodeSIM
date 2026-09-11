@@ -35,5 +35,6 @@ return [
         'subject' => 'Bonus de parrainage ajouté',
         'title' => 'Bonus de parrainage',
         'body' => 'Vous avez reçu :bonus Mo via un code de parrainage.',
+        'body_usd' => 'Vous avez reçu $:bonus via un code de parrainage.',
     ],
 ];

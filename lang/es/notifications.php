@@ -35,5 +35,6 @@ return [
         'subject' => 'Bono de referido añadido',
         'title' => 'Bono de referido',
         'body' => 'Recibiste :bonus MB de un código de referido.',
+        'body_usd' => 'Recibiste $:bonus de un código de referido.',
     ],
 ];

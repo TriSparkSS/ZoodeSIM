@@ -31,7 +31,7 @@ class PromoAuditAndPayoutIdentityTest extends TestCase
         Livewire::test(PromoCodes::class)
             ->call('openCreateModal', $partner->id)
             ->set('formCode', 'AUDIT99')
-            ->set('formBonusMb', '200')
+            ->set('formBonusAmount', '200')
             ->set('formPartnerReward', '1.50')
             ->set('formExpiresAt', now()->addDays(14)->format('Y-m-d'))
             ->call('createPromo')

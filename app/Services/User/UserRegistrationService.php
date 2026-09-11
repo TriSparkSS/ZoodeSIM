@@ -20,7 +20,7 @@ class UserRegistrationService
     ) {}
 
     /**
-     * @return array{user: User, bonus_mb: int}
+     * @return array{user: User, bonus_mb: int, bonus_type: string|null, bonus_amount: float|int}
      */
     public function register(
         string $name,
@@ -48,14 +48,17 @@ class UserRegistrationService
                 return [
                     'user' => $user,
                     'bonus_mb' => 0,
+                    'bonus_type' => null,
+                    'bonus_amount' => 0,
                 ];
             }
 
             $usage = $this->redemption->redeem($user, $promo);
+            $user->refresh();
 
             return [
                 'user' => $user,
-                'bonus_mb' => (int) $usage->bonus_mb_given,
+                ...$usage->apiBonusPayload(),
             ];
         });
 

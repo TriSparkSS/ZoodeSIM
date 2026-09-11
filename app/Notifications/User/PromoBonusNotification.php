@@ -2,6 +2,7 @@
 
 namespace App\Notifications\User;
 
+use App\Models\PromoCode;
 use App\Models\PromoUsage;
 use App\Notifications\Concerns\UsesNotifiableChannels;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -27,9 +28,7 @@ class PromoBonusNotification extends Notification
     {
         return (new MailMessage)
             ->subject(__('notifications.bonus.subject'))
-            ->line(__('notifications.bonus.body', [
-                'bonus' => (int) $this->usage->bonus_mb_given,
-            ]));
+            ->line($this->body());
     }
 
     /**
@@ -37,14 +36,29 @@ class PromoBonusNotification extends Notification
      */
     public function toArray(object $notifiable): array
     {
+        $bonus = $this->usage->apiBonusPayload();
+
         return [
             'type' => 'promo_bonus',
             'title' => __('notifications.bonus.title'),
-            'body' => __('notifications.bonus.body', [
-                'bonus' => (int) $this->usage->bonus_mb_given,
-            ]),
+            'body' => $this->body(),
             'promo_usage_id' => $this->usage->id,
-            'bonus_mb' => (int) $this->usage->bonus_mb_given,
+            'bonus_type' => $bonus['bonus_type'],
+            'bonus_amount' => $bonus['bonus_amount'],
+            'bonus_mb' => $bonus['bonus_mb'],
         ];
+    }
+
+    protected function body(): string
+    {
+        if ($this->usage->bonus_type === PromoCode::BONUS_TYPE_USD) {
+            return __('notifications.bonus.body_usd', [
+                'bonus' => number_format((float) $this->usage->bonus_amount, 2, '.', ''),
+            ]);
+        }
+
+        return __('notifications.bonus.body', [
+            'bonus' => (int) $this->usage->bonus_mb_given,
+        ]);
     }
 }

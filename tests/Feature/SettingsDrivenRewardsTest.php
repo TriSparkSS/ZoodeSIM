@@ -84,7 +84,8 @@ class SettingsDrivenRewardsTest extends TestCase
 
         Livewire::test(AdminPromoCodes::class)
             ->call('openCreateModal', $partner->id)
-            ->assertSet('formBonusMb', '275')
+            ->assertSet('formBonusType', 'mb')
+            ->assertSet('formBonusAmount', '275')
             ->assertSet('formPartnerReward', '1.75');
     }
 

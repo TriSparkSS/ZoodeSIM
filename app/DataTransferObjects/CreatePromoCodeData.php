@@ -2,6 +2,7 @@
 
 namespace App\DataTransferObjects;
 
+use App\Models\PromoCode;
 use Carbon\CarbonInterface;
 
 readonly class CreatePromoCodeData
@@ -16,5 +17,7 @@ readonly class CreatePromoCodeData
         public ?int $maxUsage = null,
         public bool $isActive = true,
         public bool $deactivateExistingActive = false,
+        public string $bonusType = PromoCode::BONUS_TYPE_MB,
+        public ?float $bonusAmount = null,
     ) {}
 }

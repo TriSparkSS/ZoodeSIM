@@ -32,10 +32,44 @@
         @enderror
     </x-ui.form-group>
 
+    <x-ui.form-group :label="__('admin.promo_codes.form_bonus_type')" required>
+        <div class="flex flex-wrap gap-2">
+            @foreach([
+                \App\Models\PromoCode::BONUS_TYPE_MB => __('admin.promo_codes.bonus_type_mb'),
+                \App\Models\PromoCode::BONUS_TYPE_USD => __('admin.promo_codes.bonus_type_usd'),
+            ] as $value => $label)
+                <button
+                    type="button"
+                    wire:click="setBonusType('{{ $value }}')"
+                    @class([
+                        'rounded-lg px-3 py-1.5 text-xs font-semibold transition',
+                        'bg-brand-cyan/15 text-brand-cyan' => $formBonusType === $value,
+                        'bg-surface-card-alt text-surface-muted hover:text-surface-text dark:bg-brand-card-alt dark:text-brand-muted dark:hover:text-brand-text' => $formBonusType !== $value,
+                    ])
+                >
+                    {{ $label }}
+                </button>
+            @endforeach
+        </div>
+        @error('formBonusType')
+            <p class="mt-1 text-xs text-brand-red">{{ $message }}</p>
+        @enderror
+    </x-ui.form-group>
+
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <x-ui.form-group :label="__('admin.promo_codes.form_bonus_mb')" required>
-            <x-ui.input wire:model="formBonusMb" type="number" min="1" />
-            @error('formBonusMb')
+        <x-ui.form-group
+            :label="$formBonusType === \App\Models\PromoCode::BONUS_TYPE_USD
+                ? __('admin.promo_codes.form_bonus_amount_usd')
+                : __('admin.promo_codes.form_bonus_mb')"
+            required
+        >
+            <x-ui.input
+                wire:model="formBonusAmount"
+                type="number"
+                min="{{ $formBonusType === \App\Models\PromoCode::BONUS_TYPE_USD ? '0.01' : '1' }}"
+                step="{{ $formBonusType === \App\Models\PromoCode::BONUS_TYPE_USD ? '0.01' : '1' }}"
+            />
+            @error('formBonusAmount')
                 <p class="mt-1 text-xs text-brand-red">{{ $message }}</p>
             @enderror
         </x-ui.form-group>

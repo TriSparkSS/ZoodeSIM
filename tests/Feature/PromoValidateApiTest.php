@@ -22,6 +22,8 @@ class PromoValidateApiTest extends TestCase
                 'message' => __('api.promo.valid'),
                 'data' => [
                     'valid' => true,
+                    'bonus_type' => 'mb',
+                    'bonus_amount' => 250,
                     'bonus_mb' => 250,
                     'partner_name' => 'Referral Partner',
                     'reason' => null,
@@ -37,6 +39,8 @@ class PromoValidateApiTest extends TestCase
                 'success' => true,
                 'data' => [
                     'valid' => false,
+                    'bonus_type' => null,
+                    'bonus_amount' => 0,
                     'bonus_mb' => 0,
                     'partner_name' => null,
                     'reason' => __('api.promo.invalid'),
@@ -54,6 +58,25 @@ class PromoValidateApiTest extends TestCase
             ->assertJsonPath('data.reason', __('api.promo.expired'));
 
         $this->assertDatabaseCount('promo_usage', 0);
+    }
+
+    public function test_valid_usd_promo_returns_reward_dollar_bonus(): void
+    {
+        $this->makePromo($this->makePartner(), bonusMb: 0, expiresAt: null, bonusType: PromoCode::BONUS_TYPE_USD, bonusAmount: 5.00);
+
+        $this->postJson('/api/promo/validate', ['code' => 'VALID10'])
+            ->assertOk()
+            ->assertJson([
+                'success' => true,
+                'data' => [
+                    'valid' => true,
+                    'bonus_type' => PromoCode::BONUS_TYPE_USD,
+                    'bonus_amount' => 5,
+                    'bonus_mb' => 0,
+                    'partner_name' => 'Referral Partner',
+                    'reason' => null,
+                ],
+            ]);
     }
 
     public function test_self_referral_email_is_rejected_on_validate(): void
@@ -83,12 +106,19 @@ class PromoValidateApiTest extends TestCase
         ]);
     }
 
-    protected function makePromo(Partner $partner, int $bonusMb = 200, mixed $expiresAt = null): PromoCode
-    {
+    protected function makePromo(
+        Partner $partner,
+        int $bonusMb = 200,
+        mixed $expiresAt = null,
+        string $bonusType = PromoCode::BONUS_TYPE_MB,
+        ?float $bonusAmount = null,
+    ): PromoCode {
         return PromoCode::query()->create([
             'partner_id' => $partner->id,
             'code' => 'VALID10',
             'bonus_mb' => $bonusMb,
+            'bonus_type' => $bonusType,
+            'bonus_amount' => $bonusAmount ?? $bonusMb,
             'partner_reward' => 1.50,
             'type' => 'standard',
             'expires_at' => $expiresAt ?? now()->addDays(30),

@@ -27,7 +27,7 @@ class PromoValidationService implements PromoValidationServiceInterface
         }
 
         return PromoValidationResult::valid(
-            (int) $promo->bonus_mb,
+            $promo,
             (string) ($promo->partner?->name ?? ''),
         );
     }

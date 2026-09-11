@@ -33,7 +33,12 @@ class UserRegistrationApiTest extends TestCase
             ->assertJson([
                 'success' => true,
                 'message' => __('api.user.registered'),
-                'data' => ['bonus_mb' => 0, 'token_type' => 'Bearer'],
+                'data' => [
+                    'bonus_type' => null,
+                    'bonus_amount' => 0,
+                    'bonus_mb' => 0,
+                    'token_type' => 'Bearer',
+                ],
                 'errors' => null,
             ])
             ->assertJsonPath('data.user.email', 'user@example.com')
@@ -81,7 +86,12 @@ class UserRegistrationApiTest extends TestCase
         $response->assertCreated()
             ->assertJson([
                 'success' => true,
-                'data' => ['bonus_mb' => 250, 'token_type' => 'Bearer'],
+                'data' => [
+                    'bonus_type' => 'mb',
+                    'bonus_amount' => 250,
+                    'bonus_mb' => 250,
+                    'token_type' => 'Bearer',
+                ],
                 'errors' => null,
             ]);
 
@@ -99,6 +109,8 @@ class UserRegistrationApiTest extends TestCase
             'partner_id' => $partner->id,
             'promo_code_id' => $promo->id,
             'bonus_mb_given' => 250,
+            'bonus_type' => PromoCode::BONUS_TYPE_MB,
+            'bonus_amount' => 250,
             'partner_reward' => 2.25,
         ]);
 
@@ -131,6 +143,64 @@ class UserRegistrationApiTest extends TestCase
         $this->assertTrue(
             Transaction::query()->where('transaction_id', 'like', 'TXN-%')->count() >= 2
         );
+    }
+
+    public function test_user_can_register_with_reward_dollar_promo(): void
+    {
+        $partner = $this->makePartner();
+        $promo = $this->makePromo(
+            $partner,
+            bonusMb: 0,
+            reward: 1.50,
+            bonusType: PromoCode::BONUS_TYPE_USD,
+            bonusAmount: 5.00,
+        );
+
+        $response = $this->postJson('/api/user/register', $this->validPayload([
+            'referral_code' => 'VALID10',
+        ]));
+
+        $response->assertCreated()
+            ->assertJson([
+                'success' => true,
+                'data' => [
+                    'bonus_type' => PromoCode::BONUS_TYPE_USD,
+                    'bonus_amount' => 5,
+                    'bonus_mb' => 0,
+                    'token_type' => 'Bearer',
+                ],
+            ])
+            ->assertJsonPath('data.user.balance', '5.00');
+
+        $user = User::query()->where('email', 'user@example.com')->firstOrFail();
+
+        $this->assertSame(0, $user->bonus_mb);
+        $this->assertSame('5.00', (string) $user->balance);
+        $this->assertDatabaseHas('promo_usage', [
+            'user_id' => $user->id,
+            'promo_code_id' => $promo->id,
+            'bonus_type' => PromoCode::BONUS_TYPE_USD,
+            'bonus_mb_given' => 0,
+            'bonus_amount' => 5.00,
+        ]);
+        $this->assertDatabaseHas('transactions', [
+            'transactable_type' => User::class,
+            'transactable_id' => $user->id,
+            'type' => Transaction::TYPE_CREDIT,
+            'category' => Transaction::CATEGORY_PROMO_BONUS,
+            'amount' => '5.00',
+            'currency' => 'USD',
+            'balance_before' => '0.00',
+            'balance_after' => '5.00',
+            'promo_code_id' => $promo->id,
+        ]);
+
+        $this->withToken($response->json('data.token'))
+            ->getJson('/api/user/wallet')
+            ->assertOk()
+            ->assertJsonPath('data.balance', '5.00')
+            ->assertJsonPath('data.transactions.0.category', Transaction::CATEGORY_PROMO_BONUS)
+            ->assertJsonPath('data.transactions.0.amount', '5.00');
     }
 
     public function test_invalid_referral_code_is_rejected(): void
@@ -377,11 +447,15 @@ class UserRegistrationApiTest extends TestCase
         ?CarbonInterface $expiresAt = null,
         int $usageCount = 0,
         ?int $maxUsage = null,
+        string $bonusType = PromoCode::BONUS_TYPE_MB,
+        ?float $bonusAmount = null,
     ): PromoCode {
         return PromoCode::query()->create([
             'partner_id' => $partner->id,
             'code' => $code,
             'bonus_mb' => $bonusMb,
+            'bonus_type' => $bonusType,
+            'bonus_amount' => $bonusAmount ?? $bonusMb,
             'partner_reward' => $reward,
             'type' => 'standard',
             'expires_at' => $expiresAt ?? now()->addDays(30),

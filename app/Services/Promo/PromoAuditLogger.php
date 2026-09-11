@@ -62,6 +62,8 @@ class PromoAuditLogger implements PromoAuditLoggerInterface
             'user_id' => $user->id,
             'promo_usage_id' => $usage->id,
             'bonus_mb' => $usage->bonus_mb_given,
+            'bonus_type' => $usage->bonus_type,
+            'bonus_amount' => (string) $usage->bonus_amount,
             'partner_reward' => (string) $usage->partner_reward,
             'device_id' => $usage->device_id,
         ]);

@@ -54,7 +54,7 @@ class PartnerPortalDataService
             'available_withdrawal' => (float) $partner->balance,
             'withdrawn' => $withdrawn,
             'promo_code' => $activePromo?->code ?? '—',
-            'promo_bonus' => $activePromo ? $activePromo->bonus_mb.' MB' : '—',
+            'promo_bonus' => $activePromo ? $activePromo->userBonusLabel() : '—',
             'promo_reward' => $activePromo
                 ? '$'.number_format((float) $activePromo->partner_reward, 2)
                 : '$'.$this->program->defaultRegistrationReward(),
@@ -77,7 +77,7 @@ class PartnerPortalDataService
                 'id' => $promo->id,
                 'code' => $promo->code,
                 'uses' => (int) $promo->usage_count,
-                'bonus' => $promo->bonus_mb.' MB',
+                'bonus' => $promo->userBonusLabel(),
                 'earnings' => round((int) $promo->usage_count * (float) $promo->partner_reward, 2),
                 'status' => $promo->lifecycleStatus(),
             ])
@@ -165,7 +165,7 @@ class PartnerPortalDataService
                     'date' => $usage->used_at?->format('Y-m-d') ?? '',
                     'status' => 'registered',
                     'code' => $usage->promoCode?->code ?? '—',
-                    'bonus' => $usage->bonus_mb_given.' MB',
+                    'bonus' => $usage->userBonusLabel(),
                     'gradient' => 'from-brand-cyan to-brand-purple',
                 ];
             })

@@ -212,6 +212,11 @@ return [
         'table_code' => 'الرمز',
         'table_uses' => 'الاستخدامات',
         'table_bonus' => 'المكافأة',
+        'form_bonus_type' => 'نوع مكافأة المستخدم',
+        'bonus_type_mb' => 'ميغابايت',
+        'bonus_type_usd' => 'دولارات المكافأة',
+        'form_bonus_mb' => 'مكافأة المستخدم (ميغابايت)',
+        'form_bonus_amount_usd' => 'مكافأة المستخدم ($)',
         'search_placeholder' => 'البحث عن أكواد الخصم...',
     ],
 

@@ -32,7 +32,9 @@ class PromoCodes extends Component
 
     public string $formCode = '';
 
-    public string $formBonusMb = '200';
+    public string $formBonusType = PromoCode::BONUS_TYPE_MB;
+
+    public string $formBonusAmount = '200';
 
     public string $formPartnerReward = '1.50';
 
@@ -96,6 +98,22 @@ class PromoCodes extends Component
         }
     }
 
+    public function setBonusType(string $type): void
+    {
+        $this->formBonusType = $type === PromoCode::BONUS_TYPE_USD
+            ? PromoCode::BONUS_TYPE_USD
+            : PromoCode::BONUS_TYPE_MB;
+        $this->updatedFormBonusType();
+    }
+
+    public function updatedFormBonusType(): void
+    {
+        $this->resetValidation('formBonusAmount');
+        $this->formBonusAmount = $this->formBonusType === PromoCode::BONUS_TYPE_USD
+            ? '1.00'
+            : (string) $this->program->defaultUserBonusMb();
+    }
+
     public function generateCode(): void
     {
         $this->suggestCodeForSelectedPartner();
@@ -154,7 +172,7 @@ class PromoCodes extends Component
                 'uses_label' => $promo->max_usage === null
                     ? number_format((int) $promo->usage_count)
                     : number_format((int) $promo->usage_count).' / '.number_format((int) $promo->max_usage),
-                'bonus' => $promo->bonus_mb.' MB',
+                'bonus' => $promo->userBonusLabel(),
                 'reward' => '$'.number_format((float) $promo->partner_reward, 2),
                 'type' => $promo->type,
                 'expires_at' => $promo->expires_at?->format('Y-m-d'),
@@ -220,7 +238,10 @@ class PromoCodes extends Component
         $validated = $this->validate([
             'formPartnerId' => ['required', 'uuid', 'exists:partners,id'],
             'formCode' => ['required', 'string', 'min:6', 'max:12', 'regex:/^[A-Za-z0-9]+$/'],
-            'formBonusMb' => ['required', 'integer', 'min:1', 'max:100000'],
+            'formBonusType' => ['required', 'in:'.implode(',', PromoCode::bonusTypes())],
+            'formBonusAmount' => $this->formBonusType === PromoCode::BONUS_TYPE_USD
+                ? ['required', 'numeric', 'min:0.01', 'max:100000']
+                : ['required', 'integer', 'min:1', 'max:100000'],
             'formPartnerReward' => ['required', 'numeric', 'min:0'],
             'formType' => ['required', 'in:standard,premium,seasonal,single'],
             'formExpiresAt' => ['nullable', 'date'],
@@ -240,10 +261,13 @@ class PromoCodes extends Component
         }
 
         try {
+            $isUsd = $validated['formBonusType'] === PromoCode::BONUS_TYPE_USD;
+            $bonusAmount = (float) $validated['formBonusAmount'];
+
             $promo = $this->promoCodeService->create(new CreatePromoCodeData(
                 partnerId: $partner->id,
                 code: $validated['formCode'],
-                bonusMb: (int) $validated['formBonusMb'],
+                bonusMb: $isUsd ? 0 : (int) $validated['formBonusAmount'],
                 partnerReward: (float) $validated['formPartnerReward'],
                 type: $validated['formType'],
                 expiresAt: filled($validated['formExpiresAt'] ?? null)
@@ -254,6 +278,8 @@ class PromoCodes extends Component
                     : null,
                 isActive: true,
                 deactivateExistingActive: $deactivateExisting,
+                bonusType: $validated['formBonusType'],
+                bonusAmount: $bonusAmount,
             ));
         } catch (ValidationException $e) {
             $this->toast(collect($e->errors())->flatten()->first() ?: __('admin.promo_codes.validation.code_unique'), 'error');
@@ -302,7 +328,8 @@ class PromoCodes extends Component
 
     protected function applySettingDefaults(): void
     {
-        $this->formBonusMb = (string) $this->program->defaultUserBonusMb();
+        $this->formBonusType = PromoCode::BONUS_TYPE_MB;
+        $this->formBonusAmount = (string) $this->program->defaultUserBonusMb();
         $this->formPartnerReward = $this->program->defaultRegistrationReward();
     }
 

@@ -138,6 +138,31 @@ class AdminUserWalletTest extends TestCase
             ->assertDontSee('+$200.00');
     }
 
+    public function test_wallet_history_includes_usd_promo_bonus(): void
+    {
+        $admin = $this->makeAdmin();
+        $user = User::factory()->create(['balance' => '0.00', 'bonus_mb' => 0]);
+        $ledger = app(WalletLedgerServiceInterface::class);
+
+        $ledger->credit(
+            $user,
+            Money::fromDecimal('5.00', 'USD'),
+            Transaction::CATEGORY_PROMO_BONUS,
+            'promo_usage',
+            'usage-wallet-usd',
+            'Promo registration bonus',
+        );
+
+        $this->actingAs($admin, 'admin');
+
+        Livewire::test(Users::class)
+            ->call('openWallet', $user->id)
+            ->assertSet('walletBonusMb', 0)
+            ->assertSet('walletBalance', '5.00')
+            ->assertSee('Promo registration bonus')
+            ->assertSee('+$5.00');
+    }
+
     protected function makeAdmin(): Admin
     {
         return Admin::query()->create([

@@ -31,6 +31,8 @@ class RegisterController extends Controller
             'token' => $auth->issueToken($result['user']),
             'token_type' => 'Bearer',
             'user' => UserResource::make($result['user'])->resolve(),
+            'bonus_type' => $result['bonus_type'],
+            'bonus_amount' => $result['bonus_amount'],
             'bonus_mb' => $result['bonus_mb'],
         ], 201);
     }

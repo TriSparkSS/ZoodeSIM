@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\FormatsUserBonus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,6 +10,12 @@ use Illuminate\Support\Str;
 
 class PromoCode extends Model
 {
+    use FormatsUserBonus;
+
+    public const BONUS_TYPE_MB = 'mb';
+
+    public const BONUS_TYPE_USD = 'usd';
+
     protected $table = 'promo_codes';
 
     public $incrementing = false;
@@ -20,6 +27,8 @@ class PromoCode extends Model
         'partner_id',
         'code',
         'bonus_mb',
+        'bonus_type',
+        'bonus_amount',
         'partner_reward',
         'type',
         'expires_at',
@@ -30,6 +39,7 @@ class PromoCode extends Model
 
     protected $casts = [
         'bonus_mb' => 'integer',
+        'bonus_amount' => 'decimal:2',
         'partner_reward' => 'decimal:2',
         'expires_at' => 'datetime',
         'is_active' => 'boolean',
@@ -44,6 +54,45 @@ class PromoCode extends Model
                 $promo->id = (string) Str::uuid();
             }
         });
+
+        static::saving(function (PromoCode $promo) {
+            $promo->syncBonusColumns();
+        });
+    }
+
+    public function syncBonusColumns(): void
+    {
+        $type = $this->bonus_type === self::BONUS_TYPE_USD
+            ? self::BONUS_TYPE_USD
+            : self::BONUS_TYPE_MB;
+        $this->bonus_type = $type;
+
+        if ($type === self::BONUS_TYPE_USD) {
+            $this->bonus_mb = 0;
+            $this->bonus_amount = $this->bonus_amount ?? '0.00';
+
+            return;
+        }
+
+        if ($this->bonus_amount !== null) {
+            $mb = (int) $this->bonus_amount;
+            $this->bonus_mb = $mb;
+            $this->bonus_amount = number_format($mb, 2, '.', '');
+
+            return;
+        }
+
+        $mb = (int) ($this->bonus_mb ?? 0);
+        $this->bonus_mb = $mb;
+        $this->bonus_amount = number_format($mb, 2, '.', '');
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function bonusTypes(): array
+    {
+        return [self::BONUS_TYPE_MB, self::BONUS_TYPE_USD];
     }
 
     public function partner(): BelongsTo

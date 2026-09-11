@@ -71,11 +71,21 @@ class PromoRedemptionService
             $this->fraud->assertDeviceCanRedeemPromo($user->device_id, $user->id);
         }
 
+        $bonusType = $locked->bonus_type === PromoCode::BONUS_TYPE_USD
+            ? PromoCode::BONUS_TYPE_USD
+            : PromoCode::BONUS_TYPE_MB;
+        $bonusAmount = $bonusType === PromoCode::BONUS_TYPE_USD
+            ? (string) ($locked->bonus_amount ?? '0.00')
+            : number_format((int) $locked->bonus_mb, 2, '.', '');
+        $bonusMb = $bonusType === PromoCode::BONUS_TYPE_USD ? 0 : (int) $locked->bonus_mb;
+
         $usage = PromoUsage::query()->create([
             'promo_code_id' => $locked->id,
             'user_id' => $user->id,
             'partner_id' => $partner->id,
-            'bonus_mb_given' => (int) $locked->bonus_mb,
+            'bonus_mb_given' => $bonusMb,
+            'bonus_type' => $bonusType,
+            'bonus_amount' => $bonusAmount,
             'partner_reward' => $locked->partner_reward,
             'used_at' => now(),
             'device_id' => $user->device_id,
@@ -84,9 +94,27 @@ class PromoRedemptionService
 
         $locked->increment('usage_count');
 
-        $bonusMb = (int) $locked->bonus_mb;
+        if ($bonusType === PromoCode::BONUS_TYPE_USD) {
+            $usd = Money::fromDecimal($bonusAmount, (string) config('pricing.currency', 'USD'));
 
-        if ($bonusMb > 0) {
+            if ($usd->cents > 0) {
+                $this->ledger->credit(
+                    $user,
+                    $usd,
+                    Transaction::CATEGORY_PROMO_BONUS,
+                    'promo_usage',
+                    $usage->id,
+                    'Promo registration bonus',
+                    promoCodeId: $locked->id,
+                    meta: [
+                        'promo_code' => $locked->code,
+                        'bonus_type' => $bonusType,
+                        'bonus_amount' => $usd->toDecimal(),
+                        'partner_id' => $partner->id,
+                    ],
+                );
+            }
+        } elseif ($bonusMb > 0) {
             $this->ledger->credit(
                 $user,
                 Money::fromDecimal((string) $bonusMb, 'MB'),
@@ -97,6 +125,7 @@ class PromoRedemptionService
                 promoCodeId: $locked->id,
                 meta: [
                     'promo_code' => $locked->code,
+                    'bonus_type' => $bonusType,
                     'bonus_mb' => $bonusMb,
                     'partner_id' => $partner->id,
                 ],
@@ -119,7 +148,9 @@ class PromoRedemptionService
                     'promo_code' => $locked->code,
                     'commission' => $reward->toDecimal(),
                     'user_id' => $user->id,
+                    'bonus_type' => $bonusType,
                     'bonus_mb' => $bonusMb,
+                    'bonus_amount' => $bonusAmount,
                 ],
             );
         }

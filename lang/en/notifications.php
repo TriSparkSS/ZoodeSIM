@@ -35,5 +35,6 @@ return [
         'subject' => 'Referral bonus added',
         'title' => 'Referral bonus',
         'body' => 'You received :bonus MB from a referral code.',
+        'body_usd' => 'You received $:bonus from a referral code.',
     ],
 ];
