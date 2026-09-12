@@ -6,6 +6,7 @@ use App\Http\Controllers\LocaleController;
 use App\Livewire\Admin\ApiLogs;
 use App\Livewire\Admin\ApiLogShow;
 use App\Livewire\Admin\Applications;
+use App\Livewire\Admin\Banners;
 use App\Livewire\Admin\Countries as AdminCountries;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Livewire\Admin\Orders;
@@ -68,6 +69,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function
     Route::get('/promo-audit', PromoAuditLogs::class)->name('promo-audit');
     Route::get('/pricing-slabs', PricingSlabs::class)->name('pricing-slabs');
     Route::get('/countries', AdminCountries::class)->name('countries');
+    Route::get('/banners', Banners::class)->name('banners');
     Route::get('/payouts', Payouts::class)->name('payouts');
     Route::get('/transactions', Transactions::class)->name('transactions');
     Route::get('/statistics', AdminStatistics::class)->name('statistics');

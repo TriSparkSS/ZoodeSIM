@@ -9,6 +9,7 @@ return [
         'logged_in' => 'Connexion réussie.',
         'logged_out' => 'Vous avez été déconnecté.',
         'profile' => 'Profil récupéré avec succès.',
+        'profile_updated' => 'Profil mis à jour avec succès.',
     ],
 
     'wallet' => [
@@ -36,6 +37,10 @@ return [
         'device_already_used' => 'Cet appareil a déjà utilisé un bonus de parrainage.',
         'ip_blocked' => 'L’inscription depuis ce réseau n’est pas autorisée.',
         'ip_limited' => 'Trop de comptes créés depuis ce réseau. Réessayez plus tard.',
+    ],
+
+    'banners' => [
+        'retrieved' => 'Bannières récupérées avec succès.',
     ],
 
     'notifications' => [
@@ -69,7 +74,10 @@ return [
         'name_required' => 'Veuillez saisir votre nom.',
         'phone_required' => 'Veuillez saisir votre numéro de téléphone.',
         'phone_unique' => 'Ce numéro de téléphone est déjà enregistré.',
+        'email_unique' => 'Cet e-mail est déjà enregistré.',
         'password_min' => 'Le mot de passe doit contenir au moins 8 caractères.',
         'password_confirmed' => 'La confirmation du mot de passe ne correspond pas.',
+        'current_password_required' => 'Veuillez saisir votre mot de passe actuel.',
+        'current_password_invalid' => 'Le mot de passe actuel est incorrect.',
     ],
 ];

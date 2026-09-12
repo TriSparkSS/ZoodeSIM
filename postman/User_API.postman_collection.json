@@ -1,1098 +1,1223 @@
 {
-  "info": {
-    "_postman_id": "64600a01-8f13-43ad-84c6-d8d50c82a382",
-    "name": "ZoodeSIM User API",
-    "description": "Mirrors `routes/api.php`. User APIs only (no admin HTTP APIs).\n\n**User (Sanctum Bearer `token`)**\n- `POST /api/promo/validate`\n- `POST /api/user/register` · `POST /api/user/login` · `POST /api/user/logout` · `GET /api/user/profile`\n- `GET /api/user/wallet` · `POST /api/user/wallet` · `GET /api/user/transactions` (`page`, `per_page`)\n- `GET /api/user/notifications` · `POST /api/user/notifications/read-all` · `POST /api/user/notifications/{notification}/read`\n- `GET /api/user/esim/countries` · `GET /api/user/esim/packages` · `GET /api/user/esim/orders` · `POST /api/user/esim/orders` · `GET /api/user/esim/orders/{order}`\n\n**Setup**\n1. Import this collection and `User_API.postman_environment.json`.\n2. Select the **ZoodeSIM User API — Local** environment.\n3. Set `baseUrl` if needed (`https://esim.test` for Herd, or `http://localhost`).\n4. Register and Login both save `token` for protected user requests. Run Wallet after login.\n\n**Locale**\nUse `lang` (`en`, `es`, `ru`, `fr`, `de`, `tg`) as `?lang=` or `Accept-Language`.\n\n**Envelope**\n```json\n{ \"success\": true, \"message\": \"...\", \"data\": {}, \"errors\": null }\n{ \"success\": false, \"message\": \"...\", \"data\": null, \"errors\": {} }\n```",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "29209019"
-  },
-  "item": [
-    {
-      "name": "Register",
-      "item": [
-        {
-          "name": "Register with valid referral code",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 201', function () {",
-                  "    pm.response.to.have.status(201);",
-                  "});",
-                  "const json = pm.response.json();",
-                  "if (json.success && json.data && json.data.token) {",
-                  "    pm.environment.set('token', json.data.token);",
-                  "    pm.collectionVariables.set('token', json.data.token);",
-                  "}",
-                  "pm.test('Returns token, user, and eligible bonus', function () {",
-                  "    pm.expect(json.success).to.eql(true);",
-                  "    pm.expect(json.data.bonus_mb).to.be.a('number');",
-                  "    pm.expect(json.data).to.include.keys('bonus_type', 'bonus_amount', 'bonus_mb');",
-                  "    pm.expect(json.data.token_type).to.eql('Bearer');",
-                  "    pm.expect(json.data.token).to.be.a('string').and.not.empty;",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "{{lang}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"name\": \"{{name}}\",\n    \"email\": \"{{email}}\",\n    \"phone\": \"{{phone}}\",\n    \"password\": \"{{password}}\",\n    \"password_confirmation\": \"{{password}}\",\n    \"referral_code\": \"{{referral_code}}\",\n    \"device_id\": \"{{device_id}}\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/user/register?lang={{lang}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "user",
-                "register"
-              ],
-              "query": [
-                {
-                  "key": "lang",
-                  "value": "{{lang}}"
-                }
-              ]
-            },
-            "description": "Set `referral_code` to the partner’s currently active promo. Locked ladder codes are rejected (422 `api.promo.locked`); only the live unlocked code works. Also provisions a ResellPortal client server-side (not returned in JSON). Returns Bearer token, user, and `{ bonus_type, bonus_amount, bonus_mb }`. `bonus_mb` is the MB grant (0 for Reward Dollars). Use a unique email/phone each run."
-          },
-          "response": []
-        }
-      ]
+    "info": {
+        "_postman_id": "64600a01-8f13-43ad-84c6-d8d50c82a382",
+        "name": "ZoodeSIM User API",
+        "description": "Mirrors `routes/api.php`. User APIs only (no admin HTTP APIs).\n\n**User (Sanctum Bearer `token`)**\n- `POST /api/promo/validate`\n- `POST /api/user/register` · `POST /api/user/login` · `POST /api/user/logout` · `GET /api/user/profile` · `PUT /api/user/profile`\n- `GET /api/user/wallet` \u00b7 `POST /api/user/wallet` \u00b7 `GET /api/user/transactions` (`page`, `per_page`)\n- `GET /api/user/banners`\n- `GET /api/user/notifications` \u00b7 `POST /api/user/notifications/read-all` \u00b7 `POST /api/user/notifications/{notification}/read`\n- `GET /api/user/esim/countries` \u00b7 `GET /api/user/esim/packages` \u00b7 `GET /api/user/esim/orders` \u00b7 `POST /api/user/esim/orders` \u00b7 `GET /api/user/esim/orders/{order}`\n\n**Setup**\n1. Import this collection and `User_API.postman_environment.json`.\n2. Select the **ZoodeSIM User API \u2014 Local** environment.\n3. Set `baseUrl` if needed (`https://esim.test` for Herd, or `http://localhost`).\n4. Register and Login both save `token` for protected user requests. Run Wallet after login.\n\n**Locale**\nUse `lang` (`en`, `es`, `ru`, `fr`, `de`, `tg`) as `?lang=` or `Accept-Language`.\n\n**Envelope**\n```json\n{ \"success\": true, \"message\": \"...\", \"data\": {}, \"errors\": null }\n{ \"success\": false, \"message\": \"...\", \"data\": null, \"errors\": {} }\n```",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "_exporter_id": "29209019"
     },
-    {
-      "name": "Auth",
-      "item": [
+    "item": [
         {
-          "name": "Login",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "const json = pm.response.json();",
-                  "if (json.success && json.data && json.data.token) {",
-                  "    pm.environment.set('token', json.data.token);",
-                  "    pm.collectionVariables.set('token', json.data.token);",
-                  "}",
-                  "pm.test('Returns token and safe user', function () {",
-                  "    pm.expect(json.success).to.eql(true);",
-                  "    pm.expect(json.data.token_type).to.eql('Bearer');",
-                  "    pm.expect(json.data.user).to.include.keys('id', 'name', 'email', 'phone', 'created_at');",
-                  "    pm.expect(json.data.user).to.not.have.property('password');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "{{lang}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/user/login?lang={{lang}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "user",
-                "login"
-              ],
-              "query": [
+            "name": "Register",
+            "item": [
                 {
-                  "key": "lang",
-                  "value": "{{lang}}"
+                    "name": "Register with valid referral code",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "if (json.success && json.data && json.data.token) {",
+                                    "    pm.environment.set('token', json.data.token);",
+                                    "    pm.collectionVariables.set('token', json.data.token);",
+                                    "}",
+                                    "pm.test('Returns token, user, and eligible bonus', function () {",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data.bonus_mb).to.be.a('number');",
+                                    "    pm.expect(json.data).to.include.keys('bonus_type', 'bonus_amount', 'bonus_mb');",
+                                    "    pm.expect(json.data.token_type).to.eql('Bearer');",
+                                    "    pm.expect(json.data.token).to.be.a('string').and.not.empty;",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"{{name}}\",\n    \"email\": \"{{email}}\",\n    \"phone\": \"{{phone}}\",\n    \"password\": \"{{password}}\",\n    \"password_confirmation\": \"{{password}}\",\n    \"referral_code\": \"{{referral_code}}\",\n    \"device_id\": \"{{device_id}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/register?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "register"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Set `referral_code` to the partner\u2019s currently active promo. Locked ladder codes are rejected (422 `api.promo.locked`); only the live unlocked code works. Also provisions a ResellPortal client server-side (not returned in JSON). Returns Bearer token, user, and `{ bonus_type, bonus_amount, bonus_mb }`. `bonus_mb` is the MB grant (0 for Reward Dollars). Use a unique email/phone each run."
+                    },
+                    "response": []
                 }
-              ]
-            },
-            "description": "Saves `token` into the active environment for Profile and Logout."
-          },
-          "response": []
+            ]
         },
         {
-          "name": "Profile",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "pm.test('Returns authenticated user only', function () {",
-                  "    const json = pm.response.json();",
-                  "    pm.expect(json.success).to.eql(true);",
-                  "    pm.expect(json.data).to.include.keys('id', 'name', 'email', 'phone', 'created_at', 'bonus_mb');",
-                  "    pm.expect(json.data).to.not.have.property('password');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "{{lang}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/user/profile?lang={{lang}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "user",
-                "profile"
-              ],
-              "query": [
+            "name": "Auth",
+            "item": [
                 {
-                  "key": "lang",
-                  "value": "{{lang}}"
-                }
-              ]
-            },
-            "description": "Requires Bearer token from Login. Returns the authenticated user's safe fields plus `bonus_mb`."
-          },
-          "response": []
-        },
-        {
-          "name": "Logout",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "if (pm.response.code === 200) {",
-                  "    pm.environment.unset('token');",
-                  "    pm.collectionVariables.unset('token');",
-                  "}"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "{{lang}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/user/logout?lang={{lang}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "user",
-                "logout"
-              ],
-              "query": [
-                {
-                  "key": "lang",
-                  "value": "{{lang}}"
-                }
-              ]
-            },
-            "description": "Revokes the current Sanctum token and clears the saved `token` variable."
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Wallet",
-      "item": [
-        {
-          "name": "Get wallet",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "const json = pm.response.json();",
-                  "pm.test('Returns balance and recent transactions', function () {",
-                  "    pm.expect(json.success).to.eql(true);",
-                  "    pm.expect(json.data).to.include.keys('balance', 'currency', 'transactions');",
-                  "    pm.expect(json.data.transactions).to.be.an('array');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "{{lang}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/user/wallet?lang={{lang}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "user",
-                "wallet"
-              ],
-              "query": [
-                {
-                  "key": "lang",
-                  "value": "{{lang}}"
-                }
-              ]
-            },
-            "description": "Authenticated. Returns USD `balance`, `currency`, and the latest 50 non-MB transactions. MB promo bonuses are omitted. For the full history use List transactions."
-          },
-          "response": []
-        },
-        {
-          "name": "Adjust wallet",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "const json = pm.response.json();",
-                  "pm.test('Returns updated balance and the new transaction', function () {",
-                  "    pm.expect(json.success).to.eql(true);",
-                  "    pm.expect(json.data).to.include.keys('balance', 'currency', 'transaction');",
-                  "    pm.expect(json.data.transaction).to.include.keys('transaction_id', 'type', 'category', 'amount');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "{{lang}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"direction\": \"credit\",\n    \"amount\": \"10.00\",\n    \"note\": \"Top up\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/user/wallet?lang={{lang}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "user",
-                "wallet"
-              ],
-              "query": [
-                {
-                  "key": "lang",
-                  "value": "{{lang}}"
-                }
-              ]
-            },
-            "description": "Authenticated. Body: `direction` (`credit` or `debit`), `amount` (up to 2 decimals), optional `note`. Debit returns 422 when the balance is insufficient."
-          },
-          "response": []
-        },
-        {
-          "name": "List transactions",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "const json = pm.response.json();",
-                  "pm.test('Returns paginated transactions', function () {",
-                  "    pm.expect(json.success).to.eql(true);",
-                  "    pm.expect(json.data.transactions).to.be.an('array');",
-                  "    pm.expect(json.data.pagination).to.include.keys('current_page', 'per_page', 'total', 'last_page', 'from', 'to');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "{{lang}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/user/transactions?page={{page}}&per_page={{per_page}}&lang={{lang}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "user",
-                "transactions"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "{{page}}",
-                  "description": "1-based page. Default 1."
+                    "name": "Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "if (json.success && json.data && json.data.token) {",
+                                    "    pm.environment.set('token', json.data.token);",
+                                    "    pm.collectionVariables.set('token', json.data.token);",
+                                    "}",
+                                    "pm.test('Returns token and safe user', function () {",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data.token_type).to.eql('Bearer');",
+                                    "    pm.expect(json.data.user).to.include.keys('id', 'name', 'email', 'phone', 'created_at');",
+                                    "    pm.expect(json.data.user).to.not.have.property('password');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/login?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "login"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Saves `token` into the active environment for Profile and Logout."
+                    },
+                    "response": []
                 },
                 {
-                  "key": "per_page",
-                  "value": "{{per_page}}",
-                  "description": "Page size. Default 20, max 50."
+                    "name": "Logout",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "if (pm.response.code === 200) {",
+                                    "    pm.environment.unset('token');",
+                                    "    pm.collectionVariables.unset('token');",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/logout?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "logout"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Revokes the current Sanctum token and clears the saved `token` variable."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Profile",
+            "item": [
+                {
+                    "name": "Get profile",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "pm.test('Returns authenticated user only', function () {",
+                                    "    const json = pm.response.json();",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data).to.include.keys('id', 'name', 'email', 'phone', 'created_at', 'bonus_mb');",
+                                    "    pm.expect(json.data).to.not.have.property('password');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/profile?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "profile"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Authenticated. Returns the current user `{ id, name, email, phone, balance, created_at, bonus_mb }`. Password is never returned."
+                    },
+                    "response": []
                 },
                 {
-                  "key": "lang",
-                  "value": "{{lang}}"
+                    "name": "Update profile",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Returns updated profile', function () {",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data).to.include.keys('id', 'name', 'email', 'phone', 'created_at', 'bonus_mb');",
+                                    "    pm.expect(json.data).to.not.have.property('password');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"{{name}}\",\n    \"email\": \"{{email}}\",\n    \"phone\": \"{{phone}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/profile?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "profile"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Authenticated. Updates name, email, and phone. Optional password change: send `current_password`, `password`, and `password_confirmation`. Wallet `balance` and `bonus_mb` cannot be changed here. Returns the same profile payload as Get profile."
+                    },
+                    "response": []
                 }
-              ]
-            },
-            "description": "Authenticated. Paginated USD wallet history for the current user (newest first). MB promo bonus rows are omitted. Query: `page` (default 1), `per_page` (default 20, max 50). Each row is `{ transaction_id, type, category, amount, balance_before, balance_after, description, created_at }`. Pagination is `{ current_page, per_page, total, last_page, from, to }`."
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "eSIM Packages",
-      "item": [
-        {
-          "name": "List countries",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "const json = pm.response.json();",
-                  "pm.test('Returns active countries', function () {",
-                  "    pm.expect(json.success).to.eql(true);",
-                  "    pm.expect(json.data.countries).to.be.an('array');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "{{lang}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/user/esim/countries?lang={{lang}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "user",
-                "esim",
-                "countries"
-              ],
-              "query": [
-                {
-                  "key": "lang",
-                  "value": "{{lang}}"
-                }
-              ]
-            },
-            "description": "Authenticated. Returns active catalog countries as `{ code, name, image_url }`."
-          },
-          "response": []
+            ]
         },
         {
-          "name": "List all packages",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "const json = pm.response.json();",
-                  "pm.test('Returns priced packages', function () {",
-                  "    pm.expect(json.success).to.eql(true);",
-                  "    pm.expect(json.data.packages).to.be.an('array');",
-                  "});",
-                  "if (json.success && json.data && json.data.packages && json.data.packages[0]) {",
-                  "    pm.collectionVariables.set('package_code', json.data.packages[0].package_code);",
-                  "    pm.environment.set('package_code', json.data.packages[0].package_code);",
-                  "}"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "{{lang}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/user/esim/packages?lang={{lang}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "user",
-                "esim",
-                "packages"
-              ],
-              "query": [
+            "name": "Wallet",
+            "item": [
                 {
-                  "key": "lang",
-                  "value": "{{lang}}"
-                }
-              ]
-            },
-            "description": "Authenticated. Packages without a pricing slab are omitted. Each item includes `package_code`, `name`, `price` (charged after first-purchase discount), `list_price`, `discount_amount`, `discount_percentage`, `currency`, `location`."
-          },
-          "response": []
-        },
-        {
-          "name": "List packages by country",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "{{lang}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/user/esim/packages?country=US&lang={{lang}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "user",
-                "esim",
-                "packages"
-              ],
-              "query": [
-                {
-                  "key": "country",
-                  "value": "US"
+                    "name": "Get wallet",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Returns balance and recent transactions', function () {",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data).to.include.keys('balance', 'currency', 'transactions');",
+                                    "    pm.expect(json.data.transactions).to.be.an('array');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/wallet?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "wallet"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Authenticated. Returns USD `balance`, `currency`, and the latest 50 non-MB transactions. MB promo bonuses are omitted. For the full history use List transactions."
+                    },
+                    "response": []
                 },
                 {
-                  "key": "lang",
-                  "value": "{{lang}}"
-                }
-              ]
-            },
-            "description": "Optional `country` is a 2-letter ISO code (sent to ResellPortal as `location`). Same priced payload as List all packages."
-          },
-          "response": []
-        },
-        {
-          "name": "List packages — invalid country",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/user/esim/packages?country=USA",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "user",
-                "esim",
-                "packages"
-              ],
-              "query": [
-                {
-                  "key": "country",
-                  "value": "USA"
-                }
-              ]
-            },
-            "description": "Expect 422 Invalid country."
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "eSIM Orders",
-      "item": [
-        {
-          "name": "List orders",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "const json = pm.response.json();",
-                  "pm.test('Returns orders', function () {",
-                  "    pm.expect(json.success).to.eql(true);",
-                  "    pm.expect(json.data.orders).to.be.an('array');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "{{lang}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/user/esim/orders?client_id=&lang={{lang}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "user",
-                "esim",
-                "orders"
-              ],
-              "query": [
-                {
-                  "key": "client_id",
-                  "value": "",
-                  "description": "Optional ResellPortal client_id. Leave blank to list all of the authenticated user's orders."
+                    "name": "Adjust wallet",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Returns updated balance and the new transaction', function () {",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data).to.include.keys('balance', 'currency', 'transaction');",
+                                    "    pm.expect(json.data.transaction).to.include.keys('transaction_id', 'type', 'category', 'amount');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"direction\": \"credit\",\n    \"amount\": \"10.00\",\n    \"note\": \"Top up\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/wallet?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "wallet"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Authenticated. Body: `direction` (`credit` or `debit`), `amount` (up to 2 decimals), optional `note`. Debit returns 422 when the balance is insufficient."
+                    },
+                    "response": []
                 },
                 {
-                  "key": "lang",
-                  "value": "{{lang}}"
+                    "name": "List transactions",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Returns paginated transactions', function () {",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data.transactions).to.be.an('array');",
+                                    "    pm.expect(json.data.pagination).to.include.keys('current_page', 'per_page', 'total', 'last_page', 'from', 'to');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/transactions?page={{page}}&per_page={{per_page}}&lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "transactions"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "{{page}}",
+                                    "description": "1-based page. Default 1."
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "{{per_page}}",
+                                    "description": "Page size. Default 20, max 50."
+                                },
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Authenticated. Paginated USD wallet history for the current user (newest first). MB promo bonus rows are omitted. Query: `page` (default 1), `per_page` (default 20, max 50). Each row is `{ transaction_id, type, category, amount, balance_before, balance_after, description, created_at }`. Pagination is `{ current_page, per_page, total, last_page, from, to }`."
+                    },
+                    "response": []
                 }
-              ]
-            },
-            "description": "Authenticated. Lists the current user's portal eSIM orders (latest 50) as mapped `order` + `esim` only. The ResellPortal POST /orders JSON is stored server-side and is not returned. Optional `client_id` filters by `resellportal_client_id`. A client_id that is not on this user returns an empty list."
-          },
-          "response": []
+            ]
         },
         {
-          "name": "Purchase eSIM",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 201', function () {",
-                  "    pm.response.to.have.status(201);",
-                  "});",
-                  "const json = pm.response.json();",
-                  "if (json.success && json.data && json.data.order && json.data.order.id) {",
-                  "    pm.collectionVariables.set('order_id', json.data.order.id);",
-                  "    pm.environment.set('order_id', json.data.order.id);",
-                  "}",
-                  "pm.test('Returns order and optional esim', function () {",
-                  "    pm.expect(json.success).to.eql(true);",
-                  "    pm.expect(json.data.order).to.include.keys('id', 'package_code', 'price', 'currency', 'status');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "{{lang}}"
-              },
-              {
-                "key": "Idempotency-Key",
-                "value": "{{$guid}}",
-                "disabled": true
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"package_code\": \"{{package_code}}\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/user/esim/orders?lang={{lang}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "user",
-                "esim",
-                "orders"
-              ],
-              "query": [
+            "name": "Banners",
+            "item": [
                 {
-                  "key": "lang",
-                  "value": "{{lang}}"
+                    "name": "List banners",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Returns active user-app banners', function () {",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data.banners).to.be.an('array');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/banners?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "banners"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Authenticated. Returns active banners whose Display On is User App or Both, newest sort first. Each item is `{ id, title, image_url, link_url, sort_order }`. Partner-only banners are omitted."
+                    },
+                    "response": []
                 }
-              ]
-            },
-            "description": "Authenticated. Body is only `package_code`. Optional `Idempotency-Key` header prevents duplicate provisioning. Saves `order_id` for Get eSIM order. The full ResellPortal POST /orders JSON is stored on the order server-side and is not returned in this response."
-          },
-          "response": []
+            ]
         },
         {
-          "name": "Get eSIM order",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "pm.test('Returns owned order', function () {",
-                  "    const json = pm.response.json();",
-                  "    pm.expect(json.success).to.eql(true);",
-                  "    pm.expect(json.data.order.id).to.eql(pm.collectionVariables.get('order_id') || json.data.order.id);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "{{lang}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/user/esim/orders/{{order_id}}?lang={{lang}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "user",
-                "esim",
-                "orders",
-                "{{order_id}}"
-              ],
-              "query": [
+            "name": "eSIM Packages",
+            "item": [
                 {
-                  "key": "lang",
-                  "value": "{{lang}}"
+                    "name": "List countries",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Returns active countries', function () {",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data.countries).to.be.an('array');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/esim/countries?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "esim",
+                                "countries"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Authenticated. Returns active catalog countries as `{ code, name, image_url }`."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List all packages",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Returns priced packages', function () {",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data.packages).to.be.an('array');",
+                                    "});",
+                                    "if (json.success && json.data && json.data.packages && json.data.packages[0]) {",
+                                    "    pm.collectionVariables.set('package_code', json.data.packages[0].package_code);",
+                                    "    pm.environment.set('package_code', json.data.packages[0].package_code);",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/esim/packages?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "esim",
+                                "packages"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Authenticated. Packages without a pricing slab are omitted. Each item includes `package_code`, `name`, `price` (charged after first-purchase discount), `list_price`, `discount_amount`, `discount_percentage`, `currency`, `location`."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List packages by country",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/esim/packages?country=US&lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "esim",
+                                "packages"
+                            ],
+                            "query": [
+                                {
+                                    "key": "country",
+                                    "value": "US"
+                                },
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Optional `country` is a 2-letter ISO code (sent to ResellPortal as `location`). Same priced payload as List all packages."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List packages \u2014 invalid country",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/esim/packages?country=USA",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "esim",
+                                "packages"
+                            ],
+                            "query": [
+                                {
+                                    "key": "country",
+                                    "value": "USA"
+                                }
+                            ]
+                        },
+                        "description": "Expect 422 Invalid country."
+                    },
+                    "response": []
                 }
-              ]
-            },
-            "description": "Returns the authenticated user's own order only (`order` + `esim`). The stored ResellPortal JSON is not included. Run Purchase eSIM first to set `order_id`."
-          },
-          "response": []
+            ]
+        },
+        {
+            "name": "eSIM Orders",
+            "item": [
+                {
+                    "name": "List orders",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Returns orders', function () {",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data.orders).to.be.an('array');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/esim/orders?client_id=&lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "esim",
+                                "orders"
+                            ],
+                            "query": [
+                                {
+                                    "key": "client_id",
+                                    "value": "",
+                                    "description": "Optional ResellPortal client_id. Leave blank to list all of the authenticated user's orders."
+                                },
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Authenticated. Lists the current user's portal eSIM orders (latest 50) as mapped `order` + `esim` only. The ResellPortal POST /orders JSON is stored server-side and is not returned. Optional `client_id` filters by `resellportal_client_id`. A client_id that is not on this user returns an empty list."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Purchase eSIM",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "if (json.success && json.data && json.data.order && json.data.order.id) {",
+                                    "    pm.collectionVariables.set('order_id', json.data.order.id);",
+                                    "    pm.environment.set('order_id', json.data.order.id);",
+                                    "}",
+                                    "pm.test('Returns order and optional esim', function () {",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data.order).to.include.keys('id', 'package_code', 'price', 'currency', 'status');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            },
+                            {
+                                "key": "Idempotency-Key",
+                                "value": "{{$guid}}",
+                                "disabled": true
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"package_code\": \"{{package_code}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/esim/orders?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "esim",
+                                "orders"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Authenticated. Body is only `package_code`. Optional `Idempotency-Key` header prevents duplicate provisioning. Saves `order_id` for Get eSIM order. The full ResellPortal POST /orders JSON is stored on the order server-side and is not returned in this response."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get eSIM order",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "pm.test('Returns owned order', function () {",
+                                    "    const json = pm.response.json();",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data.order.id).to.eql(pm.collectionVariables.get('order_id') || json.data.order.id);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/esim/orders/{{order_id}}?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "esim",
+                                "orders",
+                                "{{order_id}}"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Returns the authenticated user's own order only (`order` + `esim`). The stored ResellPortal JSON is not included. Run Purchase eSIM first to set `order_id`."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Promo",
+            "item": [
+                {
+                    "name": "Validate promo code",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"code\": \"{{referral_code}}\",\n    \"email\": \"{{email}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/promo/validate?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "promo",
+                                "validate"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Live validation for the registration screen. Always 200 with `{ valid, bonus_type, bonus_amount, bonus_mb, partner_name, reason }`. Only the partner\u2019s currently active (unlocked) code is valid. Locked ladder codes return `valid: false` with `api.promo.locked`. `bonus_mb` is 0 when the promo pays Reward Dollars (`bonus_type=usd`). `email` is optional (used for first-use / fraud checks)."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Notifications",
+            "item": [
+                {
+                    "name": "List notifications",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Returns unread_count and notifications', function () {",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data).to.include.keys('unread_count', 'notifications');",
+                                    "});",
+                                    "if (json.success && json.data && json.data.notifications && json.data.notifications[0]) {",
+                                    "    pm.collectionVariables.set('notification_id', json.data.notifications[0].id);",
+                                    "    pm.environment.set('notification_id', json.data.notifications[0].id);",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/notifications?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "notifications"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Authenticated. Latest 50 notifications plus `unread_count`. Saves `notification_id` from the first row."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Mark notification read",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "pm.test('Marks the notification read', function () {",
+                                    "    const json = pm.response.json();",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data.notification.read_at).to.be.a('string').and.not.empty;",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/notifications/{{notification_id}}/read?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "notifications",
+                                "{{notification_id}}",
+                                "read"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Authenticated. Marks one of the current user's notifications as read. Unknown IDs return 404. Run List notifications first."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Mark all notifications read",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "pm.test('unread_count is 0', function () {",
+                                    "    const json = pm.response.json();",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data.unread_count).to.eql(0);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/notifications/read-all?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "notifications",
+                                "read-all"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Authenticated. Marks every unread notification as read."
+                    },
+                    "response": []
+                }
+            ]
         }
-      ]
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{token}}",
+                "type": "string"
+            }
+        ]
     },
-    {
-      "name": "Promo",
-      "item": [
+    "variable": [
         {
-          "name": "Validate promo code",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "{{lang}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"code\": \"{{referral_code}}\",\n    \"email\": \"{{email}}\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/promo/validate?lang={{lang}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "promo",
-                "validate"
-              ],
-              "query": [
-                {
-                  "key": "lang",
-                  "value": "{{lang}}"
-                }
-              ]
-            },
-            "description": "Live validation for the registration screen. Always 200 with `{ valid, bonus_type, bonus_amount, bonus_mb, partner_name, reason }`. Only the partner’s currently active (unlocked) code is valid. Locked ladder codes return `valid: false` with `api.promo.locked`. `bonus_mb` is 0 when the promo pays Reward Dollars (`bonus_type=usd`). `email` is optional (used for first-use / fraud checks)."
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Notifications",
-      "item": [
-        {
-          "name": "List notifications",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "const json = pm.response.json();",
-                  "pm.test('Returns unread_count and notifications', function () {",
-                  "    pm.expect(json.success).to.eql(true);",
-                  "    pm.expect(json.data).to.include.keys('unread_count', 'notifications');",
-                  "});",
-                  "if (json.success && json.data && json.data.notifications && json.data.notifications[0]) {",
-                  "    pm.collectionVariables.set('notification_id', json.data.notifications[0].id);",
-                  "    pm.environment.set('notification_id', json.data.notifications[0].id);",
-                  "}"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "{{lang}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/user/notifications?lang={{lang}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "user",
-                "notifications"
-              ],
-              "query": [
-                {
-                  "key": "lang",
-                  "value": "{{lang}}"
-                }
-              ]
-            },
-            "description": "Authenticated. Latest 50 notifications plus `unread_count`. Saves `notification_id` from the first row."
-          },
-          "response": []
+            "key": "baseUrl",
+            "value": "http://esim.test"
         },
         {
-          "name": "Mark notification read",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "pm.test('Marks the notification read', function () {",
-                  "    const json = pm.response.json();",
-                  "    pm.expect(json.success).to.eql(true);",
-                  "    pm.expect(json.data.notification.read_at).to.be.a('string').and.not.empty;",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "{{lang}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/user/notifications/{{notification_id}}/read?lang={{lang}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "user",
-                "notifications",
-                "{{notification_id}}",
-                "read"
-              ],
-              "query": [
-                {
-                  "key": "lang",
-                  "value": "{{lang}}"
-                }
-              ]
-            },
-            "description": "Authenticated. Marks one of the current user's notifications as read. Unknown IDs return 404. Run List notifications first."
-          },
-          "response": []
+            "key": "lang",
+            "value": "en"
         },
         {
-          "name": "Mark all notifications read",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "pm.test('unread_count is 0', function () {",
-                  "    const json = pm.response.json();",
-                  "    pm.expect(json.success).to.eql(true);",
-                  "    pm.expect(json.data.unread_count).to.eql(0);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "{{lang}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/user/notifications/read-all?lang={{lang}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "user",
-                "notifications",
-                "read-all"
-              ],
-              "query": [
-                {
-                  "key": "lang",
-                  "value": "{{lang}}"
-                }
-              ]
-            },
-            "description": "Authenticated. Marks every unread notification as read."
-          },
-          "response": []
+            "key": "token",
+            "value": ""
+        },
+        {
+            "key": "package_code",
+            "value": "PHAJHEAYP"
+        },
+        {
+            "key": "order_id",
+            "value": ""
+        },
+        {
+            "key": "notification_id",
+            "value": ""
+        },
+        {
+            "key": "page",
+            "value": "1"
+        },
+        {
+            "key": "per_page",
+            "value": "20"
         }
-      ]
-    }
-  ],
-  "auth": {
-    "type": "bearer",
-    "bearer": [
-      {
-        "key": "token",
-        "value": "{{token}}",
-        "type": "string"
-      }
     ]
-  },
-  "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://esim.test"
-    },
-    {
-      "key": "lang",
-      "value": "en"
-    },
-    {
-      "key": "token",
-      "value": ""
-    },
-    {
-      "key": "package_code",
-      "value": "PHAJHEAYP"
-    },
-    {
-      "key": "order_id",
-      "value": ""
-    },
-    {
-      "key": "notification_id",
-      "value": ""
-    },
-    {
-      "key": "page",
-      "value": "1"
-    },
-    {
-      "key": "per_page",
-      "value": "20"
-    }
-  ]
 }

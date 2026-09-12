@@ -73,6 +73,19 @@
         scrollbar-width: thin;
     }
 
+    .scrollbar-hidden,
+    .sidebar-nav {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .scrollbar-hidden::-webkit-scrollbar,
+    .sidebar-nav::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
+    }
+
     .auth-card {
         @apply rounded-[20px] border border-surface-border bg-surface-card p-9 shadow-sm dark:border-brand-border dark:bg-brand-card;
     }

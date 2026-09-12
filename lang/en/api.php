@@ -9,6 +9,7 @@ return [
         'logged_in' => 'Login successful.',
         'logged_out' => 'You have been logged out.',
         'profile' => 'Profile retrieved successfully.',
+        'profile_updated' => 'Profile updated successfully.',
     ],
 
     'wallet' => [
@@ -36,6 +37,10 @@ return [
         'device_already_used' => 'This device has already used a referral bonus.',
         'ip_blocked' => 'Registration from this network is not allowed.',
         'ip_limited' => 'Too many accounts were created from this network. Try again later.',
+    ],
+
+    'banners' => [
+        'retrieved' => 'Banners retrieved successfully.',
     ],
 
     'notifications' => [
@@ -69,7 +74,10 @@ return [
         'name_required' => 'Please enter your name.',
         'phone_required' => 'Please enter your phone number.',
         'phone_unique' => 'This phone number is already registered.',
+        'email_unique' => 'This email is already registered.',
         'password_min' => 'Password must be at least 8 characters.',
         'password_confirmed' => 'The password confirmation does not match.',
+        'current_password_required' => 'Please enter your current password.',
+        'current_password_invalid' => 'The current password is incorrect.',
     ],
 ];

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Promo\ValidatePromoController;
 use App\Http\Controllers\Api\User\EsimCountryController;
 use App\Http\Controllers\Api\User\EsimPackageController;
+use App\Http\Controllers\Api\User\IndexBannerController;
 use App\Http\Controllers\Api\User\IndexEsimOrderController;
 use App\Http\Controllers\Api\User\IndexUserTransactionsController;
 use App\Http\Controllers\Api\User\LoginController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Api\User\ShowEsimOrderController;
 use App\Http\Controllers\Api\User\ShowWalletController;
 use App\Http\Controllers\Api\User\StoreEsimOrderController;
 use App\Http\Controllers\Api\User\StoreWalletController;
+use App\Http\Controllers\Api\User\UpdateProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('promo/validate', ValidatePromoController::class)
@@ -32,6 +34,10 @@ Route::prefix('user')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', LogoutController::class)->name('api.user.logout');
         Route::get('profile', ProfileController::class)->name('api.user.profile');
+        Route::put('profile', UpdateProfileController::class)
+            ->middleware('throttle:30,1')
+            ->name('api.user.profile.update');
+        Route::get('banners', IndexBannerController::class)->name('api.user.banners.index');
         Route::get('wallet', ShowWalletController::class)->name('api.user.wallet.show');
         Route::post('wallet', StoreWalletController::class)
             ->middleware('throttle:30,1')

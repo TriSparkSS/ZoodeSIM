@@ -9,6 +9,7 @@ return [
         'logged_in' => 'Inicio de sesión exitoso.',
         'logged_out' => 'Has cerrado sesión.',
         'profile' => 'Perfil obtenido correctamente.',
+        'profile_updated' => 'Perfil actualizado correctamente.',
     ],
 
     'wallet' => [
@@ -36,6 +37,10 @@ return [
         'device_already_used' => 'Este dispositivo ya usó un bono de referido.',
         'ip_blocked' => 'El registro desde esta red no está permitido.',
         'ip_limited' => 'Demasiadas cuentas creadas desde esta red. Inténtalo más tarde.',
+    ],
+
+    'banners' => [
+        'retrieved' => 'Banners obtenidos correctamente.',
     ],
 
     'notifications' => [
@@ -69,7 +74,10 @@ return [
         'name_required' => 'Introduce tu nombre.',
         'phone_required' => 'Introduce tu número de teléfono.',
         'phone_unique' => 'Este número de teléfono ya está registrado.',
+        'email_unique' => 'Este correo ya está registrado.',
         'password_min' => 'La contraseña debe tener al menos 8 caracteres.',
         'password_confirmed' => 'La confirmación de la contraseña no coincide.',
+        'current_password_required' => 'Introduce tu contraseña actual.',
+        'current_password_invalid' => 'La contraseña actual es incorrecta.',
     ],
 ];

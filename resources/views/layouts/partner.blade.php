@@ -22,6 +22,7 @@
         <div class="flex min-h-screen flex-1 flex-col lg:ms-[230px]">
             <x-layout.topbar />
             <main class="flex-1 p-5 md:p-8">
+                <x-partner.banners />
                 {{ $slot }}
             </main>
         </div>
