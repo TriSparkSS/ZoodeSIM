@@ -110,6 +110,9 @@ return [
         'code_label' => 'رمز الخصم',
         'bonus_label' => 'مكافأة المستخدم (ميجابايت)',
         'submit_create' => 'إنشاء الرمز',
+        'status_locked' => 'مقفل',
+        'status_unlocked' => 'مفتوح',
+        'progress_users' => ':current/:required',
     ],
 
     'statistics' => [

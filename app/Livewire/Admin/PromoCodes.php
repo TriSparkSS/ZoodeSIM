@@ -44,6 +44,8 @@ class PromoCodes extends Component
 
     public string $formMaxUsage = '';
 
+    public string $formUnlockRequirement = '';
+
     public bool $formDeactivateExisting = true;
 
     protected PromoCodeService $promoCodeService;
@@ -149,7 +151,14 @@ class PromoCodes extends Component
             return;
         }
 
-        $this->promoCodeService->activate($promo);
+        try {
+            $this->promoCodeService->activate($promo);
+        } catch (ValidationException $e) {
+            $this->toast(collect($e->errors())->flatten()->first() ?: __('admin.promo_codes.validation.locked_activate'), 'error');
+
+            return;
+        }
+
         $this->toast(__('admin.promo_codes.activated_toast', ['code' => $promo->code]));
     }
 
@@ -177,8 +186,10 @@ class PromoCodes extends Component
                 'type' => $promo->type,
                 'expires_at' => $promo->expires_at?->format('Y-m-d'),
                 'is_active' => $promo->is_active,
+                'is_locked' => $promo->isLocked(),
+                'unlock_requirement' => $promo->unlock_requirement,
                 'status' => $promo->lifecycleStatus(),
-                'needs_replacement' => ! $promo->isCurrentlyUsable(),
+                'needs_replacement' => ! $promo->isCurrentlyUsable() && ! $promo->isLocked(),
             ])
             ->all();
     }
@@ -246,6 +257,7 @@ class PromoCodes extends Component
             'formType' => ['required', 'in:standard,premium,seasonal,single'],
             'formExpiresAt' => ['nullable', 'date'],
             'formMaxUsage' => ['nullable', 'integer', 'min:1'],
+            'formUnlockRequirement' => ['nullable', 'integer', 'min:1'],
         ], [
             'formPartnerId.required' => __('admin.promo_codes.validation.partner_required'),
             'formCode.required' => __('admin.promo_codes.validation.code_required'),
@@ -263,6 +275,10 @@ class PromoCodes extends Component
         try {
             $isUsd = $validated['formBonusType'] === PromoCode::BONUS_TYPE_USD;
             $bonusAmount = (float) $validated['formBonusAmount'];
+            $unlockRequirement = filled($validated['formUnlockRequirement'] ?? null)
+                ? (int) $validated['formUnlockRequirement']
+                : null;
+            $queued = $unlockRequirement !== null && $unlockRequirement >= 1;
 
             $promo = $this->promoCodeService->create(new CreatePromoCodeData(
                 partnerId: $partner->id,
@@ -276,12 +292,17 @@ class PromoCodes extends Component
                 maxUsage: filled($validated['formMaxUsage'] ?? null)
                     ? (int) $validated['formMaxUsage']
                     : null,
-                isActive: true,
-                deactivateExistingActive: $deactivateExisting,
+                isActive: ! $queued,
+                deactivateExistingActive: $queued ? false : $deactivateExisting,
                 bonusType: $validated['formBonusType'],
                 bonusAmount: $bonusAmount,
+                unlockRequirement: $unlockRequirement,
             ));
         } catch (ValidationException $e) {
+            if (isset($e->errors()['unlock_requirement'])) {
+                $this->addError('formUnlockRequirement', $e->errors()['unlock_requirement'][0]);
+            }
+
             $this->toast(collect($e->errors())->flatten()->first() ?: __('admin.promo_codes.validation.code_unique'), 'error');
 
             return;
@@ -323,6 +344,7 @@ class PromoCodes extends Component
         $this->formType = 'standard';
         $this->formExpiresAt = '';
         $this->formMaxUsage = '';
+        $this->formUnlockRequirement = '';
         $this->formDeactivateExisting = true;
     }
 

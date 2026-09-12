@@ -110,6 +110,9 @@ return [
         'code_label' => 'Промокод',
         'bonus_label' => 'Бонус пользователю (МБ)',
         'submit_create' => 'Создать код',
+        'status_locked' => 'Заблокирован',
+        'status_unlocked' => 'Разблокирован',
+        'progress_users' => ':current/:required',
     ],
 
     'statistics' => [

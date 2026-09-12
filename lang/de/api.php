@@ -13,6 +13,7 @@ return [
 
     'wallet' => [
         'retrieved' => 'Wallet erfolgreich abgerufen.',
+        'transactions_retrieved' => 'Transaktionen erfolgreich abgerufen.',
         'adjusted' => 'Wallet erfolgreich aktualisiert.',
         'direction_invalid' => 'Wählen Sie, ob Guthaben hinzugefügt oder abgezogen werden soll.',
         'amount_required' => 'Bitte einen Betrag eingeben.',
@@ -23,6 +24,7 @@ return [
     'promo' => [
         'invalid' => 'Ungültiger Empfehlungscode.',
         'inactive' => 'Dieser Empfehlungscode ist inaktiv.',
+        'locked' => 'Dieser Empfehlungscode ist gesperrt.',
         'expired' => 'Dieser Empfehlungscode ist abgelaufen.',
         'exhausted' => 'Dieser Empfehlungscode hat das Nutzungslimit erreicht.',
         'partner_inactive' => 'Dieser Empfehlungscode ist nicht verfügbar.',
@@ -61,16 +63,6 @@ return [
         'already_processed' => 'Die Bestellung wurde bereits verarbeitet.',
         'unauthorized_order' => 'Unbefugter Zugriff auf die Bestellung.',
         'pricing_unavailable' => 'Die Preisgestaltung ist für dieses Paket derzeit nicht verfügbar.',
-    ],
-
-    'admin' => [
-        'pricing' => [
-            'slabs_retrieved' => 'Preisstufen erfolgreich abgerufen.',
-            'slab_created' => 'Preisstufe erfolgreich erstellt.',
-            'slab_updated' => 'Preisstufe erfolgreich aktualisiert.',
-            'slab_deleted' => 'Preisstufe erfolgreich gelöscht.',
-            'preview_calculated' => 'Preisvorschau erfolgreich berechnet.',
-        ],
     ],
 
     'validation' => [

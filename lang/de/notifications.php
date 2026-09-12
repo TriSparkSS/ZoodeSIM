@@ -26,6 +26,11 @@ return [
         'title' => 'Promo läuft bald ab',
         'body' => 'Promo :code läuft am :date ab.',
     ],
+    'unlock' => [
+        'subject' => 'Promo :code ist jetzt freigeschaltet',
+        'title' => 'Promo freigeschaltet',
+        'body' => 'Promo :code wurde nach :count Empfehlungen freigeschaltet und ist jetzt dein aktiver Code.',
+    ],
     'cashback' => [
         'subject' => 'Cashback gutgeschrieben',
         'title' => 'Kauf-Cashback',

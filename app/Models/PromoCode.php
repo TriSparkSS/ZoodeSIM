@@ -35,6 +35,8 @@ class PromoCode extends Model
         'is_active',
         'usage_count',
         'max_usage',
+        'unlock_requirement',
+        'unlocked_at',
     ];
 
     protected $casts = [
@@ -42,9 +44,11 @@ class PromoCode extends Model
         'bonus_amount' => 'decimal:2',
         'partner_reward' => 'decimal:2',
         'expires_at' => 'datetime',
+        'unlocked_at' => 'datetime',
         'is_active' => 'boolean',
         'usage_count' => 'integer',
         'max_usage' => 'integer',
+        'unlock_requirement' => 'integer',
     ];
 
     protected static function booted(): void
@@ -115,18 +119,29 @@ class PromoCode extends Model
         return $this->max_usage !== null && $this->usage_count >= $this->max_usage;
     }
 
+    public function isLocked(): bool
+    {
+        return $this->unlock_requirement !== null
+            && (int) $this->unlock_requirement > 0
+            && $this->unlocked_at === null;
+    }
+
     public function isCurrentlyUsable(): bool
     {
-        return $this->is_active && ! $this->isExpired() && ! $this->isExhausted();
+        return $this->is_active && ! $this->isLocked() && ! $this->isExpired() && ! $this->isExhausted();
     }
 
     /**
      * Lifecycle status for admin UI (not the raw is_active flag).
      *
-     * @return 'active'|'expired'|'exhausted'|'inactive'
+     * @return 'active'|'expired'|'exhausted'|'inactive'|'locked'
      */
     public function lifecycleStatus(): string
     {
+        if ($this->isLocked()) {
+            return 'locked';
+        }
+
         if (! $this->is_active) {
             return 'inactive';
         }

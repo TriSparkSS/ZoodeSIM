@@ -26,6 +26,11 @@ return [
         'title' => 'Promo expiring soon',
         'body' => 'Promo :code expires on :date.',
     ],
+    'unlock' => [
+        'subject' => 'Promo :code is now unlocked',
+        'title' => 'Promo unlocked',
+        'body' => 'Promo :code unlocked after :count referrals. It is now your active code.',
+    ],
     'cashback' => [
         'subject' => 'Cashback credited',
         'title' => 'Purchase cashback',

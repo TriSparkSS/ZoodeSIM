@@ -13,6 +13,7 @@ return [
 
     'wallet' => [
         'retrieved' => 'Wallet retrieved successfully.',
+        'transactions_retrieved' => 'Transactions retrieved successfully.',
         'adjusted' => 'Wallet updated successfully.',
         'direction_invalid' => 'Choose whether to add or deduct funds.',
         'amount_required' => 'Please enter an amount.',
@@ -23,6 +24,7 @@ return [
     'promo' => [
         'invalid' => 'Invalid referral code.',
         'inactive' => 'This referral code is inactive.',
+        'locked' => 'This referral code is locked.',
         'expired' => 'This referral code has expired.',
         'exhausted' => 'This referral code has reached its usage limit.',
         'partner_inactive' => 'This referral code is not available.',
@@ -61,16 +63,6 @@ return [
         'already_processed' => 'Order already processed.',
         'unauthorized_order' => 'Unauthorized order access.',
         'pricing_unavailable' => 'Pricing is currently unavailable for this package.',
-    ],
-
-    'admin' => [
-        'pricing' => [
-            'slabs_retrieved' => 'Pricing slabs retrieved successfully.',
-            'slab_created' => 'Pricing slab created successfully.',
-            'slab_updated' => 'Pricing slab updated successfully.',
-            'slab_deleted' => 'Pricing slab deleted successfully.',
-            'preview_calculated' => 'Price preview calculated successfully.',
-        ],
     ],
 
     'validation' => [

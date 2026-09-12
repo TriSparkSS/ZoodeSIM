@@ -114,5 +114,7 @@ return [
     'status_expired' => 'Истёк',
     'status_exhausted' => 'Лимит исчерпан',
     'status_inactive' => 'Неактивен',
+    'status_locked' => 'Заблокирован',
+    'status_unlocked' => 'Разблокирован',
     'status_blocked' => 'Заблокирован',
 ];

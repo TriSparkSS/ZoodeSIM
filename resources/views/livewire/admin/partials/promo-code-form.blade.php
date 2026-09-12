@@ -107,7 +107,15 @@
         @enderror
     </x-ui.form-group>
 
-    @if($submitMethod === 'createPromo')
+    <x-ui.form-group :label="__('admin.promo_codes.form_unlock_requirement')">
+        <x-ui.input wire:model.live="formUnlockRequirement" type="number" min="1" placeholder="{{ __('admin.promo_codes.unlock_immediate') }}" />
+        <p class="mt-1 text-xs text-surface-muted dark:text-brand-muted">{{ __('admin.promo_codes.form_unlock_help') }}</p>
+        @error('formUnlockRequirement')
+            <p class="mt-1 text-xs text-brand-red">{{ $message }}</p>
+        @enderror
+    </x-ui.form-group>
+
+    @if($submitMethod === 'createPromo' && ! filled($formUnlockRequirement))
         <label class="flex items-start gap-3 text-sm text-surface-text dark:text-brand-text">
             <input
                 type="checkbox"

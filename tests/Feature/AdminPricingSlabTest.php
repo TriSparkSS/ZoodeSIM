@@ -41,43 +41,37 @@ class AdminPricingSlabTest extends TestCase
         ]);
     }
 
-    /**
-     * @return array{min_amount: string, max_amount: string, percentage: string, priority: int, is_active: bool}
-     */
-    protected function slabPayload(array $overrides = []): array
+    public function test_admin_can_list_slabs(): void
     {
-        return array_merge([
+        PricingSlab::factory()->create([
             'min_amount' => '200.00',
             'max_amount' => '300.00',
             'percentage' => '2.00',
             'priority' => 50,
             'is_active' => true,
-        ], $overrides);
-    }
+        ]);
 
-    public function test_admin_can_list_slabs(): void
-    {
-        $slab = PricingSlab::factory()->create($this->slabPayload());
+        $this->actingAs($this->admin(), 'admin');
 
-        $this->actingAs($this->admin(), 'admin')
-            ->getJson('/api/admin/pricing/slabs')
-            ->assertOk()
-            ->assertJsonPath('success', true)
-            ->assertJsonPath('message', __('api.admin.pricing.slabs_retrieved'))
-            ->assertJsonPath('data.slabs.0.id', $slab->id)
-            ->assertJsonPath('data.slabs.0.min_amount', '200.00')
-            ->assertJsonPath('data.slabs.0.percentage', '2.00');
+        Livewire::test(PricingSlabs::class)
+            ->assertSee('$200.00')
+            ->assertSee('$300.00')
+            ->assertSee('2%');
     }
 
     public function test_admin_can_create_slab(): void
     {
         $admin = $this->admin();
+        $this->actingAs($admin, 'admin');
 
-        $this->actingAs($admin, 'admin')
-            ->postJson('/api/admin/pricing/slabs', $this->slabPayload())
-            ->assertCreated()
-            ->assertJsonPath('message', __('api.admin.pricing.slab_created'))
-            ->assertJsonPath('data.slab.min_amount', '200.00');
+        Livewire::test(PricingSlabs::class)
+            ->set('formMinAmount', '200.00')
+            ->set('formMaxAmount', '300.00')
+            ->set('formPercentage', '2.00')
+            ->set('formPriority', '50')
+            ->set('formIsActive', true)
+            ->call('save')
+            ->assertHasNoErrors();
 
         $this->assertDatabaseHas('pricing_slabs', [
             'min_amount' => '200.00',
@@ -96,17 +90,28 @@ class AdminPricingSlabTest extends TestCase
     public function test_admin_can_update_slab(): void
     {
         $admin = $this->admin();
-        $slab = PricingSlab::factory()->create($this->slabPayload());
+        $slab = PricingSlab::factory()->create([
+            'min_amount' => '200.00',
+            'max_amount' => '300.00',
+            'percentage' => '2.00',
+            'priority' => 50,
+            'is_active' => true,
+        ]);
 
-        $this->actingAs($admin, 'admin')
-            ->putJson('/api/admin/pricing/slabs/'.$slab->id, [
-                'percentage' => '2.50',
-                'priority' => 60,
-            ])
-            ->assertOk()
-            ->assertJsonPath('data.slab.percentage', '2.50')
-            ->assertJsonPath('data.slab.priority', 60);
+        $this->actingAs($admin, 'admin');
 
+        Livewire::test(PricingSlabs::class)
+            ->call('openEditModal', $slab->id)
+            ->set('formPercentage', '2.50')
+            ->set('formPriority', '60')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('pricing_slabs', [
+            'id' => $slab->id,
+            'percentage' => '2.50',
+            'priority' => 60,
+        ]);
         $this->assertDatabaseHas('auth_activity_logs', [
             'event' => AuthActivityLog::EVENT_PRICING_SLAB_UPDATED,
             'authenticatable_id' => $admin->id,
@@ -116,23 +121,29 @@ class AdminPricingSlabTest extends TestCase
     public function test_admin_can_activate_and_deactivate_slab(): void
     {
         $admin = $this->admin();
-        $slab = PricingSlab::factory()->create($this->slabPayload());
+        $slab = PricingSlab::factory()->create([
+            'min_amount' => '200.00',
+            'max_amount' => '300.00',
+            'percentage' => '2.00',
+            'priority' => 50,
+            'is_active' => true,
+        ]);
 
-        $this->actingAs($admin, 'admin')
-            ->putJson('/api/admin/pricing/slabs/'.$slab->id, ['is_active' => false])
-            ->assertOk()
-            ->assertJsonPath('data.slab.is_active', false);
+        $this->actingAs($admin, 'admin');
 
+        Livewire::test(PricingSlabs::class)
+            ->call('toggle', $slab->id);
+
+        $this->assertFalse($slab->fresh()->is_active);
         $this->assertDatabaseHas('auth_activity_logs', [
             'event' => AuthActivityLog::EVENT_PRICING_SLAB_DEACTIVATED,
             'authenticatable_id' => $admin->id,
         ]);
 
-        $this->actingAs($admin, 'admin')
-            ->putJson('/api/admin/pricing/slabs/'.$slab->id, ['is_active' => true])
-            ->assertOk()
-            ->assertJsonPath('data.slab.is_active', true);
+        Livewire::test(PricingSlabs::class)
+            ->call('toggle', $slab->id);
 
+        $this->assertTrue($slab->fresh()->is_active);
         $this->assertDatabaseHas('auth_activity_logs', [
             'event' => AuthActivityLog::EVENT_PRICING_SLAB_ACTIVATED,
             'authenticatable_id' => $admin->id,
@@ -142,12 +153,18 @@ class AdminPricingSlabTest extends TestCase
     public function test_admin_can_delete_slab(): void
     {
         $admin = $this->admin();
-        $slab = PricingSlab::factory()->create($this->slabPayload());
+        $slab = PricingSlab::factory()->create([
+            'min_amount' => '200.00',
+            'max_amount' => '300.00',
+            'percentage' => '2.00',
+            'priority' => 50,
+            'is_active' => true,
+        ]);
 
-        $this->actingAs($admin, 'admin')
-            ->deleteJson('/api/admin/pricing/slabs/'.$slab->id)
-            ->assertOk()
-            ->assertJsonPath('message', __('api.admin.pricing.slab_deleted'));
+        $this->actingAs($admin, 'admin');
+
+        Livewire::test(PricingSlabs::class)
+            ->call('delete', $slab->id);
 
         $this->assertDatabaseMissing('pricing_slabs', ['id' => $slab->id]);
         $this->assertDatabaseHas('auth_activity_logs', [
@@ -158,76 +175,91 @@ class AdminPricingSlabTest extends TestCase
 
     public function test_overlapping_active_slabs_are_prevented(): void
     {
-        PricingSlab::factory()->create($this->slabPayload([
+        PricingSlab::factory()->create([
             'min_amount' => '40.00',
             'max_amount' => '50.00',
             'percentage' => '5.00',
-        ]));
+            'priority' => 50,
+            'is_active' => true,
+        ]);
 
-        $this->actingAs($this->admin(), 'admin')
-            ->postJson('/api/admin/pricing/slabs', $this->slabPayload([
-                'min_amount' => '45.00',
-                'max_amount' => '60.00',
-                'percentage' => '6.00',
-            ]))
-            ->assertUnprocessable()
-            ->assertJsonPath('message', __('admin.pricing_slabs.validation.overlap'));
+        $this->actingAs($this->admin(), 'admin');
+
+        Livewire::test(PricingSlabs::class)
+            ->set('formMinAmount', '45.00')
+            ->set('formMaxAmount', '60.00')
+            ->set('formPercentage', '6.00')
+            ->set('formPriority', '50')
+            ->call('save');
+
+        $this->assertDatabaseCount('pricing_slabs', 1);
     }
 
     public function test_adjacent_half_open_ranges_are_allowed(): void
     {
-        PricingSlab::factory()->create($this->slabPayload([
+        PricingSlab::factory()->create([
             'min_amount' => '40.00',
             'max_amount' => '50.00',
             'percentage' => '5.00',
-        ]));
+            'priority' => 50,
+            'is_active' => true,
+        ]);
 
-        $this->actingAs($this->admin(), 'admin')
-            ->postJson('/api/admin/pricing/slabs', $this->slabPayload([
-                'min_amount' => '50.00',
-                'max_amount' => '100.00',
-                'percentage' => '4.00',
-                'priority' => 51,
-            ]))
-            ->assertCreated();
+        $this->actingAs($this->admin(), 'admin');
+
+        Livewire::test(PricingSlabs::class)
+            ->set('formMinAmount', '50.00')
+            ->set('formMaxAmount', '100.00')
+            ->set('formPercentage', '4.00')
+            ->set('formPriority', '51')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseCount('pricing_slabs', 2);
     }
 
     public function test_invalid_range_and_percentage_are_rejected(): void
     {
-        $admin = $this->admin();
+        $this->actingAs($this->admin(), 'admin');
 
-        $this->actingAs($admin, 'admin')
-            ->postJson('/api/admin/pricing/slabs', $this->slabPayload([
-                'min_amount' => '80.00',
-                'max_amount' => '80.00',
-            ]))
-            ->assertUnprocessable()
-            ->assertJsonPath('message', __('admin.pricing_slabs.validation.max_greater'));
+        Livewire::test(PricingSlabs::class)
+            ->set('formMinAmount', '80.00')
+            ->set('formMaxAmount', '80.00')
+            ->set('formPercentage', '2.00')
+            ->set('formPriority', '50')
+            ->call('save');
 
-        $this->actingAs($admin, 'admin')
-            ->postJson('/api/admin/pricing/slabs', $this->slabPayload([
-                'percentage' => '101',
-            ]))
-            ->assertUnprocessable()
-            ->assertJsonPath('message', __('admin.pricing_slabs.validation.percentage_range'));
+        $this->assertDatabaseCount('pricing_slabs', 0);
+
+        Livewire::test(PricingSlabs::class)
+            ->set('formMinAmount', '200.00')
+            ->set('formMaxAmount', '300.00')
+            ->set('formPercentage', '101')
+            ->set('formPriority', '50')
+            ->call('save')
+            ->assertHasErrors(['formPercentage']);
     }
 
     public function test_admin_can_preview_price_without_creating_an_order(): void
     {
-        PricingSlab::factory()->create($this->slabPayload([
+        PricingSlab::factory()->create([
             'min_amount' => '40.00',
             'max_amount' => '50.00',
             'percentage' => '5.00',
-        ]));
+            'priority' => 50,
+            'is_active' => true,
+        ]);
 
-        $this->actingAs($this->admin(), 'admin')
-            ->postJson('/api/admin/pricing/preview', ['provider_cost' => '40.00'])
-            ->assertOk()
-            ->assertJsonPath('data.preview.provider_cost', '40.00')
-            ->assertJsonPath('data.preview.markup_percentage', '5.00')
-            ->assertJsonPath('data.preview.markup_amount', '2.00')
-            ->assertJsonPath('data.preview.customer_price', '42.00')
-            ->assertJsonPath('data.preview.currency', 'USD');
+        $this->actingAs($this->admin(), 'admin');
+
+        Livewire::test(PricingSlabs::class)
+            ->set('previewCost', '40.00')
+            ->call('preview')
+            ->assertSet('previewResult.provider_cost', '$40.00')
+            ->assertSet('previewResult.markup_percentage', '5.00%')
+            ->assertSet('previewResult.markup_amount', '$2.00')
+            ->assertSet('previewResult.customer_price', '$42.00')
+            ->assertSet('previewError', null);
 
         $this->assertDatabaseCount('esim_orders', 0);
     }
@@ -236,9 +268,15 @@ class AdminPricingSlabTest extends TestCase
     {
         Cache::put((string) config('pricing.cache_key'), collect());
 
-        $this->actingAs($this->admin(), 'admin')
-            ->postJson('/api/admin/pricing/slabs', $this->slabPayload())
-            ->assertCreated();
+        $this->actingAs($this->admin(), 'admin');
+
+        Livewire::test(PricingSlabs::class)
+            ->set('formMinAmount', '200.00')
+            ->set('formMaxAmount', '300.00')
+            ->set('formPercentage', '2.00')
+            ->set('formPriority', '50')
+            ->call('save')
+            ->assertHasNoErrors();
 
         $this->assertFalse(Cache::has((string) config('pricing.cache_key')));
 
@@ -246,23 +284,20 @@ class AdminPricingSlabTest extends TestCase
         $this->assertSame('2.00', $quote->markupPercentage);
     }
 
-    public function test_normal_user_cannot_manage_slabs(): void
+    public function test_admin_http_pricing_routes_are_removed(): void
     {
+        $this->actingAs($this->admin(), 'admin')
+            ->getJson('/api/admin/pricing/slabs')
+            ->assertNotFound();
+
         Sanctum::actingAs(User::factory()->create());
 
-        $this->getJson('/api/admin/pricing/slabs')->assertUnauthorized();
-        $this->postJson('/api/admin/pricing/slabs', $this->slabPayload())->assertUnauthorized();
+        $this->postJson('/api/admin/pricing/slabs', [])->assertNotFound();
     }
 
-    public function test_partner_cannot_manage_slabs(): void
+    public function test_partner_cannot_open_admin_pricing_page(): void
     {
-        $partner = $this->partner();
-
-        $this->actingAs($partner, 'partner')
-            ->getJson('/api/admin/pricing/slabs')
-            ->assertUnauthorized();
-
-        $this->actingAs($partner, 'partner')
+        $this->actingAs($this->partner(), 'partner')
             ->get(route('admin.pricing-slabs'))
             ->assertForbidden();
     }

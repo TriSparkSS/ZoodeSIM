@@ -13,6 +13,7 @@ return [
 
     'wallet' => [
         'retrieved' => 'Portefeuille récupéré avec succès.',
+        'transactions_retrieved' => 'Transactions récupérées avec succès.',
         'adjusted' => 'Portefeuille mis à jour avec succès.',
         'direction_invalid' => 'Choisissez d’ajouter ou de retirer des fonds.',
         'amount_required' => 'Veuillez saisir un montant.',
@@ -23,6 +24,7 @@ return [
     'promo' => [
         'invalid' => 'Code de parrainage invalide.',
         'inactive' => 'Ce code de parrainage est inactif.',
+        'locked' => 'Ce code de parrainage est verrouillé.',
         'expired' => 'Ce code de parrainage a expiré.',
         'exhausted' => 'Ce code de parrainage a atteint sa limite d’utilisation.',
         'partner_inactive' => 'Ce code de parrainage n’est pas disponible.',
@@ -61,16 +63,6 @@ return [
         'already_processed' => 'La commande a déjà été traitée.',
         'unauthorized_order' => 'Accès non autorisé à la commande.',
         'pricing_unavailable' => 'La tarification n’est actuellement pas disponible pour ce forfait.',
-    ],
-
-    'admin' => [
-        'pricing' => [
-            'slabs_retrieved' => 'Tranches de prix récupérées avec succès.',
-            'slab_created' => 'Tranche de prix créée avec succès.',
-            'slab_updated' => 'Tranche de prix mise à jour avec succès.',
-            'slab_deleted' => 'Tranche de prix supprimée avec succès.',
-            'preview_calculated' => 'Aperçu du prix calculé avec succès.',
-        ],
     ],
 
     'validation' => [

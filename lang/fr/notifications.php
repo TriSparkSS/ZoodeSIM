@@ -26,6 +26,11 @@ return [
         'title' => 'Code bientôt expiré',
         'body' => 'Le code :code expire le :date.',
     ],
+    'unlock' => [
+        'subject' => 'Le code :code est déverrouillé',
+        'title' => 'Code déverrouillé',
+        'body' => 'Le code :code a été déverrouillé après :count parrainages et est désormais votre code actif.',
+    ],
     'cashback' => [
         'subject' => 'Cashback crédité',
         'title' => 'Cashback d’achat',

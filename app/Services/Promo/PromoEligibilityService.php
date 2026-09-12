@@ -28,6 +28,10 @@ class PromoEligibilityService
             throw $this->invalid();
         }
 
+        if ($promo->isLocked()) {
+            throw $this->failure('referral_code', __('api.promo.locked'));
+        }
+
         if (! $promo->is_active) {
             throw $this->failure('referral_code', __('api.promo.inactive'));
         }

@@ -110,6 +110,9 @@ return [
         'code_label' => 'Промокод',
         'bonus_label' => 'Бонуси корбар (МБ)',
         'submit_create' => 'Эҷод кардани код',
+        'status_locked' => 'Қулфшуда',
+        'status_unlocked' => 'Кушода',
+        'progress_users' => ':current/:required',
     ],
 
     'statistics' => [

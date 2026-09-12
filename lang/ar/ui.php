@@ -62,6 +62,8 @@ return [
     'status_completed' => 'مكتمل',
     'status_processing' => 'قيد المعالجة',
     'status_failed' => 'فشل',
+    'status_locked' => 'مقفل',
+    'status_unlocked' => 'مفتوح',
     'status_blocked' => 'محظور',
 
     'platforms' => [

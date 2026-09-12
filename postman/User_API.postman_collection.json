@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "64600a01-8f13-43ad-84c6-d8d50c82a382",
     "name": "ZoodeSIM User API",
-    "description": "Mirrors `routes/api.php`.\n\n**User (Sanctum Bearer `token`)**\n- `POST /api/promo/validate`\n- `POST /api/user/register` · `POST /api/user/login` · `POST /api/user/logout` · `GET /api/user/profile`\n- `GET /api/user/notifications` · `POST /api/user/notifications/read-all` · `POST /api/user/notifications/{notification}/read`\n- `GET /api/user/esim/countries` · `GET /api/user/esim/packages` · `GET /api/user/esim/orders` · `POST /api/user/esim/orders` · `GET /api/user/esim/orders/{order}`\n\n**Admin (session `admin.auth`, not Bearer)**\n- `GET|POST /api/admin/pricing/slabs`\n- `PUT|DELETE /api/admin/pricing/slabs/{slab}`\n- `POST /api/admin/pricing/preview`\n\n**Setup**\n1. Import this collection and `User_API.postman_environment.json`.\n2. Select the **ZoodeSIM User API — Local** environment.\n3. Set `baseUrl` if needed (`https://esim.test` for Herd, or `http://localhost`).\n4. Register and Login both save `token` for protected user requests.\n5. Admin pricing needs an admin session cookie from `/admin/login` (Postman Interceptor / cookie jar).\n\n**Locale**\nUse `lang` (`en`, `es`, `ru`, `fr`, `de`, `tg`) as `?lang=` or `Accept-Language`.\n\n**Envelope**\n```json\n{ \"success\": true, \"message\": \"...\", \"data\": {}, \"errors\": null }\n{ \"success\": false, \"message\": \"...\", \"data\": null, \"errors\": {} }\n```",
+    "description": "Mirrors `routes/api.php`. User APIs only (no admin HTTP APIs).\n\n**User (Sanctum Bearer `token`)**\n- `POST /api/promo/validate`\n- `POST /api/user/register` · `POST /api/user/login` · `POST /api/user/logout` · `GET /api/user/profile`\n- `GET /api/user/wallet` · `POST /api/user/wallet` · `GET /api/user/transactions` (`page`, `per_page`)\n- `GET /api/user/notifications` · `POST /api/user/notifications/read-all` · `POST /api/user/notifications/{notification}/read`\n- `GET /api/user/esim/countries` · `GET /api/user/esim/packages` · `GET /api/user/esim/orders` · `POST /api/user/esim/orders` · `GET /api/user/esim/orders/{order}`\n\n**Setup**\n1. Import this collection and `User_API.postman_environment.json`.\n2. Select the **ZoodeSIM User API — Local** environment.\n3. Set `baseUrl` if needed (`https://esim.test` for Herd, or `http://localhost`).\n4. Register and Login both save `token` for protected user requests. Run Wallet after login.\n\n**Locale**\nUse `lang` (`en`, `es`, `ru`, `fr`, `de`, `tg`) as `?lang=` or `Accept-Language`.\n\n**Envelope**\n```json\n{ \"success\": true, \"message\": \"...\", \"data\": {}, \"errors\": null }\n{ \"success\": false, \"message\": \"...\", \"data\": null, \"errors\": {} }\n```",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "29209019"
   },
@@ -77,7 +77,7 @@
                 }
               ]
             },
-            "description": "Set `referral_code` to an active partner promo. Also provisions a ResellPortal client server-side (not returned in JSON). Returns Bearer token, user, and `{ bonus_type, bonus_amount, bonus_mb }`. `bonus_mb` is the MB grant (0 for Reward Dollars). Use a unique email/phone each run."
+            "description": "Set `referral_code` to the partner’s currently active promo. Locked ladder codes are rejected (422 `api.promo.locked`); only the live unlocked code works. Also provisions a ResellPortal client server-side (not returned in JSON). Returns Bearer token, user, and `{ bonus_type, bonus_amount, bonus_mb }`. `bonus_mb` is the MB grant (0 for Reward Dollars). Use a unique email/phone each run."
           },
           "response": []
         }
@@ -259,6 +259,191 @@
               ]
             },
             "description": "Revokes the current Sanctum token and clears the saved `token` variable."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Wallet",
+      "item": [
+        {
+          "name": "Get wallet",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns balance and recent transactions', function () {",
+                  "    pm.expect(json.success).to.eql(true);",
+                  "    pm.expect(json.data).to.include.keys('balance', 'currency', 'transactions');",
+                  "    pm.expect(json.data.transactions).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/wallet?lang={{lang}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "wallet"
+              ],
+              "query": [
+                {
+                  "key": "lang",
+                  "value": "{{lang}}"
+                }
+              ]
+            },
+            "description": "Authenticated. Returns USD `balance`, `currency`, and the latest 50 non-MB transactions. MB promo bonuses are omitted. For the full history use List transactions."
+          },
+          "response": []
+        },
+        {
+          "name": "Adjust wallet",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns updated balance and the new transaction', function () {",
+                  "    pm.expect(json.success).to.eql(true);",
+                  "    pm.expect(json.data).to.include.keys('balance', 'currency', 'transaction');",
+                  "    pm.expect(json.data.transaction).to.include.keys('transaction_id', 'type', 'category', 'amount');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"direction\": \"credit\",\n    \"amount\": \"10.00\",\n    \"note\": \"Top up\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/wallet?lang={{lang}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "wallet"
+              ],
+              "query": [
+                {
+                  "key": "lang",
+                  "value": "{{lang}}"
+                }
+              ]
+            },
+            "description": "Authenticated. Body: `direction` (`credit` or `debit`), `amount` (up to 2 decimals), optional `note`. Debit returns 422 when the balance is insufficient."
+          },
+          "response": []
+        },
+        {
+          "name": "List transactions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns paginated transactions', function () {",
+                  "    pm.expect(json.success).to.eql(true);",
+                  "    pm.expect(json.data.transactions).to.be.an('array');",
+                  "    pm.expect(json.data.pagination).to.include.keys('current_page', 'per_page', 'total', 'last_page', 'from', 'to');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "{{lang}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/transactions?page={{page}}&per_page={{per_page}}&lang={{lang}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "description": "1-based page. Default 1."
+                },
+                {
+                  "key": "per_page",
+                  "value": "{{per_page}}",
+                  "description": "Page size. Default 20, max 50."
+                },
+                {
+                  "key": "lang",
+                  "value": "{{lang}}"
+                }
+              ]
+            },
+            "description": "Authenticated. Paginated USD wallet history for the current user (newest first). MB promo bonus rows are omitted. Query: `page` (default 1), `per_page` (default 20, max 50). Each row is `{ transaction_id, type, category, amount, balance_before, balance_after, description, created_at }`. Pagination is `{ current_page, per_page, total, last_page, from, to }`."
           },
           "response": []
         }
@@ -688,7 +873,7 @@
                 }
               ]
             },
-            "description": "Live validation for the registration screen. Always 200 with `{ valid, bonus_type, bonus_amount, bonus_mb, partner_name, reason }`. `bonus_mb` is 0 when the promo pays Reward Dollars (`bonus_type=usd`). `email` is optional (used for first-use / fraud checks)."
+            "description": "Live validation for the registration screen. Always 200 with `{ valid, bonus_type, bonus_amount, bonus_mb, partner_name, reason }`. Only the partner’s currently active (unlocked) code is valid. Locked ladder codes return `valid: false` with `api.promo.locked`. `bonus_mb` is 0 when the promo pays Reward Dollars (`bonus_type=usd`). `email` is optional (used for first-use / fraud checks)."
           },
           "response": []
         }
@@ -902,8 +1087,12 @@
       "value": ""
     },
     {
-      "key": "slab_id",
-      "value": ""
+      "key": "page",
+      "value": "1"
+    },
+    {
+      "key": "per_page",
+      "value": "20"
     }
   ]
 }

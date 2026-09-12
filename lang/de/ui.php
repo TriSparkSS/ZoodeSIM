@@ -114,5 +114,7 @@ return [
     'status_expired' => 'Abgelaufen',
     'status_exhausted' => 'Limit erreicht',
     'status_inactive' => 'Inaktiv',
+    'status_locked' => 'Gesperrt',
+    'status_unlocked' => 'Freigeschaltet',
     'status_blocked' => 'Gesperrt',
 ];

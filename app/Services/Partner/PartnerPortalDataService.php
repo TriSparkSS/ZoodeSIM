@@ -7,6 +7,7 @@ use App\Models\PromoCode;
 use App\Models\PromoUsage;
 use App\Models\Transaction;
 use App\Models\Withdrawal;
+use App\Services\Promo\PromoLadderService;
 use App\Services\Referral\ReferralProgramSettings;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
@@ -29,6 +30,7 @@ class PartnerPortalDataService
 
     public function __construct(
         protected ReferralProgramSettings $program,
+        protected PromoLadderService $ladder,
     ) {}
 
     public function stats(Partner $partner): array
@@ -37,8 +39,7 @@ class PartnerPortalDataService
         $registrations = (int) $promoCodes->sum('usage_count');
         $activePromo = $promoCodes
             ->sortByDesc('created_at')
-            ->first(fn (PromoCode $promo) => $promo->isCurrentlyUsable())
-            ?? $promoCodes->sortByDesc('created_at')->first();
+            ->first(fn (PromoCode $promo) => $promo->isCurrentlyUsable());
 
         $withdrawn = (float) $partner->withdrawals()
             ->where('status', 'completed')
@@ -70,17 +71,36 @@ class PartnerPortalDataService
      */
     public function promoCodes(Partner $partner): array
     {
+        $total = $this->ladder->referredUserCount($partner->id);
+
         return $partner->promoCodes()
             ->orderByDesc('created_at')
             ->get()
-            ->map(fn (PromoCode $promo) => [
-                'id' => $promo->id,
-                'code' => $promo->code,
-                'uses' => (int) $promo->usage_count,
-                'bonus' => $promo->userBonusLabel(),
-                'earnings' => round((int) $promo->usage_count * (float) $promo->partner_reward, 2),
-                'status' => $promo->lifecycleStatus(),
-            ])
+            ->map(function (PromoCode $promo) use ($total) {
+                $locked = $promo->isLocked();
+
+                return [
+                    'id' => $promo->id,
+                    'code' => $locked ? '••••••••' : $promo->code,
+                    'uses' => (int) $promo->usage_count,
+                    'progress' => $locked
+                        ? __('partner.promo_codes.progress_users', [
+                            'current' => $total,
+                            'required' => (int) $promo->unlock_requirement,
+                        ])
+                        : null,
+                    'uses_label' => $locked
+                        ? __('partner.promo_codes.progress_users', [
+                            'current' => $total,
+                            'required' => (int) $promo->unlock_requirement,
+                        ])
+                        : number_format((int) $promo->usage_count),
+                    'is_locked' => $locked,
+                    'bonus' => $promo->userBonusLabel(),
+                    'earnings' => round((int) $promo->usage_count * (float) $promo->partner_reward, 2),
+                    'status' => $promo->lifecycleStatus(),
+                ];
+            })
             ->all();
     }
 

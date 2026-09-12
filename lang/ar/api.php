@@ -13,6 +13,7 @@ return [
 
     'wallet' => [
         'retrieved' => 'تم جلب المحفظة بنجاح.',
+        'transactions_retrieved' => 'تم جلب المعاملات بنجاح.',
         'adjusted' => 'تم تحديث المحفظة بنجاح.',
         'direction_invalid' => 'اختر إضافة الرصيد أو خصمه.',
         'amount_required' => 'يرجى إدخال مبلغ.',
@@ -23,6 +24,7 @@ return [
     'promo' => [
         'invalid' => 'رمز الإحالة غير صالح.',
         'inactive' => 'رمز الإحالة هذا غير نشط.',
+        'locked' => 'رمز الإحالة هذا مقفل.',
         'expired' => 'انتهت صلاحية رمز الإحالة هذا.',
         'exhausted' => 'وصل رمز الإحالة هذا إلى حد الاستخدام.',
         'partner_inactive' => 'رمز الإحالة هذا غير متاح.',
@@ -61,16 +63,6 @@ return [
         'already_processed' => 'تمت معالجة الطلب بالفعل.',
         'unauthorized_order' => 'وصول غير مصرح به إلى الطلب.',
         'pricing_unavailable' => 'التسعير غير متاح حالياً لهذه الحزمة.',
-    ],
-
-    'admin' => [
-        'pricing' => [
-            'slabs_retrieved' => 'تم جلب شرائح التسعير بنجاح.',
-            'slab_created' => 'تم إنشاء شريحة التسعير بنجاح.',
-            'slab_updated' => 'تم تحديث شريحة التسعير بنجاح.',
-            'slab_deleted' => 'تم حذف شريحة التسعير بنجاح.',
-            'preview_calculated' => 'تم حساب معاينة السعر بنجاح.',
-        ],
     ],
 
     'validation' => [

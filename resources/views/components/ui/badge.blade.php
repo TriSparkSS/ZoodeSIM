@@ -11,6 +11,7 @@
         'completed' => 'bg-brand-cyan/12 text-brand-cyan',
         'expired' => 'bg-brand-yellow/12 text-brand-yellow',
         'exhausted' => 'bg-brand-red/12 text-brand-red',
+        'locked' => 'bg-brand-yellow/12 text-brand-yellow',
         'inactive' => 'bg-surface-muted/20 text-surface-muted dark:bg-brand-muted/20 dark:text-brand-muted',
         'default' => 'bg-brand-cyan/12 text-brand-cyan',
     ];

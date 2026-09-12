@@ -133,6 +133,79 @@ class PromoCodeManagementTest extends TestCase
         $this->assertFalse($exhausted->isCurrentlyUsable());
     }
 
+    public function test_admin_can_queue_locked_promo_without_deactivating_live_code(): void
+    {
+        $partner = $this->makePartner('Ladder Partner');
+
+        $live = PromoCode::query()->create([
+            'partner_id' => $partner->id,
+            'code' => 'LIVECODE',
+            'bonus_mb' => 200,
+            'partner_reward' => 1.50,
+            'type' => 'standard',
+            'expires_at' => now()->addDays(30),
+            'is_active' => true,
+            'usage_count' => 0,
+            'max_usage' => null,
+            'unlocked_at' => now(),
+        ]);
+
+        Livewire::test(PromoCodes::class)
+            ->call('openCreateModal', $partner->id)
+            ->set('formCode', 'NEXT10XX')
+            ->set('formBonusAmount', '300')
+            ->set('formPartnerReward', '2.00')
+            ->set('formType', 'standard')
+            ->set('formExpiresAt', now()->addDays(30)->format('Y-m-d'))
+            ->set('formUnlockRequirement', '10')
+            ->call('createPromo')
+            ->assertHasNoErrors();
+
+        $this->assertTrue($live->fresh()->is_active);
+        $this->assertDatabaseHas('promo_codes', [
+            'partner_id' => $partner->id,
+            'code' => 'NEXT10XX',
+            'is_active' => false,
+            'unlock_requirement' => 10,
+        ]);
+
+        $queued = PromoCode::query()->where('code', 'NEXT10XX')->first();
+        $this->assertNotNull($queued);
+        $this->assertTrue($queued->isLocked());
+        $this->assertNull($queued->unlocked_at);
+    }
+
+    public function test_duplicate_unlock_requirement_for_same_partner_is_rejected(): void
+    {
+        $partner = $this->makePartner('Duplicate Unlock');
+
+        PromoCode::query()->create([
+            'partner_id' => $partner->id,
+            'code' => 'FIRST10X',
+            'bonus_mb' => 200,
+            'partner_reward' => 1.50,
+            'type' => 'standard',
+            'expires_at' => now()->addDays(30),
+            'is_active' => false,
+            'usage_count' => 0,
+            'max_usage' => null,
+            'unlock_requirement' => 10,
+        ]);
+
+        Livewire::test(PromoCodes::class)
+            ->call('openCreateModal', $partner->id)
+            ->set('formCode', 'AGAIN10X')
+            ->set('formBonusAmount', '200')
+            ->set('formPartnerReward', '1.50')
+            ->set('formUnlockRequirement', '10')
+            ->call('createPromo')
+            ->assertHasErrors(['formUnlockRequirement']);
+
+        $this->assertDatabaseMissing('promo_codes', [
+            'code' => 'AGAIN10X',
+        ]);
+    }
+
     public function test_service_rejects_duplicate_promo_codes(): void
     {
         $partner = $this->makePartner('Duplicate Check');

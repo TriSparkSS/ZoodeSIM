@@ -17,6 +17,7 @@ class PromoCodeService
         protected PromoCodeGenerator $generator,
         protected ReferralProgramSettings $program,
         protected PromoAuditLoggerInterface $audit,
+        protected PromoLadderService $ladder,
     ) {}
 
     public function normalizeCode(string $code): string
@@ -41,13 +42,36 @@ class PromoCodeService
         }
     }
 
+    public function assertUnlockRequirementIsAvailable(string $partnerId, int $requirement, ?string $ignoreId = null): void
+    {
+        $query = PromoCode::query()
+            ->where('partner_id', $partnerId)
+            ->where('unlock_requirement', $requirement);
+
+        if ($ignoreId) {
+            $query->where('id', '!=', $ignoreId);
+        }
+
+        if ($query->exists()) {
+            throw ValidationException::withMessages([
+                'unlock_requirement' => __('admin.promo_codes.validation.unlock_unique'),
+            ]);
+        }
+    }
+
     public function create(CreatePromoCodeData $data): PromoCode
     {
         $code = $this->normalizeCode($data->code);
         $this->assertCodeIsAvailable($code);
 
-        return DB::transaction(function () use ($data, $code) {
-            if ($data->deactivateExistingActive) {
+        $queued = $data->unlockRequirement !== null && $data->unlockRequirement >= 1;
+
+        if ($queued) {
+            $this->assertUnlockRequirementIsAvailable($data->partnerId, $data->unlockRequirement);
+        }
+
+        return DB::transaction(function () use ($data, $code, $queued) {
+            if (! $queued && $data->deactivateExistingActive) {
                 $this->deactivateActiveForPartner($data->partnerId);
             }
 
@@ -62,14 +86,20 @@ class PromoCodeService
                 'partner_reward' => $data->partnerReward,
                 'type' => $data->type,
                 'expires_at' => $data->expiresAt,
-                'is_active' => $data->isActive,
+                'is_active' => $queued ? false : $data->isActive,
                 'usage_count' => 0,
                 'max_usage' => $data->maxUsage,
+                'unlock_requirement' => $queued ? $data->unlockRequirement : null,
+                'unlocked_at' => $queued ? null : now(),
             ]);
 
             $this->audit->created($promo);
 
-            return $promo;
+            if ($queued) {
+                $this->ladder->sync($data->partnerId);
+            }
+
+            return $promo->fresh() ?? $promo;
         });
     }
 
@@ -132,6 +162,12 @@ class PromoCodeService
 
     public function activate(PromoCode $promoCode): PromoCode
     {
+        if ($promoCode->isLocked()) {
+            throw ValidationException::withMessages([
+                'code' => __('admin.promo_codes.validation.locked_activate'),
+            ]);
+        }
+
         $promoCode->update(['is_active' => true]);
         $this->audit->activated($promoCode);
 

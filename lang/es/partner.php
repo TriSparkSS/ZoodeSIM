@@ -110,6 +110,9 @@ return [
         'code_label' => 'Código promocional',
         'bonus_label' => 'Bono del usuario (MB)',
         'submit_create' => 'Crear código',
+        'status_locked' => 'Bloqueado',
+        'status_unlocked' => 'Desbloqueado',
+        'progress_users' => ':current/:required',
     ],
 
     'statistics' => [

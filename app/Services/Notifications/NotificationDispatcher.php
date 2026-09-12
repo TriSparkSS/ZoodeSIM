@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Withdrawal;
 use App\Notifications\Partner\PayoutProcessedNotification;
 use App\Notifications\Partner\PromoExpiringNotification;
+use App\Notifications\Partner\PromoUnlockedNotification;
 use App\Notifications\Partner\PurchaseCommissionNotification;
 use App\Notifications\Partner\ReferralMilestoneNotification;
 use App\Notifications\Partner\ReferralRegisteredNotification;
@@ -58,5 +59,10 @@ class NotificationDispatcher implements NotificationDispatcherInterface
         }
 
         $partner->notify(new PromoExpiringNotification($promo));
+    }
+
+    public function promoUnlocked(Partner $partner, PromoCode $promo): void
+    {
+        $partner->notify(new PromoUnlockedNotification($promo));
     }
 }

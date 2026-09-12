@@ -66,6 +66,8 @@ return [
     'status_expired' => 'Expired',
     'status_exhausted' => 'Limit reached',
     'status_inactive' => 'Inactive',
+    'status_locked' => 'Locked',
+    'status_unlocked' => 'Unlocked',
     'status_blocked' => 'Blocked',
 
     'platforms' => [

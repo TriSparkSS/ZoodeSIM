@@ -5,10 +5,23 @@ namespace App\Services\Wallet;
 use App\Models\Partner;
 use App\Models\Transaction;
 use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 
 class TransactionQueryService
 {
+    /**
+     * @return LengthAwarePaginator<int, Transaction>
+     */
+    public function paginateForUser(User $user, int $perPage): LengthAwarePaginator
+    {
+        return $user->transactions()
+            ->where('currency', '!=', 'MB')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate($perPage);
+    }
+
     /**
      * @param  array{
      *     transaction_id?: string,

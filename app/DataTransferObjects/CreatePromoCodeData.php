@@ -19,5 +19,6 @@ readonly class CreatePromoCodeData
         public bool $deactivateExistingActive = false,
         public string $bonusType = PromoCode::BONUS_TYPE_MB,
         public ?float $bonusAmount = null,
+        public ?int $unlockRequirement = null,
     ) {}
 }

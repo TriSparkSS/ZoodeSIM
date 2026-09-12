@@ -13,6 +13,7 @@ return [
 
     'wallet' => [
         'retrieved' => 'Billetera obtenida correctamente.',
+        'transactions_retrieved' => 'Transacciones obtenidas correctamente.',
         'adjusted' => 'Billetera actualizada correctamente.',
         'direction_invalid' => 'Elige si añadir o descontar fondos.',
         'amount_required' => 'Introduce un importe.',
@@ -23,6 +24,7 @@ return [
     'promo' => [
         'invalid' => 'Código de referido no válido.',
         'inactive' => 'Este código de referido está inactivo.',
+        'locked' => 'Este código de referido está bloqueado.',
         'expired' => 'Este código de referido ha caducado.',
         'exhausted' => 'Este código de referido ha alcanzado su límite de uso.',
         'partner_inactive' => 'Este código de referido no está disponible.',
@@ -61,16 +63,6 @@ return [
         'already_processed' => 'El pedido ya fue procesado.',
         'unauthorized_order' => 'Acceso no autorizado al pedido.',
         'pricing_unavailable' => 'Los precios no están disponibles actualmente para este paquete.',
-    ],
-
-    'admin' => [
-        'pricing' => [
-            'slabs_retrieved' => 'Tramos de precio obtenidos correctamente.',
-            'slab_created' => 'Tramo de precio creado correctamente.',
-            'slab_updated' => 'Tramo de precio actualizado correctamente.',
-            'slab_deleted' => 'Tramo de precio eliminado correctamente.',
-            'preview_calculated' => 'Vista previa del precio calculada correctamente.',
-        ],
     ],
 
     'validation' => [

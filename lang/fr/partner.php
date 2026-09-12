@@ -110,6 +110,9 @@ return [
         'code_label' => 'Code promo',
         'bonus_label' => 'Bonus utilisateur (Mo)',
         'submit_create' => 'Créer le code',
+        'status_locked' => 'Verrouillé',
+        'status_unlocked' => 'Déverrouillé',
+        'progress_users' => ':current/:required',
     ],
 
     'statistics' => [

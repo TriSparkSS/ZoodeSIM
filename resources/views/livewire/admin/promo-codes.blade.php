@@ -29,6 +29,7 @@
                     'expired' => __('admin.promo_codes.filter_expired'),
                     'exhausted' => __('admin.promo_codes.filter_exhausted'),
                     'inactive' => __('admin.promo_codes.filter_inactive'),
+                    'locked' => __('admin.promo_codes.filter_locked'),
                 ] as $value => $label)
                     <button
                         type="button"
@@ -63,6 +64,9 @@
                             <div class="min-w-0">
                                 <div class="truncate font-semibold text-surface-text dark:text-brand-text">{{ $promo['partner'] }}</div>
                                 <strong class="mt-1 block tracking-widest text-brand-cyan">{{ $promo['code'] }}</strong>
+                                @if($promo['is_locked'])
+                                    <div class="mt-1 text-xs text-surface-muted dark:text-brand-muted">{{ __('admin.promo_codes.unlock_at', ['count' => $promo['unlock_requirement']]) }}</div>
+                                @endif
                             </div>
                             <x-ui.badge :type="$promo['status']">
                                 @if($promo['status'] === 'active')
@@ -71,6 +75,8 @@
                                     {{ __('admin.promo_codes.status_expired') }}
                                 @elseif($promo['status'] === 'exhausted')
                                     {{ __('admin.promo_codes.status_exhausted') }}
+                                @elseif($promo['status'] === 'locked')
+                                    {{ __('admin.promo_codes.status_locked') }}
                                 @else
                                     {{ __('admin.promo_codes.status_inactive') }}
                                 @endif
@@ -102,7 +108,7 @@
                                 <x-ui.button size="sm" variant="secondary" wire:click="deactivate('{{ $promo['id'] }}')">
                                     {{ __('admin.promo_codes.deactivate') }}
                                 </x-ui.button>
-                            @else
+                            @elseif(! $promo['is_locked'])
                                 <x-ui.button size="sm" variant="secondary" wire:click="activate('{{ $promo['id'] }}')">
                                     {{ __('admin.promo_codes.activate') }}
                                 </x-ui.button>
@@ -141,6 +147,9 @@
                                 <td class="py-3.5 pe-4 align-middle font-semibold">{{ $promo['partner'] }}</td>
                                 <td class="py-3.5 pe-4 align-middle">
                                     <strong class="tracking-widest text-brand-cyan">{{ $promo['code'] }}</strong>
+                                    @if($promo['is_locked'])
+                                        <div class="mt-1 text-xs text-surface-muted dark:text-brand-muted">{{ __('admin.promo_codes.unlock_at', ['count' => $promo['unlock_requirement']]) }}</div>
+                                    @endif
                                 </td>
                                 <td class="py-3.5 pe-4 align-middle">{{ $promo['uses_label'] }}</td>
                                 <td class="py-3.5 pe-4 align-middle">{{ $promo['bonus'] }}</td>
@@ -153,6 +162,8 @@
                                             {{ __('admin.promo_codes.status_expired') }}
                                         @elseif($promo['status'] === 'exhausted')
                                             {{ __('admin.promo_codes.status_exhausted') }}
+                                        @elseif($promo['status'] === 'locked')
+                                            {{ __('admin.promo_codes.status_locked') }}
                                         @else
                                             {{ __('admin.promo_codes.status_inactive') }}
                                         @endif
@@ -169,7 +180,7 @@
                                             <x-ui.button size="sm" variant="secondary" wire:click="deactivate('{{ $promo['id'] }}')">
                                                 {{ __('admin.promo_codes.deactivate') }}
                                             </x-ui.button>
-                                        @else
+                                        @elseif(! $promo['is_locked'])
                                             <x-ui.button size="sm" variant="secondary" wire:click="activate('{{ $promo['id'] }}')">
                                                 {{ __('admin.promo_codes.activate') }}
                                             </x-ui.button>

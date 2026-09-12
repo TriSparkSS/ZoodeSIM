@@ -26,6 +26,11 @@ return [
         'title' => 'Promo por caducar',
         'body' => 'El promo :code caduca el :date.',
     ],
+    'unlock' => [
+        'subject' => 'El promo :code ya está desbloqueado',
+        'title' => 'Promo desbloqueado',
+        'body' => 'El promo :code se desbloqueó tras :count referidos y ahora es tu código activo.',
+    ],
     'cashback' => [
         'subject' => 'Cashback acreditado',
         'title' => 'Cashback de compra',

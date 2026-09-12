@@ -112,6 +112,9 @@ return [
         'code_label' => 'Promo code',
         'bonus_label' => 'User bonus (MB)',
         'submit_create' => 'Create code',
+        'status_locked' => 'Locked',
+        'status_unlocked' => 'Unlocked',
+        'progress_users' => ':current/:required',
     ],
 
     'statistics' => [

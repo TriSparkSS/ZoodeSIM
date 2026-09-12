@@ -114,5 +114,7 @@ return [
     'status_expired' => 'Мӯҳлаташ гузашта',
     'status_exhausted' => 'Лимит пур шуд',
     'status_inactive' => 'Ғайрифаъол',
+    'status_locked' => 'Қулфшуда',
+    'status_unlocked' => 'Кушода',
     'status_blocked' => 'Маҳдуд',
 ];

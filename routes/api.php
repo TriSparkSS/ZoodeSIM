@@ -1,11 +1,10 @@
 <?php
 
-use App\Http\Controllers\Api\Admin\PreviewPricingController;
-use App\Http\Controllers\Api\Admin\PricingSlabController;
 use App\Http\Controllers\Api\Promo\ValidatePromoController;
 use App\Http\Controllers\Api\User\EsimCountryController;
 use App\Http\Controllers\Api\User\EsimPackageController;
 use App\Http\Controllers\Api\User\IndexEsimOrderController;
+use App\Http\Controllers\Api\User\IndexUserTransactionsController;
 use App\Http\Controllers\Api\User\LoginController;
 use App\Http\Controllers\Api\User\LogoutController;
 use App\Http\Controllers\Api\User\NotificationController;
@@ -37,6 +36,8 @@ Route::prefix('user')->group(function () {
         Route::post('wallet', StoreWalletController::class)
             ->middleware('throttle:30,1')
             ->name('api.user.wallet.store');
+        Route::get('transactions', IndexUserTransactionsController::class)
+            ->name('api.user.transactions.index');
         Route::get('notifications', [NotificationController::class, 'index'])->name('api.user.notifications.index');
         Route::post('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('api.user.notifications.read-all');
         Route::post('notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('api.user.notifications.read');
@@ -46,12 +47,4 @@ Route::prefix('user')->group(function () {
         Route::get('esim/orders', IndexEsimOrderController::class)->name('api.user.esim.orders.index');
         Route::get('esim/orders/{order}', ShowEsimOrderController::class)->name('api.user.esim.orders.show');
     });
-});
-
-Route::prefix('admin')->middleware('admin.auth')->group(function () {
-    Route::get('pricing/slabs', [PricingSlabController::class, 'index'])->name('api.admin.pricing.slabs.index');
-    Route::post('pricing/slabs', [PricingSlabController::class, 'store'])->name('api.admin.pricing.slabs.store');
-    Route::put('pricing/slabs/{slab}', [PricingSlabController::class, 'update'])->name('api.admin.pricing.slabs.update');
-    Route::delete('pricing/slabs/{slab}', [PricingSlabController::class, 'destroy'])->name('api.admin.pricing.slabs.destroy');
-    Route::post('pricing/preview', PreviewPricingController::class)->name('api.admin.pricing.preview');
 });

@@ -23,6 +23,7 @@ class PromoRedemptionService
         protected DeviceFraudServiceInterface $fraud,
         protected NotificationDispatcherInterface $notifications,
         protected PromoAuditLoggerInterface $audit,
+        protected PromoLadderService $ladder,
     ) {}
 
     public function redeem(User $user, PromoCode $promo): PromoUsage
@@ -35,6 +36,12 @@ class PromoRedemptionService
         if ($locked === null) {
             throw ValidationException::withMessages([
                 'referral_code' => __('api.promo.invalid'),
+            ]);
+        }
+
+        if ($locked->isLocked()) {
+            throw ValidationException::withMessages([
+                'referral_code' => __('api.promo.locked'),
             ]);
         }
 
@@ -158,6 +165,7 @@ class PromoRedemptionService
         $this->milestones->awardIfDue($partner->fresh());
         $this->notifications->referralRegistered($partner->fresh(), $user->fresh(), $usage);
         $this->audit->redeemed($locked, $user, $usage);
+        $this->ladder->sync($partner->fresh() ?? $partner);
 
         return $usage;
     }

@@ -23,4 +23,6 @@ interface NotificationDispatcherInterface
     public function payoutProcessed(Partner $partner, Withdrawal $withdrawal): void;
 
     public function promoExpiring(Partner $partner, PromoCode $promo): void;
+
+    public function promoUnlocked(Partner $partner, PromoCode $promo): void;
 }

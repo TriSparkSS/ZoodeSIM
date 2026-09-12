@@ -137,21 +137,11 @@
                                 <td class="py-3.5 pe-4 align-middle">
                                     <strong class="tracking-widest text-brand-cyan">{{ $promo['code'] }}</strong>
                                 </td>
-                                <td class="py-3.5 pe-4 align-middle">{{ number_format($promo['uses']) }}</td>
+                                <td class="py-3.5 pe-4 align-middle">{{ $promo['uses_label'] }}</td>
                                 <td class="py-3.5 pe-4 align-middle">{{ $promo['bonus'] }}</td>
                                 <td class="py-3.5 pe-4 align-middle">${{ number_format($promo['earnings'], 2) }}</td>
                                 <td class="py-3.5 align-middle">
-                                    <x-ui.badge :type="$promo['status']">
-                                        @if($promo['status'] === 'active')
-                                            {{ __('ui.status_active') }}
-                                        @elseif($promo['status'] === 'expired')
-                                            {{ __('ui.status_expired') }}
-                                        @elseif($promo['status'] === 'exhausted')
-                                            {{ __('ui.status_exhausted') }}
-                                        @else
-                                            {{ __('ui.status_inactive') }}
-                                        @endif
-                                    </x-ui.badge>
+                                    @include('livewire.partner.partials.promo-status-badge')
                                 </td>
                             </tr>
                         @endforeach
@@ -164,12 +154,10 @@
                     <div class="rounded-xl border border-surface-border bg-surface-card-alt/70 p-4 dark:border-brand-border dark:bg-brand-card-alt/40">
                         <div class="flex items-center justify-between gap-3">
                             <strong class="tracking-widest text-brand-cyan">{{ $promo['code'] }}</strong>
-                            <x-ui.badge :type="$promo['status']">
-                                {{ $promo['status'] === 'active' ? __('ui.status_active') : __('ui.status_'.$promo['status']) }}
-                            </x-ui.badge>
+                            @include('livewire.partner.partials.promo-status-badge')
                         </div>
                         <div class="mt-3 grid grid-cols-3 gap-2 text-sm text-surface-text dark:text-brand-text">
-                            <div>{{ number_format($promo['uses']) }} uses</div>
+                            <div>{{ $promo['uses_label'] }}</div>
                             <div>{{ $promo['bonus'] }}</div>
                             <div>${{ number_format($promo['earnings'], 2) }}</div>
                         </div>

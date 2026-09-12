@@ -21,22 +21,12 @@
                     >
                         <div class="flex items-start justify-between gap-3">
                             <strong class="tracking-widest text-brand-cyan">{{ $promo['code'] }}</strong>
-                            <x-ui.badge :type="$promo['status']">
-                                @if($promo['status'] === 'active')
-                                    {{ __('ui.status_active') }}
-                                @elseif($promo['status'] === 'expired')
-                                    {{ __('ui.status_expired') }}
-                                @elseif($promo['status'] === 'exhausted')
-                                    {{ __('ui.status_exhausted') }}
-                                @else
-                                    {{ __('ui.status_inactive') }}
-                                @endif
-                            </x-ui.badge>
+                            @include('livewire.partner.partials.promo-status-badge')
                         </div>
                         <div class="mt-4 grid grid-cols-3 gap-3 text-sm">
                             <div>
                                 <div class="text-[11px] uppercase tracking-wide text-surface-muted dark:text-brand-muted">{{ __('partner.dashboard.table_uses') }}</div>
-                                <div class="mt-1 font-medium text-surface-text dark:text-brand-text">{{ number_format($promo['uses']) }}</div>
+                                <div class="mt-1 font-medium text-surface-text dark:text-brand-text">{{ $promo['uses_label'] }}</div>
                             </div>
                             <div>
                                 <div class="text-[11px] uppercase tracking-wide text-surface-muted dark:text-brand-muted">{{ __('partner.dashboard.table_bonus') }}</div>
@@ -69,21 +59,11 @@
                                 <td class="py-3.5 pe-4 align-middle">
                                     <strong class="tracking-widest text-brand-cyan">{{ $promo['code'] }}</strong>
                                 </td>
-                                <td class="py-3.5 pe-4 align-middle">{{ number_format($promo['uses']) }}</td>
+                                <td class="py-3.5 pe-4 align-middle">{{ $promo['uses_label'] }}</td>
                                 <td class="py-3.5 pe-4 align-middle">{{ $promo['bonus'] }}</td>
                                 <td class="py-3.5 pe-4 align-middle">${{ number_format($promo['earnings'], 2) }}</td>
                                 <td class="py-3.5 align-middle">
-                                    <x-ui.badge :type="$promo['status']">
-                                        @if($promo['status'] === 'active')
-                                            {{ __('ui.status_active') }}
-                                        @elseif($promo['status'] === 'expired')
-                                            {{ __('ui.status_expired') }}
-                                        @elseif($promo['status'] === 'exhausted')
-                                            {{ __('ui.status_exhausted') }}
-                                        @else
-                                            {{ __('ui.status_inactive') }}
-                                        @endif
-                                    </x-ui.badge>
+                                    @include('livewire.partner.partials.promo-status-badge')
                                 </td>
                             </tr>
                         @endforeach
