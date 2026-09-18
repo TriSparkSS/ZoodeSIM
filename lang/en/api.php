@@ -10,6 +10,11 @@ return [
         'logged_out' => 'You have been logged out.',
         'profile' => 'Profile retrieved successfully.',
         'profile_updated' => 'Profile updated successfully.',
+        'social_invalid' => 'Google or Apple sign-in could not be verified.',
+        'social_token_required' => 'Please provide a Firebase ID token.',
+        'social_provider_invalid' => 'Choose Google or Apple.',
+        'social_provider_mismatch' => 'This token does not match the selected provider.',
+        'social_email_missing' => 'Your Google or Apple account did not share an email address.',
     ],
 
     'wallet' => [

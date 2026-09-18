@@ -10,6 +10,11 @@ return [
         'logged_out' => 'تم تسجيل خروجك.',
         'profile' => 'تم جلب الملف الشخصي بنجاح.',
         'profile_updated' => 'تم تحديث الملف الشخصي بنجاح.',
+        'social_invalid' => 'تعذر التحقق من تسجيل الدخول عبر Google أو Apple.',
+        'social_token_required' => 'يرجى تقديم رمز Firebase.',
+        'social_provider_invalid' => 'اختر Google أو Apple.',
+        'social_provider_mismatch' => 'هذا الرمز لا يطابق المزود المحدد.',
+        'social_email_missing' => 'لم يشارك حساب Google أو Apple عنوان بريد إلكتروني.',
     ],
 
     'wallet' => [

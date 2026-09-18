@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\Auth\Contracts\FirebaseTokenVerifierInterface;
+use App\Services\Auth\FirebaseTokenVerifier;
 use App\Services\Banner\BannerService;
 use App\Services\Banner\Contracts\BannerServiceInterface;
 use App\Services\Country\Contracts\CountryServiceInterface;
@@ -50,9 +52,11 @@ use App\Services\ResellPortal\ResellPortalClient;
 use App\Services\User\Contracts\UserAdminServiceInterface;
 use App\Services\User\Contracts\UserBalanceAdjustmentServiceInterface;
 use App\Services\User\Contracts\UserProfileServiceInterface;
+use App\Services\User\Contracts\UserSocialAuthServiceInterface;
 use App\Services\User\UserAdminService;
 use App\Services\User\UserBalanceAdjustmentService;
 use App\Services\User\UserProfileService;
+use App\Services\User\UserSocialAuthService;
 use App\Services\Wallet\Contracts\TransactionIdGeneratorInterface;
 use App\Services\Wallet\Contracts\WalletLedgerServiceInterface;
 use App\Services\Wallet\TransactionIdGenerator;
@@ -97,7 +101,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(WithdrawalServiceInterface::class, WithdrawalService::class);
         $this->app->singleton(UserAdminServiceInterface::class, UserAdminService::class);
         $this->app->singleton(UserBalanceAdjustmentServiceInterface::class, UserBalanceAdjustmentService::class);
+        $this->app->singleton(FirebaseTokenVerifierInterface::class, FirebaseTokenVerifier::class);
         $this->app->singleton(UserProfileServiceInterface::class, UserProfileService::class);
+        $this->app->singleton(UserSocialAuthServiceInterface::class, UserSocialAuthService::class);
     }
 
     public function boot(): void

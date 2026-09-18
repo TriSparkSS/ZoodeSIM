@@ -10,6 +10,11 @@ return [
         'logged_out' => 'Has cerrado sesión.',
         'profile' => 'Perfil obtenido correctamente.',
         'profile_updated' => 'Perfil actualizado correctamente.',
+        'social_invalid' => 'No se pudo verificar el inicio de sesión con Google o Apple.',
+        'social_token_required' => 'Proporciona un token de ID de Firebase.',
+        'social_provider_invalid' => 'Elige Google o Apple.',
+        'social_provider_mismatch' => 'Este token no coincide con el proveedor seleccionado.',
+        'social_email_missing' => 'Tu cuenta de Google o Apple no compartió un correo electrónico.',
     ],
 
     'wallet' => [

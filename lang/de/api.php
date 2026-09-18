@@ -10,6 +10,11 @@ return [
         'logged_out' => 'Du wurdest abgemeldet.',
         'profile' => 'Profil erfolgreich abgerufen.',
         'profile_updated' => 'Profil erfolgreich aktualisiert.',
+        'social_invalid' => 'Google- oder Apple-Anmeldung konnte nicht bestätigt werden.',
+        'social_token_required' => 'Bitte einen Firebase-ID-Token angeben.',
+        'social_provider_invalid' => 'Wähle Google oder Apple.',
+        'social_provider_mismatch' => 'Dieser Token passt nicht zum gewählten Anbieter.',
+        'social_email_missing' => 'Dein Google- oder Apple-Konto hat keine E-Mail-Adresse geteilt.',
     ],
 
     'wallet' => [

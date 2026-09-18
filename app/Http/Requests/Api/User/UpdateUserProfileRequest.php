@@ -24,7 +24,7 @@ class UpdateUserProfileRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
-            'phone' => ['required', 'string', 'max:30', Rule::unique('users', 'phone')->ignore($user->id)],
+            'phone' => ['nullable', 'string', 'max:30', Rule::unique('users', 'phone')->ignore($user->id)],
             'current_password' => ['required_with:password', 'string'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ];
@@ -40,7 +40,6 @@ class UpdateUserProfileRequest extends FormRequest
             'email.required' => __('auth.validation.email_required'),
             'email.email' => __('auth.validation.email_invalid'),
             'email.unique' => __('api.validation.email_unique'),
-            'phone.required' => __('api.validation.phone_required'),
             'phone.unique' => __('api.validation.phone_unique'),
             'current_password.required_with' => __('api.validation.current_password_required'),
             'password.min' => __('api.validation.password_min'),
@@ -51,6 +50,10 @@ class UpdateUserProfileRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $merge = [];
+
+        if ($this->has('phone') && is_string($this->phone) && trim($this->phone) === '') {
+            $merge['phone'] = null;
+        }
 
         if ($this->has('password') && is_string($this->password) && trim($this->password) === '') {
             $merge['password'] = null;

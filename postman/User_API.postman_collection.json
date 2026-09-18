@@ -2,7 +2,7 @@
     "info": {
         "_postman_id": "64600a01-8f13-43ad-84c6-d8d50c82a382",
         "name": "ZoodeSIM User API",
-        "description": "Mirrors `routes/api.php`. User APIs only (no admin HTTP APIs).\n\n**User (Sanctum Bearer `token`)**\n- `POST /api/promo/validate`\n- `POST /api/user/register` · `POST /api/user/login` · `POST /api/user/logout` · `GET /api/user/profile` · `PUT /api/user/profile`\n- `GET /api/user/wallet` \u00b7 `POST /api/user/wallet` \u00b7 `GET /api/user/transactions` (`page`, `per_page`)\n- `GET /api/user/banners`\n- `GET /api/user/notifications` \u00b7 `POST /api/user/notifications/read-all` \u00b7 `POST /api/user/notifications/{notification}/read`\n- `GET /api/user/esim/countries` \u00b7 `GET /api/user/esim/packages` \u00b7 `GET /api/user/esim/orders` \u00b7 `POST /api/user/esim/orders` \u00b7 `GET /api/user/esim/orders/{order}`\n\n**Setup**\n1. Import this collection and `User_API.postman_environment.json`.\n2. Select the **ZoodeSIM User API \u2014 Local** environment.\n3. Set `baseUrl` if needed (`https://esim.test` for Herd, or `http://localhost`).\n4. Register and Login both save `token` for protected user requests. Run Wallet after login.\n\n**Locale**\nUse `lang` (`en`, `es`, `ru`, `fr`, `de`, `tg`) as `?lang=` or `Accept-Language`.\n\n**Envelope**\n```json\n{ \"success\": true, \"message\": \"...\", \"data\": {}, \"errors\": null }\n{ \"success\": false, \"message\": \"...\", \"data\": null, \"errors\": {} }\n```",
+        "description": "Mirrors `routes/api.php`. User APIs only (no admin HTTP APIs).\n\n**User (Sanctum Bearer `token`)**\n- `POST /api/promo/validate`\n- `POST /api/user/register` · `POST /api/user/login` · `POST /api/user/auth/social` · `POST /api/user/logout` · `GET /api/user/profile` · `PUT /api/user/profile`\n- `GET /api/user/wallet` \u00b7 `POST /api/user/wallet` \u00b7 `GET /api/user/transactions` (`page`, `per_page`)\n- `GET /api/user/banners`\n- `GET /api/user/notifications` \u00b7 `POST /api/user/notifications/read-all` \u00b7 `POST /api/user/notifications/{notification}/read`\n- `GET /api/user/esim/countries` \u00b7 `GET /api/user/esim/packages` \u00b7 `GET /api/user/esim/orders` \u00b7 `POST /api/user/esim/orders` \u00b7 `GET /api/user/esim/orders/{order}`\n\n**Setup**\n1. Import this collection and `User_API.postman_environment.json`.\n2. Select the **ZoodeSIM User API \u2014 Local** environment.\n3. Set `baseUrl` if needed (`https://esim.test` for Herd, or `http://localhost`).\n4. Register and Login both save `token` for protected user requests. Run Wallet after login.\n\n**Locale**\nUse `lang` (`en`, `es`, `ru`, `fr`, `de`, `tg`) as `?lang=` or `Accept-Language`.\n\n**Envelope**\n```json\n{ \"success\": true, \"message\": \"...\", \"data\": {}, \"errors\": null }\n{ \"success\": false, \"message\": \"...\", \"data\": null, \"errors\": {} }\n```",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
         "_exporter_id": "29209019"
     },
@@ -153,6 +153,78 @@
                             ]
                         },
                         "description": "Saves `token` into the active environment for Profile and Logout."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Social login (Google / Apple)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200 or 201', function () {",
+                                    "    pm.expect([200, 201]).to.include(pm.response.code);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "if (json.success && json.data && json.data.token) {",
+                                    "    pm.environment.set('token', json.data.token);",
+                                    "    pm.collectionVariables.set('token', json.data.token);",
+                                    "}",
+                                    "pm.test('Returns Sanctum token and user', function () {",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data.token_type).to.eql('Bearer');",
+                                    "    pm.expect(json.data).to.include.keys('is_new_user', 'user', 'bonus_mb');",
+                                    "    pm.expect(json.data.user).to.include.keys('id', 'name', 'email', 'phone', 'created_at');",
+                                    "    pm.expect(json.data.user).to.not.have.property('password');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"id_token\": \"{{firebase_id_token}}\",\n    \"provider\": \"google\",\n    \"name\": \"{{name}}\",\n    \"referral_code\": \"{{referral_code}}\",\n    \"device_id\": \"{{device_id}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/auth/social?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "auth",
+                                "social"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Public. The User App signs in with Firebase (Google or Apple) and sends the Firebase ID token. `provider` is `google` or `apple` and must match the token. New users: 201, phone may be null. Returning users: 200. Optional `referral_code` + `device_id` apply only on first create. Saves `token` like Login. Set `FIREBASE_PROJECT_ID` on the API."
                     },
                     "response": []
                 },

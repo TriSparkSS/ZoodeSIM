@@ -25,7 +25,7 @@ class UpdateProfileController extends Controller
             new UpdateUserData(
                 name: $request->validated('name'),
                 email: $request->validated('email'),
-                phone: $request->validated('phone'),
+                phone: $request->validated('phone') !== null ? (string) $request->validated('phone') : null,
                 password: $request->validated('password'),
             ),
             $request->validated('current_password'),

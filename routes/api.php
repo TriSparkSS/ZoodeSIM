@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\User\ProfileController;
 use App\Http\Controllers\Api\User\RegisterController;
 use App\Http\Controllers\Api\User\ShowEsimOrderController;
 use App\Http\Controllers\Api\User\ShowWalletController;
+use App\Http\Controllers\Api\User\SocialAuthController;
 use App\Http\Controllers\Api\User\StoreEsimOrderController;
 use App\Http\Controllers\Api\User\StoreWalletController;
 use App\Http\Controllers\Api\User\UpdateProfileController;
@@ -30,6 +31,10 @@ Route::prefix('user')->group(function () {
     Route::post('login', LoginController::class)
         ->middleware('throttle:10,1')
         ->name('api.user.login');
+
+    Route::post('auth/social', SocialAuthController::class)
+        ->middleware('throttle:10,1')
+        ->name('api.user.auth.social');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', LogoutController::class)->name('api.user.logout');

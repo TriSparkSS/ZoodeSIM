@@ -10,6 +10,11 @@ return [
         'logged_out' => 'Вы вышли из системы.',
         'profile' => 'Профиль успешно получен.',
         'profile_updated' => 'Профиль успешно обновлён.',
+        'social_invalid' => 'Не удалось подтвердить вход через Google или Apple.',
+        'social_token_required' => 'Укажите Firebase ID token.',
+        'social_provider_invalid' => 'Выберите Google или Apple.',
+        'social_provider_mismatch' => 'Этот токен не соответствует выбранному провайдеру.',
+        'social_email_missing' => 'Аккаунт Google или Apple не предоставил адрес электронной почты.',
     ],
 
     'wallet' => [

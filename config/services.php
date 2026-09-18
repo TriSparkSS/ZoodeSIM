@@ -35,6 +35,11 @@ return [
         ],
     ],
 
+    'firebase' => [
+        'project_id' => env('FIREBASE_PROJECT_ID'),
+        'credentials' => env('FIREBASE_CREDENTIALS'),
+    ],
+
     'resellportal' => [
         'base_url' => env('RESELLPORTAL_BASE_URL', 'https://panel.resellportal.com/wp-json/resellportal/v1/'),
         'api_key' => env('RESELLPORTAL_API_KEY'),

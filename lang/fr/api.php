@@ -10,6 +10,11 @@ return [
         'logged_out' => 'Vous avez été déconnecté.',
         'profile' => 'Profil récupéré avec succès.',
         'profile_updated' => 'Profil mis à jour avec succès.',
+        'social_invalid' => 'La connexion Google ou Apple n’a pas pu être vérifiée.',
+        'social_token_required' => 'Veuillez fournir un jeton d’ID Firebase.',
+        'social_provider_invalid' => 'Choisissez Google ou Apple.',
+        'social_provider_mismatch' => 'Ce jeton ne correspond pas au fournisseur sélectionné.',
+        'social_email_missing' => 'Votre compte Google ou Apple n’a pas partagé d’adresse e-mail.',
     ],
 
     'wallet' => [

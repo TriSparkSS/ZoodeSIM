@@ -29,8 +29,20 @@ class UserFactory extends Factory
             'phone' => fake()->unique()->numerify('+1##########'),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'auth_provider' => User::AUTH_PASSWORD,
+            'firebase_uid' => null,
             'remember_token' => Str::random(10),
         ];
+    }
+
+    public function social(string $provider = User::AUTH_GOOGLE): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'phone' => null,
+            'password' => null,
+            'firebase_uid' => (string) Str::uuid(),
+            'auth_provider' => $provider,
+        ]);
     }
 
     public function unverified(): static

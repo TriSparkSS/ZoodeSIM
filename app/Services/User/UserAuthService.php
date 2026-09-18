@@ -33,7 +33,7 @@ class UserAuthService
 
         $user = User::query()->where('email', $email)->first();
 
-        if ($user === null || ! Hash::check($password, $user->password)) {
+        if ($user === null || blank($user->password) || ! Hash::check($password, $user->password)) {
             RateLimiter::hit($throttleKey);
             $this->logger->loginFailed(self::GUARD, $email);
 

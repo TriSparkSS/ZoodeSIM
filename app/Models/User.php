@@ -14,10 +14,16 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'phone', 'password', 'balance', 'bonus_mb', 'device_id', 'registration_ip'])]
-#[Hidden(['password', 'remember_token'])]
+#[Fillable(['name', 'email', 'phone', 'password', 'balance', 'bonus_mb', 'device_id', 'registration_ip', 'firebase_uid', 'auth_provider'])]
+#[Hidden(['password', 'remember_token', 'firebase_uid'])]
 class User extends Authenticatable
 {
+    public const AUTH_PASSWORD = 'password';
+
+    public const AUTH_GOOGLE = 'google';
+
+    public const AUTH_APPLE = 'apple';
+
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 

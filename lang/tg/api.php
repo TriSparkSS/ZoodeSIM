@@ -10,6 +10,11 @@ return [
         'logged_out' => 'Шумо аз система баромадед.',
         'profile' => 'Профил бомуваффақият гирифта шуд.',
         'profile_updated' => 'Профил бомуваффақият навсозӣ шуд.',
+        'social_invalid' => 'Вуруди Google ё Apple тасдиқ нашуд.',
+        'social_token_required' => 'Лутфан Firebase ID token-ро пешниҳод кунед.',
+        'social_provider_invalid' => 'Google ё Apple-ро интихоб кунед.',
+        'social_provider_mismatch' => 'Ин токен бо провайдери интихобшуда мувофиқат намекунад.',
+        'social_email_missing' => 'Ҳисоби Google ё Apple почтаи электронӣ нафиристод.',
     ],
 
     'wallet' => [
