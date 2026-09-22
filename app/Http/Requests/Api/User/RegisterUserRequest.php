@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api\User;
 
+use App\Rules\UniqueAccountEmail;
 use Illuminate\Foundation\Http\FormRequest;
 
 class RegisterUserRequest extends FormRequest
@@ -18,7 +19,7 @@ class RegisterUserRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'email' => ['required', 'string', 'email', 'max:255', new UniqueAccountEmail],
             'phone' => ['required', 'string', 'max:30', 'unique:users,phone'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'referral_code' => ['nullable', 'string', 'max:32'],
@@ -35,6 +36,7 @@ class RegisterUserRequest extends FormRequest
             'name.required' => __('api.validation.name_required'),
             'email.required' => __('auth.validation.email_required'),
             'email.email' => __('auth.validation.email_invalid'),
+            'email.unique' => __('api.validation.email_unique'),
             'phone.required' => __('api.validation.phone_required'),
             'phone.unique' => __('api.validation.phone_unique'),
             'password.required' => __('auth.validation.password_required'),

@@ -10,11 +10,18 @@ return [
         'logged_out' => 'Шумо аз система баромадед.',
         'profile' => 'Профил бомуваффақият гирифта шуд.',
         'profile_updated' => 'Профил бомуваффақият навсозӣ шуд.',
-        'social_invalid' => 'Вуруди Google ё Apple тасдиқ нашуд.',
+        'referral' => 'Тафсилоти реферал бомуваффақият гирифта шуд.',
+        'social_invalid' => 'Вуруд тасдиқ нашуд.',
         'social_token_required' => 'Лутфан Firebase ID token-ро пешниҳод кунед.',
-        'social_provider_invalid' => 'Google ё Apple-ро интихоб кунед.',
+        'social_provider_invalid' => 'Google, Apple, Facebook ё почта/рамзро интихоб кунед.',
         'social_provider_mismatch' => 'Ин токен бо провайдери интихобшуда мувофиқат намекунад.',
-        'social_email_missing' => 'Ҳисоби Google ё Apple почтаи электронӣ нафиристод.',
+        'social_email_missing' => 'Ҳисоб почтаи электронӣ нафиристод.',
+        'account_deleted' => 'Ин ҳисоб нест карда шудааст.',
+    ],
+
+    'legal' => [
+        'retrieved' => 'Саҳифаи ҳуқуқӣ бомуваффақият гирифта шуд.',
+        'not_found' => 'Ин саҳифа дастрас нест.',
     ],
 
     'wallet' => [

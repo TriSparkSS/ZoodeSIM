@@ -8,6 +8,7 @@ use App\Livewire\Public\ApplyForm;
 use App\Models\Partner;
 use App\Models\PartnerApplication;
 use App\Models\PromoCode;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -195,5 +196,31 @@ class PartnerApplicationTest extends TestCase
         $this->assertNotNull($partner);
         $this->assertSame('blocked', $partner->status);
         $this->assertSame('rejected', $app->fresh()->status);
+    }
+
+    public function test_apply_rejects_email_already_used_by_a_user(): void
+    {
+        User::factory()->create([
+            'email' => 'already-user@example.com',
+            'phone' => '+15550009999',
+        ]);
+
+        Livewire::test(ApplyForm::class)
+            ->set('firstName', 'Sardor')
+            ->set('lastName', 'Rahimov')
+            ->set('email', 'already-user@example.com')
+            ->set('phone', '+1234567890')
+            ->set('password', 'password123')
+            ->set('passwordConfirmation', 'password123')
+            ->set('platforms', ['telegram'])
+            ->set('telegram', 'https://t.me/sardor')
+            ->set('followers', '10k-50k')
+            ->set('niche', 'travel')
+            ->set('country', 'US')
+            ->call('submit')
+            ->assertHasErrors(['email']);
+
+        $this->assertDatabaseMissing('partners', ['email' => 'already-user@example.com']);
+        $this->assertDatabaseMissing('partner_applications', ['email' => 'already-user@example.com']);
     }
 }

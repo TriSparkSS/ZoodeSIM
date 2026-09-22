@@ -3,6 +3,7 @@
 namespace App\Services\User;
 
 use App\Models\User;
+use App\Services\Auth\AccountEmailUniqueness;
 use App\Services\Auth\AuthActivityLogger;
 use App\Services\Auth\Contracts\FirebaseTokenVerifierInterface;
 use App\Services\User\Contracts\UserSocialAuthServiceInterface;
@@ -16,6 +17,7 @@ class UserSocialAuthService implements UserSocialAuthServiceInterface
         protected UserRegistrationService $registration,
         protected UserAuthService $auth,
         protected AuthActivityLogger $logger,
+        protected AccountEmailUniqueness $emails,
     ) {}
 
     public function authenticate(
@@ -34,16 +36,26 @@ class UserSocialAuthService implements UserSocialAuthServiceInterface
             ]);
         }
 
-        $existing = User::query()->where('firebase_uid', $identity->uid)->first();
+        $existing = User::query()->withTrashed()->where('firebase_uid', $identity->uid)->first();
 
         if ($existing) {
+            $this->rejectIfDeleted($existing);
+
             return $this->issueExisting($existing);
         }
 
+        if ($identity->email !== null && $this->emails->isTakenByPartner($identity->email)) {
+            throw ValidationException::withMessages([
+                'email' => __('api.validation.email_unique'),
+            ]);
+        }
+
         if ($identity->email !== null) {
-            $byEmail = User::query()->where('email', $identity->email)->first();
+            $byEmail = $this->emails->findUser($identity->email);
 
             if ($byEmail) {
+                $this->rejectIfDeleted($byEmail);
+
                 if (filled($byEmail->firebase_uid) && $byEmail->firebase_uid !== $identity->uid) {
                     throw ValidationException::withMessages([
                         'email' => __('api.validation.email_unique'),
@@ -120,6 +132,17 @@ class UserSocialAuthService implements UserSocialAuthServiceInterface
             'bonus_type' => null,
             'bonus_amount' => 0,
         ];
+    }
+
+    protected function rejectIfDeleted(User $user): void
+    {
+        if (! $user->trashed()) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'id_token' => __('api.user.account_deleted'),
+        ]);
     }
 
     protected function resolvedName(?string $tokenName, ?string $requestName, string $email): string

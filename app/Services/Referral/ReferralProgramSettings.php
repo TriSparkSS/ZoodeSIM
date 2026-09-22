@@ -56,6 +56,22 @@ class ReferralProgramSettings
         return $this->decimal('registration_reward', (string) config('referral.registration_reward', '1.50'));
     }
 
+    public function userReferralReferrerReward(): string
+    {
+        return $this->decimal(
+            'user_referral_referrer_reward',
+            (string) config('referral.user_referral_referrer_reward', '1.50'),
+        );
+    }
+
+    public function userReferralInviteeReward(): string
+    {
+        return $this->decimal(
+            'user_referral_invitee_reward',
+            (string) config('referral.user_referral_invitee_reward', '1.00'),
+        );
+    }
+
     public function percentLabel(string $decimal): string
     {
         return rtrim(rtrim($decimal, '0'), '.').'%';

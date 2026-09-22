@@ -42,4 +42,14 @@ return [
         'body' => 'Vous avez reçu :bonus Mo via un code de parrainage.',
         'body_usd' => 'Vous avez reçu $:bonus via un code de parrainage.',
     ],
+    'user_referral_invitee' => [
+        'subject' => 'Bonus de parrainage ajouté',
+        'title' => 'Bonus de parrainage',
+        'body' => 'Vous avez reçu $:amount en vous inscrivant avec le code d’un ami.',
+    ],
+    'user_referral_referrer' => [
+        'subject' => 'Récompense de parrainage ajoutée',
+        'title' => 'Récompense de parrainage',
+        'body' => ':name s’est inscrit avec votre code. Vous avez gagné $:amount.',
+    ],
 ];

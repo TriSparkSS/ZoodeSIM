@@ -2,7 +2,7 @@
     "info": {
         "_postman_id": "64600a01-8f13-43ad-84c6-d8d50c82a382",
         "name": "ZoodeSIM User API",
-        "description": "Mirrors `routes/api.php`. User APIs only (no admin HTTP APIs).\n\n**User (Sanctum Bearer `token`)**\n- `POST /api/promo/validate`\n- `POST /api/user/register` · `POST /api/user/login` · `POST /api/user/auth/social` · `POST /api/user/logout` · `GET /api/user/profile` · `PUT /api/user/profile`\n- `GET /api/user/wallet` \u00b7 `POST /api/user/wallet` \u00b7 `GET /api/user/transactions` (`page`, `per_page`)\n- `GET /api/user/banners`\n- `GET /api/user/notifications` \u00b7 `POST /api/user/notifications/read-all` \u00b7 `POST /api/user/notifications/{notification}/read`\n- `GET /api/user/esim/countries` \u00b7 `GET /api/user/esim/packages` \u00b7 `GET /api/user/esim/orders` \u00b7 `POST /api/user/esim/orders` \u00b7 `GET /api/user/esim/orders/{order}`\n\n**Setup**\n1. Import this collection and `User_API.postman_environment.json`.\n2. Select the **ZoodeSIM User API \u2014 Local** environment.\n3. Set `baseUrl` if needed (`https://esim.test` for Herd, or `http://localhost`).\n4. Register and Login both save `token` for protected user requests. Run Wallet after login.\n\n**Locale**\nUse `lang` (`en`, `es`, `ru`, `fr`, `de`, `tg`) as `?lang=` or `Accept-Language`.\n\n**Envelope**\n```json\n{ \"success\": true, \"message\": \"...\", \"data\": {}, \"errors\": null }\n{ \"success\": false, \"message\": \"...\", \"data\": null, \"errors\": {} }\n```",
+        "description": "Mirrors `routes/api.php`. User APIs only (no admin HTTP APIs).\n\n**User (Sanctum Bearer `token`)**\n- `POST /api/promo/validate`\n- `POST /api/user/register` · `POST /api/user/login` (native email/password)\n- `POST /api/user/auth/social` — Firebase `id_token` + `provider`: `google` · `apple` · `facebook` · `password` (Email/Password). Send `getIdToken()`, not OAuth access tokens. `provider` must match `firebase.sign_in_provider` (`google.com`, `apple.com`, `facebook.com`, `password`).\n- `POST /api/user/logout` · `DELETE /api/user/account` · `GET /api/user/profile` · `PUT /api/user/profile` · `GET /api/user/referral`\n- `GET /api/user/wallet` · `POST /api/user/wallet` · `GET /api/user/transactions` (`page`, `per_page`)\n- `GET /api/user/legal/{page}` — public (`privacy` · `terms` · `delete-account`)\n- `GET /api/user/banners`\n- `GET /api/user/notifications` · `POST /api/user/notifications/read-all` · `POST /api/user/notifications/{notification}/read`\n- `GET /api/user/esim/countries` · `GET /api/user/esim/packages` · `GET /api/user/esim/orders` · `POST /api/user/esim/orders` · `GET /api/user/esim/orders/{order}`\n\n**Accounts**\nEmail is unique across **users and partners**. Same Firebase `uid` logs in (no second user). Same email with no/other uid is linked or rejected (422). Optional `referral_code` (partner promo or user code) applies only on first social create.\n\n**Setup**\n1. Import this collection and `User_API.postman_environment.json`.\n2. Select the **ZoodeSIM User API — Local** environment.\n3. Set `baseUrl` if needed (`https://esim.test` for Herd, or `http://localhost`).\n4. Register, Login, and Social all save `token`. Paste a Firebase `firebase_id_token` from the app. Run Wallet after login.\n\n**Locale**\nUse `lang` (`en`, `es`, `ru`, `fr`, `de`, `tg`) as `?lang=` or `Accept-Language`.\n\n**Envelope**\n```json\n{ \"success\": true, \"message\": \"...\", \"data\": {}, \"errors\": null }\n{ \"success\": false, \"message\": \"...\", \"data\": null, \"errors\": {} }\n```",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
         "_exporter_id": "29209019"
     },
@@ -77,7 +77,7 @@
                                 }
                             ]
                         },
-                        "description": "Set `referral_code` to the partner\u2019s currently active promo. Locked ladder codes are rejected (422 `api.promo.locked`); only the live unlocked code works. Also provisions a ResellPortal client server-side (not returned in JSON). Returns Bearer token, user, and `{ bonus_type, bonus_amount, bonus_mb }`. `bonus_mb` is the MB grant (0 for Reward Dollars). Use a unique email/phone each run."
+                        "description": "Native email/password signup. Email must be unique across **users and partners**. Set `referral_code` to a partner promo **or** another user's referral code. Partner codes follow the existing promo path (locked ladder codes are 422 `api.promo.locked`). User codes credit both wallets in USD and never create `promo_usage`. Also provisions a ResellPortal client server-side (not returned in JSON). Returns Bearer token, user (includes `referral_code`), and `{ bonus_type, bonus_amount, bonus_mb }`. `bonus_mb` is the MB grant (0 for Reward Dollars / user referrals). Use a unique email/phone each run."
                     },
                     "response": []
                 }
@@ -105,7 +105,7 @@
                                     "pm.test('Returns token and safe user', function () {",
                                     "    pm.expect(json.success).to.eql(true);",
                                     "    pm.expect(json.data.token_type).to.eql('Bearer');",
-                                    "    pm.expect(json.data.user).to.include.keys('id', 'name', 'email', 'phone', 'created_at');",
+                                    "    pm.expect(json.data.user).to.include.keys('id', 'name', 'email', 'phone', 'created_at', 'referral_code');",
                                     "    pm.expect(json.data.user).to.not.have.property('password');",
                                     "});"
                                 ]
@@ -152,81 +152,303 @@
                                 }
                             ]
                         },
-                        "description": "Saves `token` into the active environment for Profile and Logout."
+                        "description": "Native Laravel email/password login. Firebase Email/Password users (no hashed password) must use Social → Email/Password instead. Saves `token` into the active environment for Profile and Logout."
                     },
                     "response": []
                 },
                 {
-                    "name": "Social login (Google / Apple)",
-                    "event": [
+                    "name": "Social login (Firebase)",
+                    "item": [
                         {
-                            "listen": "test",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "pm.test('Status is 200 or 201', function () {",
-                                    "    pm.expect([200, 201]).to.include(pm.response.code);",
-                                    "});",
-                                    "const json = pm.response.json();",
-                                    "if (json.success && json.data && json.data.token) {",
-                                    "    pm.environment.set('token', json.data.token);",
-                                    "    pm.collectionVariables.set('token', json.data.token);",
-                                    "}",
-                                    "pm.test('Returns Sanctum token and user', function () {",
-                                    "    pm.expect(json.success).to.eql(true);",
-                                    "    pm.expect(json.data.token_type).to.eql('Bearer');",
-                                    "    pm.expect(json.data).to.include.keys('is_new_user', 'user', 'bonus_mb');",
-                                    "    pm.expect(json.data.user).to.include.keys('id', 'name', 'email', 'phone', 'created_at');",
-                                    "    pm.expect(json.data.user).to.not.have.property('password');",
-                                    "});"
-                                ]
-                            }
+                            "name": "Google",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status is 200 or 201', function () {",
+                                            "    pm.expect([200, 201]).to.include(pm.response.code);",
+                                            "});",
+                                            "const json = pm.response.json();",
+                                            "if (json.success && json.data && json.data.token) {",
+                                            "    pm.environment.set('token', json.data.token);",
+                                            "    pm.collectionVariables.set('token', json.data.token);",
+                                            "}",
+                                            "pm.test('Returns Sanctum token and user', function () {",
+                                            "    pm.expect(json.success).to.eql(true);",
+                                            "    pm.expect(json.data.token_type).to.eql('Bearer');",
+                                            "    pm.expect(json.data).to.include.keys('is_new_user', 'user', 'bonus_mb', 'bonus_type', 'bonus_amount');",
+                                            "    pm.expect(json.data.user).to.include.keys('id', 'name', 'email', 'phone', 'created_at', 'referral_code');",
+                                            "    pm.expect(json.data.user).to.not.have.property('password');",
+                                            "});"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "noauth"
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{lang}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"id_token\": \"{{firebase_id_token}}\",\n    \"provider\": \"google\",\n    \"name\": \"{{name}}\",\n    \"referral_code\": \"{{referral_code}}\",\n    \"device_id\": \"{{device_id}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/user/auth/social?lang={{lang}}",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "user",
+                                        "auth",
+                                        "social"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "lang",
+                                            "value": "{{lang}}"
+                                        }
+                                    ]
+                                },
+                                "description": "`provider` is `google` (`firebase.sign_in_provider` = `google.com`). Public. Send the Firebase ID token from `getIdToken()`. `provider` must match `firebase.sign_in_provider`. New users: 201 (phone may be null). Returning users: 200. Optional `referral_code` (partner promo or user code) + `device_id` apply only on first create. Email must be unique across users and partners. Saves `token`. Set `FIREBASE_PROJECT_ID` on the API."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Apple",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status is 200 or 201', function () {",
+                                            "    pm.expect([200, 201]).to.include(pm.response.code);",
+                                            "});",
+                                            "const json = pm.response.json();",
+                                            "if (json.success && json.data && json.data.token) {",
+                                            "    pm.environment.set('token', json.data.token);",
+                                            "    pm.collectionVariables.set('token', json.data.token);",
+                                            "}",
+                                            "pm.test('Returns Sanctum token and user', function () {",
+                                            "    pm.expect(json.success).to.eql(true);",
+                                            "    pm.expect(json.data.token_type).to.eql('Bearer');",
+                                            "    pm.expect(json.data).to.include.keys('is_new_user', 'user', 'bonus_mb', 'bonus_type', 'bonus_amount');",
+                                            "    pm.expect(json.data.user).to.include.keys('id', 'name', 'email', 'phone', 'created_at', 'referral_code');",
+                                            "    pm.expect(json.data.user).to.not.have.property('password');",
+                                            "});"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "noauth"
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{lang}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"id_token\": \"{{firebase_id_token}}\",\n    \"provider\": \"apple\",\n    \"name\": \"{{name}}\",\n    \"referral_code\": \"{{referral_code}}\",\n    \"device_id\": \"{{device_id}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/user/auth/social?lang={{lang}}",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "user",
+                                        "auth",
+                                        "social"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "lang",
+                                            "value": "{{lang}}"
+                                        }
+                                    ]
+                                },
+                                "description": "`provider` is `apple` (`firebase.sign_in_provider` = `apple.com`). Public. Send the Firebase ID token from `getIdToken()`. `provider` must match `firebase.sign_in_provider`. New users: 201 (phone may be null). Returning users: 200. Optional `referral_code` (partner promo or user code) + `device_id` apply only on first create. Email must be unique across users and partners. Saves `token`. Set `FIREBASE_PROJECT_ID` on the API."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Facebook",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status is 200 or 201', function () {",
+                                            "    pm.expect([200, 201]).to.include(pm.response.code);",
+                                            "});",
+                                            "const json = pm.response.json();",
+                                            "if (json.success && json.data && json.data.token) {",
+                                            "    pm.environment.set('token', json.data.token);",
+                                            "    pm.collectionVariables.set('token', json.data.token);",
+                                            "}",
+                                            "pm.test('Returns Sanctum token and user', function () {",
+                                            "    pm.expect(json.success).to.eql(true);",
+                                            "    pm.expect(json.data.token_type).to.eql('Bearer');",
+                                            "    pm.expect(json.data).to.include.keys('is_new_user', 'user', 'bonus_mb', 'bonus_type', 'bonus_amount');",
+                                            "    pm.expect(json.data.user).to.include.keys('id', 'name', 'email', 'phone', 'created_at', 'referral_code');",
+                                            "    pm.expect(json.data.user).to.not.have.property('password');",
+                                            "});"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "noauth"
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{lang}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"id_token\": \"{{firebase_id_token}}\",\n    \"provider\": \"facebook\",\n    \"name\": \"{{name}}\",\n    \"referral_code\": \"{{referral_code}}\",\n    \"device_id\": \"{{device_id}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/user/auth/social?lang={{lang}}",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "user",
+                                        "auth",
+                                        "social"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "lang",
+                                            "value": "{{lang}}"
+                                        }
+                                    ]
+                                },
+                                "description": "`provider` is `facebook` (`firebase.sign_in_provider` = `facebook.com`). Public. Send the Firebase ID token from `getIdToken()`. `provider` must match `firebase.sign_in_provider`. New users: 201 (phone may be null). Returning users: 200. Optional `referral_code` (partner promo or user code) + `device_id` apply only on first create. Email must be unique across users and partners. Saves `token`. Set `FIREBASE_PROJECT_ID` on the API."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Email/Password (Firebase)",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('Status is 200 or 201', function () {",
+                                            "    pm.expect([200, 201]).to.include(pm.response.code);",
+                                            "});",
+                                            "const json = pm.response.json();",
+                                            "if (json.success && json.data && json.data.token) {",
+                                            "    pm.environment.set('token', json.data.token);",
+                                            "    pm.collectionVariables.set('token', json.data.token);",
+                                            "}",
+                                            "pm.test('Returns Sanctum token and user', function () {",
+                                            "    pm.expect(json.success).to.eql(true);",
+                                            "    pm.expect(json.data.token_type).to.eql('Bearer');",
+                                            "    pm.expect(json.data).to.include.keys('is_new_user', 'user', 'bonus_mb', 'bonus_type', 'bonus_amount');",
+                                            "    pm.expect(json.data.user).to.include.keys('id', 'name', 'email', 'phone', 'created_at', 'referral_code');",
+                                            "    pm.expect(json.data.user).to.not.have.property('password');",
+                                            "});"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "noauth"
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{lang}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"id_token\": \"{{firebase_id_token}}\",\n    \"provider\": \"password\",\n    \"name\": \"{{name}}\",\n    \"referral_code\": \"{{referral_code}}\",\n    \"device_id\": \"{{device_id}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/user/auth/social?lang={{lang}}",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "user",
+                                        "auth",
+                                        "social"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "lang",
+                                            "value": "{{lang}}"
+                                        }
+                                    ]
+                                },
+                                "description": "`provider` is `password` for Firebase Email/Password (`firebase.sign_in_provider` = `password`). Native Laravel login is `POST /api/user/login` instead. Public. Send the Firebase ID token from `getIdToken()`. `provider` must match `firebase.sign_in_provider`. New users: 201 (phone may be null). Returning users: 200. Optional `referral_code` (partner promo or user code) + `device_id` apply only on first create. Email must be unique across users and partners. Saves `token`. Set `FIREBASE_PROJECT_ID` on the API."
+                            },
+                            "response": []
                         }
                     ],
-                    "request": {
-                        "auth": {
-                            "type": "noauth"
-                        },
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Accept-Language",
-                                "value": "{{lang}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"id_token\": \"{{firebase_id_token}}\",\n    \"provider\": \"google\",\n    \"name\": \"{{name}}\",\n    \"referral_code\": \"{{referral_code}}\",\n    \"device_id\": \"{{device_id}}\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/api/user/auth/social?lang={{lang}}",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "user",
-                                "auth",
-                                "social"
-                            ],
-                            "query": [
-                                {
-                                    "key": "lang",
-                                    "value": "{{lang}}"
-                                }
-                            ]
-                        },
-                        "description": "Public. The User App signs in with Firebase (Google or Apple) and sends the Firebase ID token. `provider` is `google` or `apple` and must match the token. New users: 201, phone may be null. Returning users: 200. Optional `referral_code` + `device_id` apply only on first create. Saves `token` like Login. Set `FIREBASE_PROJECT_ID` on the API."
-                    },
-                    "response": []
+                    "description": "Same `POST /api/user/auth/social` for Google, Apple, Facebook, and Firebase Email/Password. Paste `firebase_id_token` from the app."
                 },
                 {
                     "name": "Logout",
@@ -279,6 +501,58 @@
                         "description": "Revokes the current Sanctum token and clears the saved `token` variable."
                     },
                     "response": []
+                },
+                {
+                    "name": "Delete account",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "if (pm.response.code === 200) {",
+                                    "    pm.environment.unset('token');",
+                                    "    pm.collectionVariables.unset('token');",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/account?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "account"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Authenticated. Soft-deletes the current user (`deleted_at`), revokes all Sanctum tokens, and blocks login/social with the same email or Firebase uid. Records stay visible to admins. Clears the saved `token` variable."
+                    },
+                    "response": []
                 }
             ]
         },
@@ -299,7 +573,7 @@
                                     "pm.test('Returns authenticated user only', function () {",
                                     "    const json = pm.response.json();",
                                     "    pm.expect(json.success).to.eql(true);",
-                                    "    pm.expect(json.data).to.include.keys('id', 'name', 'email', 'phone', 'created_at', 'bonus_mb');",
+                                    "    pm.expect(json.data).to.include.keys('id', 'name', 'email', 'phone', 'created_at', 'bonus_mb', 'referral_code');",
                                     "    pm.expect(json.data).to.not.have.property('password');",
                                     "});"
                                 ]
@@ -335,7 +609,7 @@
                                 }
                             ]
                         },
-                        "description": "Authenticated. Returns the current user `{ id, name, email, phone, balance, created_at, bonus_mb }`. Password is never returned."
+                        "description": "Authenticated. Returns the current user `{ id, name, email, phone, balance, created_at, bonus_mb, referral_code }`. Password is never returned. Use `referral_code` for share links; `GET /api/user/referral` has counts and referred names."
                     },
                     "response": []
                 },
@@ -353,7 +627,7 @@
                                     "const json = pm.response.json();",
                                     "pm.test('Returns updated profile', function () {",
                                     "    pm.expect(json.success).to.eql(true);",
-                                    "    pm.expect(json.data).to.include.keys('id', 'name', 'email', 'phone', 'created_at', 'bonus_mb');",
+                                    "    pm.expect(json.data).to.include.keys('id', 'name', 'email', 'phone', 'created_at', 'bonus_mb', 'referral_code');",
                                     "    pm.expect(json.data).to.not.have.property('password');",
                                     "});"
                                 ]
@@ -397,7 +671,66 @@
                                 }
                             ]
                         },
-                        "description": "Authenticated. Updates name, email, and phone. Optional password change: send `current_password`, `password`, and `password_confirmation`. Wallet `balance` and `bonus_mb` cannot be changed here. Returns the same profile payload as Get profile."
+                        "description": "Authenticated. Updates name, email, and phone. Email must stay unique across users and partners. Optional password change: send `current_password`, `password`, and `password_confirmation`. Wallet `balance` and `bonus_mb` cannot be changed here. Returns the same profile payload as Get profile."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Referral",
+            "item": [
+                {
+                    "name": "Get referral",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "pm.test('Returns code, rewards, and referred names', function () {",
+                                    "    const json = pm.response.json();",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data).to.include.keys('referral_code', 'referrer_reward', 'referred_reward', 'referral_count', 'total_earned', 'referrals');",
+                                    "    pm.expect(json.data.referrals).to.be.an('array');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/referral?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "referral"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Authenticated. Returns the user's shareable `referral_code`, current USD rewards, `referral_count`, `total_earned`, and `referrals` as `{ id, name, created_at }` (no email/phone)."
                     },
                     "response": []
                 }
@@ -583,6 +916,183 @@
                             ]
                         },
                         "description": "Authenticated. Paginated USD wallet history for the current user (newest first). MB promo bonus rows are omitted. Query: `page` (default 1), `per_page` (default 20, max 50). Each row is `{ transaction_id, type, category, amount, balance_before, balance_after, description, created_at }`. Pagination is `{ current_page, per_page, total, last_page, from, to }`."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Legal",
+            "item": [
+                {
+                    "name": "Get privacy policy",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Returns privacy copy', function () {",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data.page).to.eql('privacy');",
+                                    "    pm.expect(json.data).to.include.keys('slug', 'title', 'body');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/legal/privacy?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "legal",
+                                "privacy"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Public. Returns `{ slug, page, title, body }` for the Privacy Policy content block. Locale via `lang` or `Accept-Language`."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get terms",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Returns terms copy', function () {",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data.page).to.eql('terms');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/legal/terms?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "legal",
+                                "terms"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Public. Returns Terms & Conditions copy."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get delete account page",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Returns delete-account copy', function () {",
+                                    "    pm.expect(json.success).to.eql(true);",
+                                    "    pm.expect(json.data.page).to.eql('delete-account');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{lang}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/legal/delete-account?lang={{lang}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "legal",
+                                "delete-account"
+                            ],
+                            "query": [
+                                {
+                                    "key": "lang",
+                                    "value": "{{lang}}"
+                                }
+                            ]
+                        },
+                        "description": "Public. Explains in-app account deletion. Actual deletion is `DELETE /api/user/account` (authenticated)."
                     },
                     "response": []
                 }
@@ -802,7 +1312,7 @@
                     "response": []
                 },
                 {
-                    "name": "List packages \u2014 invalid country",
+                    "name": "List packages — invalid country",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -1070,7 +1580,7 @@
                                 }
                             ]
                         },
-                        "description": "Live validation for the registration screen. Always 200 with `{ valid, bonus_type, bonus_amount, bonus_mb, partner_name, reason }`. Only the partner\u2019s currently active (unlocked) code is valid. Locked ladder codes return `valid: false` with `api.promo.locked`. `bonus_mb` is 0 when the promo pays Reward Dollars (`bonus_type=usd`). `email` is optional (used for first-use / fraud checks)."
+                        "description": "Live validation for the registration screen. Always 200 with `{ valid, bonus_type, bonus_amount, bonus_mb, partner_name, reason }`. Partner promo rows are validated first (locked ladder codes return `valid: false` with `api.promo.locked`). If there is no promo row, a matching `users.referral_code` returns the invitee USD preview (`bonus_type=usd`, `partner_name` null). `bonus_mb` is 0 when the promo or user referral pays USD. `email` is optional (self-referral check)."
                     },
                     "response": []
                 }

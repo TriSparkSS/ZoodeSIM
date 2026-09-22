@@ -42,7 +42,9 @@ class Users extends Component
 
     public string $editPasswordConfirmation = '';
 
-    public ?string $editCreatedAt = null;
+    public string $editCreatedAt = '';
+
+    public string $editReferralCode = '';
 
     public int $editBonusMb = 0;
 
@@ -62,6 +64,7 @@ class Users extends Component
     public function filteredUsers(): array
     {
         $users = User::query()
+            ->withTrashed()
             ->orderByDesc('created_at')
             ->get()
             ->map(fn (User $user) => [
@@ -72,6 +75,7 @@ class Users extends Component
                 'bonus_mb' => (int) $user->bonus_mb,
                 'balance' => (string) $user->balance,
                 'created_at' => $user->created_at?->format('Y-m-d'),
+                'deleted' => $user->trashed(),
             ])
             ->all();
 
@@ -106,6 +110,7 @@ class Users extends Component
         $this->editPassword = '';
         $this->editPasswordConfirmation = '';
         $this->editCreatedAt = $user->created_at?->format('Y-m-d');
+        $this->editReferralCode = (string) $user->referral_code;
         $this->editBonusMb = (int) $user->bonus_mb;
         $this->showEditModal = true;
     }

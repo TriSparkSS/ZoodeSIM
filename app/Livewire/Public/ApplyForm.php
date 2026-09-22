@@ -5,6 +5,7 @@ namespace App\Livewire\Public;
 use App\Livewire\Concerns\WithLocalizedTitle;
 use App\Livewire\Concerns\WithToast;
 use App\Models\PartnerApplication;
+use App\Rules\UniqueAccountEmail;
 use App\Services\Content\ContentBlockService;
 use App\Services\Country\Contracts\CountryServiceInterface;
 use App\Services\Partner\PartnerService;
@@ -67,7 +68,7 @@ class ApplyForm extends Component
         $this->validate([
             'firstName' => ['required', 'string', 'max:100'],
             'lastName' => ['nullable', 'string', 'max:100'],
-            'email' => ['required', 'email', 'max:255', 'unique:partners,email'],
+            'email' => ['required', 'email', 'max:255', new UniqueAccountEmail('apply.validation.email_taken')],
             'phone' => ['required', 'string', 'max:30'],
             'password' => ['required', 'string', 'min:8', 'same:passwordConfirmation'],
             'passwordConfirmation' => ['required', 'string'],

@@ -42,4 +42,14 @@ return [
         'body' => 'حصلت على :bonus ميجابايت من رمز إحالة.',
         'body_usd' => 'حصلت على $:bonus من رمز إحالة.',
     ],
+    'user_referral_invitee' => [
+        'subject' => 'تمت إضافة مكافأة الإحالة',
+        'title' => 'مكافأة الإحالة',
+        'body' => 'حصلت على $:amount للتسجيل برمز صديق.',
+    ],
+    'user_referral_referrer' => [
+        'subject' => 'تمت إضافة جائزة الإحالة',
+        'title' => 'جائزة الإحالة',
+        'body' => 'سجّل :name برمزك. ربحت $:amount.',
+    ],
 ];

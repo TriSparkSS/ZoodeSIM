@@ -9,6 +9,7 @@ use App\Livewire\Admin\Applications;
 use App\Livewire\Admin\Banners;
 use App\Livewire\Admin\Countries as AdminCountries;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
+use App\Livewire\Admin\LegalPages as AdminLegalPages;
 use App\Livewire\Admin\Orders;
 use App\Livewire\Admin\Partners;
 use App\Livewire\Admin\Payouts;
@@ -19,6 +20,7 @@ use App\Livewire\Admin\PromoCodes;
 use App\Livewire\Admin\Settings as AdminSettings;
 use App\Livewire\Admin\Statistics as AdminStatistics;
 use App\Livewire\Admin\Transactions;
+use App\Livewire\Admin\UserReferrals;
 use App\Livewire\Admin\Users;
 use App\Livewire\Auth\AdminLogin;
 use App\Livewire\Auth\PartnerLogin;
@@ -30,6 +32,7 @@ use App\Livewire\Partner\Registrations;
 use App\Livewire\Partner\Settings as PartnerSettings;
 use App\Livewire\Partner\Statistics as PartnerStatistics;
 use App\Livewire\Public\ApplyForm;
+use App\Livewire\Public\LegalPage;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/apply');
@@ -39,6 +42,9 @@ Route::get('/locale/{locale}', LocaleController::class)
     ->name('locale.switch');
 
 Route::get('/apply', ApplyForm::class)->name('apply');
+Route::get('/privacy', LegalPage::class)->name('legal.privacy');
+Route::get('/terms', LegalPage::class)->name('legal.terms');
+Route::get('/delete-account', LegalPage::class)->name('legal.delete-account');
 
 Route::middleware('guest:partner')->group(function () {
     Route::get('/login', PartnerLogin::class)->name('login');
@@ -64,12 +70,14 @@ Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function
     Route::get('/applications', Applications::class)->name('applications');
     Route::get('/partners', Partners::class)->name('partners');
     Route::get('/users', Users::class)->name('users');
+    Route::get('/user-referrals', UserReferrals::class)->name('user-referrals');
     Route::get('/orders', Orders::class)->name('orders');
     Route::get('/promo-codes', PromoCodes::class)->name('promo-codes');
     Route::get('/promo-audit', PromoAuditLogs::class)->name('promo-audit');
     Route::get('/pricing-slabs', PricingSlabs::class)->name('pricing-slabs');
     Route::get('/countries', AdminCountries::class)->name('countries');
     Route::get('/banners', Banners::class)->name('banners');
+    Route::get('/legal-pages', AdminLegalPages::class)->name('legal-pages');
     Route::get('/payouts', Payouts::class)->name('payouts');
     Route::get('/transactions', Transactions::class)->name('transactions');
     Route::get('/statistics', AdminStatistics::class)->name('statistics');

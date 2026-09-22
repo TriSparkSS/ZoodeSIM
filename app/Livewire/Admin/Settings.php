@@ -132,7 +132,10 @@ class Settings extends Component
         return $this->withLocalizedTitle(
             view('livewire.admin.settings', [
                 'programSettings' => $this->settings->allOrdered(),
-                'contentBlocks' => ContentBlock::query()->orderBy('slug')->get(),
+                'contentBlocks' => ContentBlock::query()
+                    ->whereNotIn('slug', ContentBlock::legalSlugs())
+                    ->orderBy('slug')
+                    ->get(),
                 'localeOptions' => $this->locales->supported(),
                 'breadcrumbs' => $this->adminBreadcrumbs(__('admin.nav.settings')),
             ])->layout('layouts.admin', [

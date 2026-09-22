@@ -41,18 +41,22 @@ use App\Services\Promo\PromoValidationService;
 use App\Services\Referral\Contracts\PurchaseOfferServiceInterface;
 use App\Services\Referral\Contracts\PurchaseSettlementServiceInterface;
 use App\Services\Referral\Contracts\ReferralMilestoneServiceInterface;
+use App\Services\Referral\Contracts\UserReferralServiceInterface;
 use App\Services\Referral\PurchaseOfferService;
 use App\Services\Referral\PurchaseSettlementService;
 use App\Services\Referral\ReferralMilestoneService;
 use App\Services\Referral\ReferralProgramSettings;
+use App\Services\Referral\UserReferralService;
 use App\Services\ResellPortal\Contracts\ResellPortalBalanceServiceInterface;
 use App\Services\ResellPortal\Contracts\ResellPortalClientInterface;
 use App\Services\ResellPortal\ResellPortalBalanceService;
 use App\Services\ResellPortal\ResellPortalClient;
+use App\Services\User\Contracts\UserAccountDeletionServiceInterface;
 use App\Services\User\Contracts\UserAdminServiceInterface;
 use App\Services\User\Contracts\UserBalanceAdjustmentServiceInterface;
 use App\Services\User\Contracts\UserProfileServiceInterface;
 use App\Services\User\Contracts\UserSocialAuthServiceInterface;
+use App\Services\User\UserAccountDeletionService;
 use App\Services\User\UserAdminService;
 use App\Services\User\UserBalanceAdjustmentService;
 use App\Services\User\UserProfileService;
@@ -90,6 +94,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(PromoValidationServiceInterface::class, PromoValidationService::class);
         $this->app->singleton(PayoutIdentityServiceInterface::class, PayoutIdentityService::class);
         $this->app->singleton(ReferralProgramSettings::class);
+        $this->app->singleton(UserReferralServiceInterface::class, UserReferralService::class);
         $this->app->singleton(PurchaseOfferServiceInterface::class, PurchaseOfferService::class);
         $this->app->singleton(PurchaseSettlementServiceInterface::class, PurchaseSettlementService::class);
         $this->app->singleton(ReferralMilestoneServiceInterface::class, ReferralMilestoneService::class);
@@ -104,6 +109,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(FirebaseTokenVerifierInterface::class, FirebaseTokenVerifier::class);
         $this->app->singleton(UserProfileServiceInterface::class, UserProfileService::class);
         $this->app->singleton(UserSocialAuthServiceInterface::class, UserSocialAuthService::class);
+        $this->app->singleton(UserAccountDeletionServiceInterface::class, UserAccountDeletionService::class);
     }
 
     public function boot(): void

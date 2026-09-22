@@ -27,6 +27,21 @@ class DeviceFraudService implements DeviceFraudServiceInterface
         $this->assertDeviceCanRedeemPromo($normalized);
     }
 
+    public function assertCanRegisterUserReferral(?string $deviceId, ?string $ip): void
+    {
+        $this->assertIpAllowed($ip);
+
+        $normalized = $this->normalizeDeviceId($deviceId);
+
+        if ($normalized === null) {
+            throw ValidationException::withMessages([
+                'device_id' => __('api.promo.device_required'),
+            ]);
+        }
+
+        $this->assertDeviceCanRedeemUserReferral($normalized);
+    }
+
     public function assertDeviceCanRedeemPromo(string $deviceId, ?string $exceptUserId = null): void
     {
         $normalized = $this->normalizeDeviceId($deviceId);
@@ -38,6 +53,29 @@ class DeviceFraudService implements DeviceFraudServiceInterface
         $query = User::query()
             ->where('device_id', $normalized)
             ->whereHas('promoUsage');
+
+        if ($exceptUserId !== null && $exceptUserId !== '') {
+            $query->where('id', '!=', $exceptUserId);
+        }
+
+        if ($query->exists()) {
+            throw ValidationException::withMessages([
+                'device_id' => __('api.promo.device_already_used'),
+            ]);
+        }
+    }
+
+    public function assertDeviceCanRedeemUserReferral(string $deviceId, ?string $exceptUserId = null): void
+    {
+        $normalized = $this->normalizeDeviceId($deviceId);
+
+        if ($normalized === null) {
+            return;
+        }
+
+        $query = User::query()
+            ->where('device_id', $normalized)
+            ->whereNotNull('referred_by_user_id');
 
         if ($exceptUserId !== null && $exceptUserId !== '') {
             $query->where('id', '!=', $exceptUserId);

@@ -6,15 +6,20 @@ use App\Models\PromoCode;
 use App\Models\User;
 use App\Services\Esim\Contracts\ResellPortalUserClientServiceInterface;
 use App\Services\Fraud\Contracts\DeviceFraudServiceInterface;
+use App\Services\Promo\PromoCodeGenerator;
 use App\Services\Promo\PromoEligibilityService;
 use App\Services\Promo\PromoRedemptionService;
+use App\Services\Referral\Contracts\UserReferralServiceInterface;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class UserRegistrationService
 {
     public function __construct(
         protected PromoEligibilityService $eligibility,
         protected PromoRedemptionService $redemption,
+        protected UserReferralServiceInterface $userReferrals,
+        protected PromoCodeGenerator $codes,
         protected DeviceFraudServiceInterface $fraud,
         protected ResellPortalUserClientServiceInterface $clients,
     ) {}
@@ -31,10 +36,10 @@ class UserRegistrationService
         ?string $deviceId = null,
         ?string $ip = null,
     ): array {
-        $promo = $this->resolvePromo($referralCode, $email);
-        $this->fraud->assertCanRegister($deviceId, $ip, $promo !== null);
+        $resolved = $this->resolveReferral($referralCode, $email);
+        $this->assertDeviceForResolved($resolved, $deviceId, $ip);
 
-        $result = DB::transaction(function () use ($name, $email, $phone, $password, $promo, $deviceId, $ip) {
+        $result = DB::transaction(function () use ($name, $email, $phone, $password, $resolved, $deviceId, $ip) {
             $user = User::query()->create([
                 'name' => $name,
                 'email' => $email,
@@ -45,22 +50,7 @@ class UserRegistrationService
                 'registration_ip' => $ip,
             ]);
 
-            if ($promo === null) {
-                return [
-                    'user' => $user,
-                    'bonus_mb' => 0,
-                    'bonus_type' => null,
-                    'bonus_amount' => 0,
-                ];
-            }
-
-            $usage = $this->redemption->redeem($user, $promo);
-            $user->refresh();
-
-            return [
-                'user' => $user,
-                ...$usage->apiBonusPayload(),
-            ];
+            return $this->applyResolvedReferral($user, $resolved);
         });
 
         if ($this->clients->tryEnsure($result['user']) !== null) {
@@ -68,15 +58,6 @@ class UserRegistrationService
         }
 
         return $result;
-    }
-
-    protected function resolvePromo(?string $referralCode, string $email): ?PromoCode
-    {
-        if ($referralCode === null || trim($referralCode) === '') {
-            return null;
-        }
-
-        return $this->eligibility->assertEligible($referralCode, $email);
     }
 
     /**
@@ -92,10 +73,10 @@ class UserRegistrationService
         ?string $deviceId = null,
         ?string $ip = null,
     ): array {
-        $promo = $this->resolvePromo($referralCode, $email);
-        $this->fraud->assertCanRegister($deviceId, $ip, $promo !== null);
+        $resolved = $this->resolveReferral($referralCode, $email);
+        $this->assertDeviceForResolved($resolved, $deviceId, $ip);
 
-        $result = DB::transaction(function () use ($name, $email, $firebaseUid, $authProvider, $emailVerified, $promo, $deviceId, $ip) {
+        $result = DB::transaction(function () use ($name, $email, $firebaseUid, $authProvider, $emailVerified, $resolved, $deviceId, $ip) {
             $user = User::query()->create([
                 'name' => $name,
                 'email' => $email,
@@ -108,22 +89,7 @@ class UserRegistrationService
                 'registration_ip' => $ip,
             ]);
 
-            if ($promo === null) {
-                return [
-                    'user' => $user,
-                    'bonus_mb' => 0,
-                    'bonus_type' => null,
-                    'bonus_amount' => 0,
-                ];
-            }
-
-            $usage = $this->redemption->redeem($user, $promo);
-            $user->refresh();
-
-            return [
-                'user' => $user,
-                ...$usage->apiBonusPayload(),
-            ];
+            return $this->applyResolvedReferral($user, $resolved);
         });
 
         if ($this->clients->tryEnsure($result['user']) !== null) {
@@ -131,5 +97,94 @@ class UserRegistrationService
         }
 
         return $result;
+    }
+
+    /**
+     * @return array{kind: 'promo'|'user'|null, promo?: PromoCode, referrer?: User}
+     */
+    protected function resolveReferral(?string $referralCode, string $email): array
+    {
+        if ($referralCode === null || trim($referralCode) === '') {
+            return ['kind' => null];
+        }
+
+        try {
+            $normalized = $this->codes->normalize($referralCode);
+        } catch (\InvalidArgumentException) {
+            throw ValidationException::withMessages([
+                'referral_code' => __('api.promo.invalid'),
+            ]);
+        }
+
+        if (PromoCode::query()->where('code', $normalized)->exists()) {
+            return [
+                'kind' => 'promo',
+                'promo' => $this->eligibility->assertEligible($referralCode, $email),
+            ];
+        }
+
+        $referrer = $this->userReferrals->findReferrer($referralCode);
+        $this->userReferrals->assertNotSelfReferral($referrer, $email);
+
+        return [
+            'kind' => 'user',
+            'referrer' => $referrer,
+        ];
+    }
+
+    /**
+     * @param  array{kind: 'promo'|'user'|null, promo?: PromoCode, referrer?: User}  $resolved
+     */
+    protected function assertDeviceForResolved(array $resolved, ?string $deviceId, ?string $ip): void
+    {
+        if ($resolved['kind'] === 'promo') {
+            $this->fraud->assertCanRegister($deviceId, $ip, true);
+
+            return;
+        }
+
+        if ($resolved['kind'] === 'user') {
+            $this->fraud->assertCanRegisterUserReferral($deviceId, $ip);
+
+            return;
+        }
+
+        $this->fraud->assertCanRegister($deviceId, $ip, false);
+    }
+
+    /**
+     * @param  array{kind: 'promo'|'user'|null, promo?: PromoCode, referrer?: User}  $resolved
+     * @return array{user: User, bonus_mb: int, bonus_type: string|null, bonus_amount: float|int}
+     */
+    protected function applyResolvedReferral(User $user, array $resolved): array
+    {
+        if ($resolved['kind'] === 'promo') {
+            $usage = $this->redemption->redeem($user, $resolved['promo']);
+            $user->refresh();
+
+            return [
+                'user' => $user,
+                ...$usage->apiBonusPayload(),
+            ];
+        }
+
+        if ($resolved['kind'] === 'user') {
+            $record = $this->userReferrals->redeem($user, $resolved['referrer']);
+            $user->refresh();
+
+            return [
+                'user' => $user,
+                'bonus_mb' => 0,
+                'bonus_type' => PromoCode::BONUS_TYPE_USD,
+                'bonus_amount' => (float) $record->referred_amount,
+            ];
+        }
+
+        return [
+            'user' => $user,
+            'bonus_mb' => 0,
+            'bonus_type' => null,
+            'bonus_amount' => 0,
+        ];
     }
 }

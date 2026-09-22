@@ -235,6 +235,274 @@ class UserSocialAuthTest extends TestCase
             ->assertCreated()
             ->assertJsonPath('data.is_new_user', true)
             ->assertJsonPath('data.bonus_mb', 150);
+
+        $this->assertDatabaseCount('user_referrals', 0);
+        $this->assertDatabaseHas('promo_usage', [
+            'user_id' => User::query()->where('email', 'referred@example.com')->value('id'),
+        ]);
+    }
+
+    public function test_new_google_user_can_apply_another_users_referral_code(): void
+    {
+        $referrer = User::factory()->create([
+            'email' => 'social-host@example.com',
+            'phone' => '+15551111888',
+        ]);
+
+        $this->tokens->identity = $this->identity(
+            uid: 'google-user-ref-1',
+            email: 'social-guest@example.com',
+            name: 'Social Guest',
+            provider: 'google.com',
+        );
+
+        $this->postJson('/api/user/auth/social', [
+            'id_token' => 'fake-token',
+            'provider' => 'google',
+            'referral_code' => $referrer->referral_code,
+            'device_id' => 'social-user-device',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.bonus_type', PromoCode::BONUS_TYPE_USD)
+            ->assertJsonPath('data.bonus_amount', 1)
+            ->assertJsonPath('data.bonus_mb', 0);
+
+        $this->assertDatabaseCount('promo_usage', 0);
+        $this->assertDatabaseCount('user_referrals', 1);
+        $this->assertEquals(1.50, (float) $referrer->fresh()->balance);
+    }
+
+    public function test_new_facebook_user_is_registered(): void
+    {
+        $this->tokens->identity = $this->identity(
+            uid: 'facebook-uid-1',
+            email: 'fb.user@example.com',
+            name: 'Facebook User',
+            provider: 'facebook.com',
+        );
+
+        $this->postJson('/api/user/auth/social', [
+            'id_token' => 'fake-facebook-token',
+            'provider' => 'facebook',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.is_new_user', true)
+            ->assertJsonPath('data.user.email', 'fb.user@example.com');
+
+        $user = User::query()->where('email', 'fb.user@example.com')->first();
+        $this->assertNotNull($user);
+        $this->assertSame('facebook-uid-1', $user->firebase_uid);
+        $this->assertSame(User::AUTH_FACEBOOK, $user->auth_provider);
+        $this->assertNull($user->password);
+    }
+
+    public function test_returning_facebook_user_logs_in_without_creating_a_duplicate(): void
+    {
+        $user = User::factory()->social(User::AUTH_FACEBOOK)->create([
+            'email' => 'fb.return@example.com',
+            'firebase_uid' => 'facebook-uid-return',
+        ]);
+
+        $this->tokens->identity = $this->identity(
+            uid: 'facebook-uid-return',
+            email: 'fb.return@example.com',
+            provider: 'facebook.com',
+        );
+
+        $this->postJson('/api/user/auth/social', [
+            'id_token' => 'fake-facebook-token',
+            'provider' => 'facebook',
+            'referral_code' => 'IGNORED1',
+            'device_id' => 'fb-device-001',
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.is_new_user', false)
+            ->assertJsonPath('data.user.id', $user->id);
+
+        $this->assertDatabaseCount('users', 1);
+        $this->assertDatabaseCount('user_referrals', 0);
+    }
+
+    public function test_firebase_password_provider_registers_like_social(): void
+    {
+        $this->tokens->identity = $this->identity(
+            uid: 'password-uid-1',
+            email: 'firebase.pass@example.com',
+            name: 'Firebase Password',
+            provider: 'password',
+        );
+
+        $this->postJson('/api/user/auth/social', [
+            'id_token' => 'fake-password-token',
+            'provider' => 'password',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.is_new_user', true);
+
+        $user = User::query()->where('email', 'firebase.pass@example.com')->first();
+        $this->assertNotNull($user);
+        $this->assertSame(User::AUTH_PASSWORD, $user->auth_provider);
+        $this->assertSame('password-uid-1', $user->firebase_uid);
+        $this->assertNull($user->password);
+    }
+
+    public function test_partner_email_cannot_create_a_social_user(): void
+    {
+        Partner::query()->create([
+            'name' => 'Taken Partner',
+            'email' => 'shared@example.com',
+            'password' => 'password123',
+            'social_contacts' => ['telegram' => null, 'instagram' => null, 'twitter' => null],
+            'status' => 'active',
+            'balance' => 0,
+            'total_earned' => 0,
+        ]);
+
+        $this->tokens->identity = $this->identity(
+            uid: 'facebook-taken-1',
+            email: 'shared@example.com',
+            provider: 'facebook.com',
+        );
+
+        $this->postJson('/api/user/auth/social', [
+            'id_token' => 'fake-token',
+            'provider' => 'facebook',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['email']);
+
+        $this->assertDatabaseCount('users', 0);
+    }
+
+    public function test_conflicting_firebase_uid_on_same_email_is_rejected(): void
+    {
+        User::factory()->social(User::AUTH_GOOGLE)->create([
+            'email' => 'clash@example.com',
+            'firebase_uid' => 'google-already',
+        ]);
+
+        $this->tokens->identity = $this->identity(
+            uid: 'facebook-other',
+            email: 'clash@example.com',
+            provider: 'facebook.com',
+        );
+
+        $this->postJson('/api/user/auth/social', [
+            'id_token' => 'fake-token',
+            'provider' => 'facebook',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['email']);
+
+        $this->assertDatabaseCount('users', 1);
+        $this->assertSame('google-already', User::query()->where('email', 'clash@example.com')->value('firebase_uid'));
+    }
+
+    public function test_facebook_user_can_apply_partner_promo(): void
+    {
+        $partner = Partner::query()->create([
+            'name' => 'Facebook Partner',
+            'email' => 'fb-partner@example.com',
+            'password' => 'password123',
+            'social_contacts' => ['telegram' => null, 'instagram' => null, 'twitter' => null],
+            'status' => 'active',
+            'balance' => 0,
+            'total_earned' => 0,
+        ]);
+
+        PromoCode::query()->create([
+            'partner_id' => $partner->id,
+            'code' => 'FBPROMO1',
+            'bonus_mb' => 120,
+            'bonus_type' => PromoCode::BONUS_TYPE_MB,
+            'bonus_amount' => 120,
+            'partner_reward' => 1.50,
+            'type' => 'standard',
+            'expires_at' => now()->addDays(30),
+            'is_active' => true,
+            'usage_count' => 0,
+            'max_usage' => null,
+        ]);
+
+        $this->tokens->identity = $this->identity(
+            uid: 'facebook-promo-1',
+            email: 'fb-promo-user@example.com',
+            name: 'FB Promo',
+            provider: 'facebook.com',
+        );
+
+        $this->postJson('/api/user/auth/social', [
+            'id_token' => 'fake-token',
+            'provider' => 'facebook',
+            'referral_code' => 'FBPROMO1',
+            'device_id' => 'fb-promo-device',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.bonus_mb', 120);
+
+        $this->assertDatabaseCount('user_referrals', 0);
+        $this->assertDatabaseHas('promo_usage', [
+            'user_id' => User::query()->where('email', 'fb-promo-user@example.com')->value('id'),
+            'promo_code_id' => PromoCode::query()->where('code', 'FBPROMO1')->value('id'),
+        ]);
+        $this->assertEquals(1.50, (float) $partner->fresh()->balance);
+    }
+
+    public function test_facebook_user_can_apply_user_referral_code(): void
+    {
+        $referrer = User::factory()->create([
+            'email' => 'fb-host@example.com',
+            'phone' => '+15551111777',
+        ]);
+
+        $this->tokens->identity = $this->identity(
+            uid: 'facebook-user-ref-1',
+            email: 'fb-guest@example.com',
+            name: 'FB Guest',
+            provider: 'facebook.com',
+        );
+
+        $this->postJson('/api/user/auth/social', [
+            'id_token' => 'fake-token',
+            'provider' => 'facebook',
+            'referral_code' => $referrer->referral_code,
+            'device_id' => 'fb-user-ref-device',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.bonus_type', PromoCode::BONUS_TYPE_USD)
+            ->assertJsonPath('data.bonus_amount', 1);
+
+        $this->assertDatabaseCount('promo_usage', 0);
+        $this->assertDatabaseCount('user_referrals', 1);
+        $this->assertEquals(1.50, (float) $referrer->fresh()->balance);
+        $this->assertEquals(1.00, (float) User::query()->where('email', 'fb-guest@example.com')->value('balance'));
+    }
+
+    public function test_firebase_password_user_can_apply_user_referral_code(): void
+    {
+        $referrer = User::factory()->create([
+            'email' => 'pass-host@example.com',
+            'phone' => '+15551111666',
+        ]);
+
+        $this->tokens->identity = $this->identity(
+            uid: 'password-user-ref-1',
+            email: 'pass-guest@example.com',
+            name: 'Pass Guest',
+            provider: 'password',
+        );
+
+        $this->postJson('/api/user/auth/social', [
+            'id_token' => 'fake-token',
+            'provider' => 'password',
+            'referral_code' => $referrer->referral_code,
+            'device_id' => 'pass-user-ref-device',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.bonus_type', PromoCode::BONUS_TYPE_USD);
+
+        $this->assertDatabaseCount('user_referrals', 1);
+        $this->assertEquals(1.50, (float) $referrer->fresh()->balance);
     }
 
     protected function identity(

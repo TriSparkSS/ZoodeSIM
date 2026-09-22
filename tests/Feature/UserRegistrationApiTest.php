@@ -52,6 +52,8 @@ class UserRegistrationApiTest extends TestCase
             'resellportal_client_id' => 123,
         ]);
         $this->assertDatabaseCount('promo_usage', 0);
+        $this->assertNotEmpty(User::query()->where('email', 'user@example.com')->value('referral_code'));
+        $this->assertNull(User::query()->where('email', 'user@example.com')->value('referred_by_user_id'));
         $this->assertDatabaseCount('personal_access_tokens', 1);
 
         $response->assertJsonMissingPath('data.user.resellportal_client_id')
@@ -140,6 +142,8 @@ class UserRegistrationApiTest extends TestCase
             'balance_after' => '2.25',
             'promo_code_id' => $promo->id,
         ]);
+        $this->assertDatabaseCount('user_referrals', 0);
+        $this->assertNull($user->fresh()->referred_by_user_id);
         $this->assertTrue(
             Transaction::query()->where('transaction_id', 'like', 'TXN-%')->count() >= 2
         );
@@ -267,7 +271,8 @@ class UserRegistrationApiTest extends TestCase
             'referral_code' => 'OWNCODE1',
         ]));
 
-        $this->assertPromoRejected($response, __('api.promo.self_referral'));
+        $this->assertPromoRejected($response, __('api.validation.email_unique'));
+        $this->assertSame(0, User::query()->where('email', 'partner@example.com')->count());
     }
 
     public function test_duplicate_email_is_rejected(): void
@@ -287,6 +292,21 @@ class UserRegistrationApiTest extends TestCase
         $this->assertNotEmpty($response->json('errors.email'));
 
         $this->assertSame(1, User::query()->where('email', 'user@example.com')->count());
+    }
+
+    public function test_partner_email_cannot_register_as_user(): void
+    {
+        $this->makePartner(email: 'taken-partner@example.com');
+
+        $response = $this->postJson('/api/user/register', $this->validPayload([
+            'email' => 'taken-partner@example.com',
+            'phone' => '+19998887770',
+        ]));
+
+        $response->assertUnprocessable()
+            ->assertJsonPath('message', __('api.validation.email_unique'));
+
+        $this->assertDatabaseMissing('users', ['email' => 'taken-partner@example.com']);
     }
 
     public function test_missing_phone_is_rejected(): void

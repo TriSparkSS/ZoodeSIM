@@ -10,11 +10,18 @@ return [
         'logged_out' => 'تم تسجيل خروجك.',
         'profile' => 'تم جلب الملف الشخصي بنجاح.',
         'profile_updated' => 'تم تحديث الملف الشخصي بنجاح.',
-        'social_invalid' => 'تعذر التحقق من تسجيل الدخول عبر Google أو Apple.',
+        'referral' => 'تم جلب تفاصيل الإحالة بنجاح.',
+        'social_invalid' => 'تعذر التحقق من تسجيل الدخول.',
         'social_token_required' => 'يرجى تقديم رمز Firebase.',
-        'social_provider_invalid' => 'اختر Google أو Apple.',
+        'social_provider_invalid' => 'اختر Google أو Apple أو Facebook أو البريد/كلمة المرور.',
         'social_provider_mismatch' => 'هذا الرمز لا يطابق المزود المحدد.',
-        'social_email_missing' => 'لم يشارك حساب Google أو Apple عنوان بريد إلكتروني.',
+        'social_email_missing' => 'لم يشارك حسابك عنوان بريد إلكتروني.',
+        'account_deleted' => 'تم حذف هذا الحساب.',
+    ],
+
+    'legal' => [
+        'retrieved' => 'تم جلب الصفحة القانونية بنجاح.',
+        'not_found' => 'هذه الصفحة غير متاحة.',
     ],
 
     'wallet' => [

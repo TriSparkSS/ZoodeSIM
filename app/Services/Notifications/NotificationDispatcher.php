@@ -7,6 +7,7 @@ use App\Models\Partner;
 use App\Models\PromoCode;
 use App\Models\PromoUsage;
 use App\Models\User;
+use App\Models\UserReferral;
 use App\Models\Withdrawal;
 use App\Notifications\Partner\PayoutProcessedNotification;
 use App\Notifications\Partner\PromoExpiringNotification;
@@ -16,6 +17,8 @@ use App\Notifications\Partner\ReferralMilestoneNotification;
 use App\Notifications\Partner\ReferralRegisteredNotification;
 use App\Notifications\User\PromoBonusNotification;
 use App\Notifications\User\PurchaseCashbackNotification;
+use App\Notifications\User\UserReferralInviteeNotification;
+use App\Notifications\User\UserReferralReferrerNotification;
 use App\Services\Notifications\Contracts\NotificationDispatcherInterface;
 use App\Support\Money;
 
@@ -25,6 +28,12 @@ class NotificationDispatcher implements NotificationDispatcherInterface
     {
         $partner->notify(new ReferralRegisteredNotification($user, $usage));
         $user->notify(new PromoBonusNotification($usage));
+    }
+
+    public function userReferralCredited(User $referrer, User $invitee, UserReferral $referral): void
+    {
+        $invitee->notify(new UserReferralInviteeNotification($referral));
+        $referrer->notify(new UserReferralReferrerNotification($invitee, $referral));
     }
 
     public function purchaseCommission(Partner $partner, User $user, EsimOrder $order, Money $amount): void

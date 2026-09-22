@@ -43,6 +43,10 @@ class Transaction extends Model
 
     public const CATEGORY_REFERRAL_MILESTONE = 'referral_milestone';
 
+    public const CATEGORY_USER_REFERRAL_BONUS = 'user_referral_bonus';
+
+    public const CATEGORY_USER_REFERRAL_REWARD = 'user_referral_reward';
+
     public $incrementing = false;
 
     protected $keyType = 'string';
@@ -134,6 +138,8 @@ class Transaction extends Model
             self::CATEGORY_PURCHASE_CASHBACK,
             self::CATEGORY_PURCHASE_COMMISSION,
             self::CATEGORY_REFERRAL_MILESTONE,
+            self::CATEGORY_USER_REFERRAL_BONUS,
+            self::CATEGORY_USER_REFERRAL_REWARD,
         ];
     }
 }

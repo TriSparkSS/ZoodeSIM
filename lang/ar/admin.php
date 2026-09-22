@@ -6,6 +6,7 @@ return [
         'applications' => 'الطلبات',
         'partners' => 'الشركاء',
         'users' => 'المستخدمون',
+        'user_referrals' => 'إحالات المستخدمين',
         'orders' => 'الطلبات',
         'promo_codes' => 'أكواد الخصم',
         'promo_audit' => 'تدقيق الأكواد',
@@ -16,6 +17,7 @@ return [
         'transactions' => 'المعاملات',
         'statistics' => 'الإحصائيات',
         'api_logs' => 'سجلات API',
+        'legal_pages' => 'الصفحات القانونية',
         'settings' => 'الإعدادات',
     ],
 
@@ -96,6 +98,8 @@ return [
                 'purchase_cashback' => 'استرداد الشراء',
                 'purchase_commission' => 'عمولة الشراء',
                 'referral_milestone' => 'مكافأة الإحالات',
+                'user_referral_bonus' => 'مكافأة إحالة المستخدم',
+                'user_referral_reward' => 'جائزة إحالة المستخدم',
             ],
             'validation' => [
                 'direction_invalid' => 'اختر الإضافة أو الخصم.',
@@ -117,6 +121,7 @@ return [
         'table_email' => 'البريد',
         'table_phone' => 'الهاتف',
         'table_bonus' => 'المكافأة',
+        'table_referral_code' => 'رمز الإحالة',
         'table_wallet' => 'المحفظة',
         'table_created' => 'التسجيل',
         'action_wallet' => 'المحفظة',
@@ -125,6 +130,8 @@ return [
         'confirm_password' => 'تأكيد كلمة المرور',
         'password_hint' => 'اتركه فارغاً للإبقاء على كلمة المرور الحالية. 8 أحرف على الأقل.',
         'updated_toast' => 'تم تحديث المستخدم',
+        'deleted' => 'محذوف',
+        'deleted_view_only' => 'هذا الحساب محذوف ولا يمكن تعديله.',
         'wallet' => [
             'title' => 'تعديل المحفظة',
             'help' => 'أضف أو اخصم رصيداً. كل تغيير ينشئ معاملة.',
@@ -165,7 +172,16 @@ return [
             'password_confirmed' => 'تأكيد كلمة المرور غير متطابق.',
         ],
     ],
-
+    'user_referrals' => [
+        'title' => 'إحالات المستخدمين',
+        'subtitle' => 'أرصدة بالدولار عند التسجيل برمز مستخدم.',
+        'search_placeholder' => 'البحث بالاسم أو البريد أو الرمز...',
+        'empty' => 'لا توجد إحالات مستخدمين بعد.',
+        'table_referrer' => 'المُحيل',
+        'table_referred' => 'المستخدم المُحال',
+        'table_referrer_amount' => 'دولار المُحيل',
+        'table_referred_amount' => 'دولار المدعو',
+    ],
     'orders' => [
         'title' => 'طلبات eSIM',
         'subtitle' => 'مشتريات البوابة بنفس عوامل تصفية واجهة قائمة الطلبات.',
@@ -334,6 +350,16 @@ return [
         'user_bonus' => 'مكافأة المستخدم الافتراضية',
         'min_withdrawal' => 'الحد الأدنى للسحب',
         'saved' => 'تم حفظ الإعدادات بنجاح.',
+    ],
+
+    'legal_pages' => [
+        'title' => 'الصفحات القانونية',
+        'subtitle' => 'إدارة سياسة الخصوصية والشروط وحذف الحساب.',
+        'edit_title' => 'تعديل الصفحة القانونية',
+        'block_title' => 'العنوان',
+        'block_body' => 'النص',
+        'saved' => 'تم حفظ الصفحة القانونية.',
+        'empty' => 'لا توجد صفحات قانونية. شغّل الـ seeder.',
     ],
 
     'profile' => [

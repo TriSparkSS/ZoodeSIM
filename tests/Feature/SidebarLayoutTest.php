@@ -34,6 +34,7 @@ class SidebarLayoutTest extends TestCase
             ->assertSee('overflow-y-auto', false)
             ->assertSee('sidebar-nav', false)
             ->assertSee(__('admin.nav.banners'))
+            ->assertSee(__('admin.nav.legal_pages'))
             ->assertSee(__('admin.nav.api_logs'))
             ->assertSee(__('admin.nav.settings'));
     }

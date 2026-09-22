@@ -38,7 +38,7 @@ class TranslatableContentSeeder extends Seeder
             ],
         ];
 
-        foreach ($blocks as $data) {
+        foreach (array_merge($blocks, (new LegalDocumentCopy)->blocks()) as $data) {
             $block = ContentBlock::query()->firstOrNew(['slug' => $data['slug']]);
             $block->is_active = true;
             $block->setTranslations('title', $data['title']);

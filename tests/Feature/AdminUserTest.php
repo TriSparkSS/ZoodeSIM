@@ -92,6 +92,27 @@ class AdminUserTest extends TestCase
         $this->assertTrue(Hash::check('new-password123', $user->fresh()->password));
     }
 
+    public function test_admin_edit_shows_referral_code_and_cannot_change_it(): void
+    {
+        $admin = $this->makeAdmin();
+        $user = User::factory()->create([
+            'name' => 'Code User',
+            'email' => 'code-user@example.com',
+            'phone' => '+15550004444',
+        ]);
+
+        $this->actingAs($admin, 'admin');
+
+        Livewire::test(Users::class)
+            ->call('openEdit', $user->id)
+            ->assertSet('editReferralCode', $user->referral_code)
+            ->set('editReferralCode', 'HACKED99')
+            ->call('saveEdit')
+            ->assertHasNoErrors();
+
+        $this->assertSame($user->referral_code, $user->fresh()->referral_code);
+    }
+
     public function test_partner_cannot_access_users_page(): void
     {
         $partner = Partner::query()->create([

@@ -10,11 +10,18 @@ return [
         'logged_out' => 'Вы вышли из системы.',
         'profile' => 'Профиль успешно получен.',
         'profile_updated' => 'Профиль успешно обновлён.',
-        'social_invalid' => 'Не удалось подтвердить вход через Google или Apple.',
+        'referral' => 'Данные реферальной программы успешно получены.',
+        'social_invalid' => 'Не удалось подтвердить вход.',
         'social_token_required' => 'Укажите Firebase ID token.',
-        'social_provider_invalid' => 'Выберите Google или Apple.',
+        'social_provider_invalid' => 'Выберите Google, Apple, Facebook или email/пароль.',
         'social_provider_mismatch' => 'Этот токен не соответствует выбранному провайдеру.',
-        'social_email_missing' => 'Аккаунт Google или Apple не предоставил адрес электронной почты.',
+        'social_email_missing' => 'Аккаунт не предоставил адрес электронной почты.',
+        'account_deleted' => 'Этот аккаунт удалён.',
+    ],
+
+    'legal' => [
+        'retrieved' => 'Юридическая страница успешно получена.',
+        'not_found' => 'Эта страница недоступна.',
     ],
 
     'wallet' => [

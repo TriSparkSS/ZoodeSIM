@@ -17,6 +17,8 @@ readonly class FirebaseIdentity
         return match ($this->signInProvider) {
             'google.com' => 'google',
             'apple.com' => 'apple',
+            'facebook.com' => 'facebook',
+            'password' => 'password',
             default => $this->signInProvider,
         };
     }

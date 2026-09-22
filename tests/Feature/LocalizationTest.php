@@ -86,6 +86,10 @@ class LocalizationTest extends TestCase
             app()->setLocale($locale);
             $this->assertNotSame('ui.save', __('ui.save'));
             $this->assertNotSame('admin.nav.promo_codes', __('admin.nav.promo_codes'));
+            $this->assertNotSame('admin.nav.user_referrals', __('admin.nav.user_referrals'));
+            $this->assertNotSame('admin.nav.legal_pages', __('admin.nav.legal_pages'));
+            $this->assertNotSame('ui.privacy', __('ui.privacy'));
+            $this->assertNotSame('ui.legal.kicker', __('ui.legal.kicker'));
             $this->assertNotSame('admin.promo_codes.create', __('admin.promo_codes.create'));
         }
     }

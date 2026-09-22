@@ -20,7 +20,7 @@ class SocialAuthRequest extends FormRequest
     {
         return [
             'id_token' => ['required', 'string'],
-            'provider' => ['required', 'string', Rule::in([User::AUTH_GOOGLE, User::AUTH_APPLE])],
+            'provider' => ['required', 'string', Rule::in(User::authProviders())],
             'name' => ['nullable', 'string', 'max:255'],
             'referral_code' => ['nullable', 'string', 'max:32'],
             'device_id' => ['nullable', 'required_with:referral_code', 'string', 'min:8', 'max:128', 'regex:/^[A-Za-z0-9._:-]+$/'],

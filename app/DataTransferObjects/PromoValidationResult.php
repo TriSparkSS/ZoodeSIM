@@ -28,6 +28,17 @@ readonly class PromoValidationResult
         );
     }
 
+    public static function validUserReferral(float $inviteeAmount): self
+    {
+        return new self(
+            valid: true,
+            bonusMb: 0,
+            partnerName: null,
+            bonusType: PromoCode::BONUS_TYPE_USD,
+            bonusAmount: $inviteeAmount,
+        );
+    }
+
     public static function invalid(string $reason): self
     {
         return new self(

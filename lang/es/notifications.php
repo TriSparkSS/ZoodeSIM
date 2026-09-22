@@ -42,4 +42,14 @@ return [
         'body' => 'Recibiste :bonus MB de un código de referido.',
         'body_usd' => 'Recibiste $:bonus de un código de referido.',
     ],
+    'user_referral_invitee' => [
+        'subject' => 'Bono de referido añadido',
+        'title' => 'Bono de referido',
+        'body' => 'Recibiste $:amount por registrarte con el código de un amigo.',
+    ],
+    'user_referral_referrer' => [
+        'subject' => 'Recompensa de referido añadida',
+        'title' => 'Recompensa de referido',
+        'body' => ':name se registró con tu código. Ganaste $:amount.',
+    ],
 ];

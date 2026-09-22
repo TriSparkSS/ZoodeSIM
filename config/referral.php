@@ -9,6 +9,8 @@ return [
     'subsequent_purchase_commission' => '5.00',
     'user_bonus' => 200,
     'registration_reward' => '1.50',
+    'user_referral_referrer_reward' => '1.50',
+    'user_referral_invitee_reward' => '1.00',
     'milestones' => [
         10 => '5.00',
         50 => '30.00',

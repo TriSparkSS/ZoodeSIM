@@ -10,11 +10,18 @@ return [
         'logged_out' => 'Vous avez été déconnecté.',
         'profile' => 'Profil récupéré avec succès.',
         'profile_updated' => 'Profil mis à jour avec succès.',
-        'social_invalid' => 'La connexion Google ou Apple n’a pas pu être vérifiée.',
+        'referral' => 'Détails de parrainage récupérés avec succès.',
+        'social_invalid' => 'La connexion n’a pas pu être vérifiée.',
         'social_token_required' => 'Veuillez fournir un jeton d’ID Firebase.',
-        'social_provider_invalid' => 'Choisissez Google ou Apple.',
+        'social_provider_invalid' => 'Choisissez Google, Apple, Facebook ou e-mail/mot de passe.',
         'social_provider_mismatch' => 'Ce jeton ne correspond pas au fournisseur sélectionné.',
-        'social_email_missing' => 'Votre compte Google ou Apple n’a pas partagé d’adresse e-mail.',
+        'social_email_missing' => 'Votre compte n’a pas partagé d’adresse e-mail.',
+        'account_deleted' => 'Ce compte a été supprimé.',
+    ],
+
+    'legal' => [
+        'retrieved' => 'Page légale récupérée avec succès.',
+        'not_found' => 'Cette page n’est pas disponible.',
     ],
 
     'wallet' => [

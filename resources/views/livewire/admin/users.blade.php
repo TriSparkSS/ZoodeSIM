@@ -32,18 +32,27 @@
                         wire:key="user-mobile-{{ $user['id'] }}"
                     >
                         <div class="min-w-0">
-                            <div class="truncate font-semibold text-surface-text dark:text-brand-text">{{ $user['name'] }}</div>
+                            <div class="truncate font-semibold text-surface-text dark:text-brand-text">
+                                {{ $user['name'] }}
+                                @if($user['deleted'])
+                                    <span class="ms-1 text-[10px] font-semibold uppercase tracking-wide text-brand-red">{{ __('admin.users.deleted') }}</span>
+                                @endif
+                            </div>
                             <div class="truncate text-xs text-surface-muted dark:text-brand-muted">{{ $user['email'] }}</div>
                             <div class="mt-1 text-xs text-surface-muted dark:text-brand-muted">{{ $user['phone'] }}</div>
                             <div class="mt-1 text-xs font-semibold text-brand-green">${{ number_format((float) $user['balance'], 2) }}</div>
                         </div>
                         <div class="mt-4 flex flex-col gap-2">
-                            <x-ui.button variant="secondary" size="sm" class="w-full" wire:click="openEdit('{{ $user['id'] }}')">
-                                {{ __('ui.edit') }}
-                            </x-ui.button>
-                            <x-ui.button variant="success" size="sm" class="w-full" wire:click="openWallet('{{ $user['id'] }}')">
-                                {{ __('admin.users.action_wallet') }}
-                            </x-ui.button>
+                            @if($user['deleted'])
+                                <p class="text-xs text-surface-muted dark:text-brand-muted">{{ __('admin.users.deleted_view_only') }}</p>
+                            @else
+                                <x-ui.button variant="secondary" size="sm" class="w-full" wire:click="openEdit('{{ $user['id'] }}')">
+                                    {{ __('ui.edit') }}
+                                </x-ui.button>
+                                <x-ui.button variant="success" size="sm" class="w-full" wire:click="openWallet('{{ $user['id'] }}')">
+                                    {{ __('admin.users.action_wallet') }}
+                                </x-ui.button>
+                            @endif
                         </div>
                     </div>
                 @endforeach
@@ -74,21 +83,30 @@
                     <tbody class="divide-y divide-surface-border/80 dark:divide-brand-border/40">
                         @foreach($users as $user)
                             <tr class="text-sm text-surface-text dark:text-brand-text" wire:key="user-{{ $user['id'] }}">
-                                <td class="py-3.5 pe-4 align-middle font-semibold">{{ $user['name'] }}</td>
+                                <td class="py-3.5 pe-4 align-middle font-semibold">
+                                    {{ $user['name'] }}
+                                    @if($user['deleted'])
+                                        <div class="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-red">{{ __('admin.users.deleted') }}</div>
+                                    @endif
+                                </td>
                                 <td class="py-3.5 pe-4 align-middle">{{ $user['email'] }}</td>
                                 <td class="py-3.5 pe-4 align-middle">{{ $user['phone'] }}</td>
                                 <td class="py-3.5 pe-4 align-middle">{{ number_format($user['bonus_mb']) }} MB</td>
                                 <td class="py-3.5 pe-4 align-middle font-semibold text-brand-green">${{ number_format((float) $user['balance'], 2) }}</td>
                                 <td class="py-3.5 pe-4 align-middle text-surface-muted dark:text-brand-muted">{{ $user['created_at'] }}</td>
                                 <td class="py-3.5 align-middle">
-                                    <div class="flex flex-wrap gap-1.5">
-                                        <x-ui.button variant="secondary" size="sm" wire:click="openEdit('{{ $user['id'] }}')">
-                                            {{ __('ui.edit') }}
-                                        </x-ui.button>
-                                        <x-ui.button variant="success" size="sm" wire:click="openWallet('{{ $user['id'] }}')">
-                                            {{ __('admin.users.action_wallet') }}
-                                        </x-ui.button>
-                                    </div>
+                                    @if($user['deleted'])
+                                        <span class="text-xs text-surface-muted dark:text-brand-muted">{{ __('admin.users.deleted_view_only') }}</span>
+                                    @else
+                                        <div class="flex flex-wrap gap-1.5">
+                                            <x-ui.button variant="secondary" size="sm" wire:click="openEdit('{{ $user['id'] }}')">
+                                                {{ __('ui.edit') }}
+                                            </x-ui.button>
+                                            <x-ui.button variant="success" size="sm" wire:click="openWallet('{{ $user['id'] }}')">
+                                                {{ __('admin.users.action_wallet') }}
+                                            </x-ui.button>
+                                        </div>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach
@@ -137,6 +155,10 @@
             <p class="text-xs text-surface-muted dark:text-brand-muted">{{ __('admin.users.password_hint') }}</p>
 
             <div class="flex items-center justify-between border-t border-surface-border pt-3 dark:border-brand-border/40">
+                <span class="text-surface-muted dark:text-brand-muted">{{ __('admin.users.table_referral_code') }}</span>
+                <span class="font-semibold tracking-widest text-brand-cyan">{{ $editReferralCode !== '' ? $editReferralCode : '—' }}</span>
+            </div>
+            <div class="flex items-center justify-between">
                 <span class="text-surface-muted dark:text-brand-muted">{{ __('admin.users.table_bonus') }}</span>
                 <span class="font-semibold text-surface-text dark:text-brand-text">{{ number_format($editBonusMb) }} MB</span>
             </div>

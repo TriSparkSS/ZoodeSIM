@@ -22,6 +22,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'phone' => $this->phone,
             'balance' => (string) $this->balance,
+            'referral_code' => $this->referral_code,
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

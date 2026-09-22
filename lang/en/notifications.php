@@ -42,4 +42,14 @@ return [
         'body' => 'You received :bonus MB from a referral code.',
         'body_usd' => 'You received $:bonus from a referral code.',
     ],
+    'user_referral_invitee' => [
+        'subject' => 'Referral bonus added',
+        'title' => 'Referral bonus',
+        'body' => 'You received $:amount for joining with a friend\'s referral code.',
+    ],
+    'user_referral_referrer' => [
+        'subject' => 'Referral reward added',
+        'title' => 'Referral reward',
+        'body' => ':name registered with your code. You earned $:amount.',
+    ],
 ];

@@ -42,4 +42,14 @@ return [
         'body' => 'Du hast :bonus MB über einen Empfehlungscode erhalten.',
         'body_usd' => 'Du hast $:bonus über einen Empfehlungscode erhalten.',
     ],
+    'user_referral_invitee' => [
+        'subject' => 'Empfehlungsbonus gutgeschrieben',
+        'title' => 'Empfehlungsbonus',
+        'body' => 'Du hast $:amount erhalten, weil du dich mit dem Code eines Freundes registriert hast.',
+    ],
+    'user_referral_referrer' => [
+        'subject' => 'Empfehlungsprämie gutgeschrieben',
+        'title' => 'Empfehlungsprämie',
+        'body' => ':name hat sich mit deinem Code registriert. Du hast $:amount verdient.',
+    ],
 ];

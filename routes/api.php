@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Promo\ValidatePromoController;
+use App\Http\Controllers\Api\User\DeleteAccountController;
 use App\Http\Controllers\Api\User\EsimCountryController;
 use App\Http\Controllers\Api\User\EsimPackageController;
 use App\Http\Controllers\Api\User\IndexBannerController;
@@ -12,6 +13,8 @@ use App\Http\Controllers\Api\User\NotificationController;
 use App\Http\Controllers\Api\User\ProfileController;
 use App\Http\Controllers\Api\User\RegisterController;
 use App\Http\Controllers\Api\User\ShowEsimOrderController;
+use App\Http\Controllers\Api\User\ShowLegalPageController;
+use App\Http\Controllers\Api\User\ShowReferralController;
 use App\Http\Controllers\Api\User\ShowWalletController;
 use App\Http\Controllers\Api\User\SocialAuthController;
 use App\Http\Controllers\Api\User\StoreEsimOrderController;
@@ -36,12 +39,21 @@ Route::prefix('user')->group(function () {
         ->middleware('throttle:10,1')
         ->name('api.user.auth.social');
 
+    Route::get('legal/{page}', ShowLegalPageController::class)
+        ->where('page', 'privacy|terms|delete-account')
+        ->middleware('throttle:60,1')
+        ->name('api.user.legal.show');
+
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', LogoutController::class)->name('api.user.logout');
+        Route::delete('account', DeleteAccountController::class)
+            ->middleware('throttle:5,1')
+            ->name('api.user.account.destroy');
         Route::get('profile', ProfileController::class)->name('api.user.profile');
         Route::put('profile', UpdateProfileController::class)
             ->middleware('throttle:30,1')
             ->name('api.user.profile.update');
+        Route::get('referral', ShowReferralController::class)->name('api.user.referral');
         Route::get('banners', IndexBannerController::class)->name('api.user.banners.index');
         Route::get('wallet', ShowWalletController::class)->name('api.user.wallet.show');
         Route::post('wallet', StoreWalletController::class)
