@@ -2,6 +2,7 @@
     'variant' => 'primary',
     'size' => 'md',
     'type' => 'button',
+    'href' => null,
 ])
 
 @php
@@ -21,9 +22,19 @@
     ];
 @endphp
 
-<button
-    type="{{ $type }}"
-    {{ $attributes->merge(['class' => 'inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ' . ($variants[$variant] ?? $variants['primary']) . ' ' . ($sizes[$size] ?? $sizes['md'])]) }}
->
-    {{ $slot }}
-</button>
+@php
+    $buttonClass = 'inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 '.($variants[$variant] ?? $variants['primary']).' '.($sizes[$size] ?? $sizes['md']);
+@endphp
+
+@if($href)
+    <a href="{{ $href }}" {{ $attributes->merge(['class' => $buttonClass]) }}>
+        {{ $slot }}
+    </a>
+@else
+    <button
+        type="{{ $type }}"
+        {{ $attributes->merge(['class' => $buttonClass]) }}
+    >
+        {{ $slot }}
+    </button>
+@endif

@@ -18,7 +18,7 @@
             </div>
         </div>
 
-        @if(count($users) === 0)
+        @if($users->isEmpty())
             <x-ui.empty-state
                 :title="__('ui.no_results')"
                 :description="__('admin.users.empty')"
@@ -53,6 +53,9 @@
                                     {{ __('admin.users.action_wallet') }}
                                 </x-ui.button>
                             @endif
+                            <x-ui.button variant="secondary" size="sm" class="w-full" :href="route('admin.users.referrals', $user['id'])">
+                                {{ __('admin.users.action_referrals') }}
+                            </x-ui.button>
                         </div>
                     </div>
                 @endforeach
@@ -96,7 +99,12 @@
                                 <td class="py-3.5 pe-4 align-middle text-surface-muted dark:text-brand-muted">{{ $user['created_at'] }}</td>
                                 <td class="py-3.5 align-middle">
                                     @if($user['deleted'])
-                                        <span class="text-xs text-surface-muted dark:text-brand-muted">{{ __('admin.users.deleted_view_only') }}</span>
+                                        <div class="flex flex-col items-start gap-1.5">
+                                            <span class="text-xs text-surface-muted dark:text-brand-muted">{{ __('admin.users.deleted_view_only') }}</span>
+                                            <x-ui.button variant="secondary" size="sm" :href="route('admin.users.referrals', $user['id'])">
+                                                {{ __('admin.users.action_referrals') }}
+                                            </x-ui.button>
+                                        </div>
                                     @else
                                         <div class="flex flex-wrap gap-1.5">
                                             <x-ui.button variant="secondary" size="sm" wire:click="openEdit('{{ $user['id'] }}')">
@@ -105,6 +113,9 @@
                                             <x-ui.button variant="success" size="sm" wire:click="openWallet('{{ $user['id'] }}')">
                                                 {{ __('admin.users.action_wallet') }}
                                             </x-ui.button>
+                                            <x-ui.button variant="secondary" size="sm" :href="route('admin.users.referrals', $user['id'])">
+                                                {{ __('admin.users.action_referrals') }}
+                                            </x-ui.button>
                                         </div>
                                     @endif
                                 </td>
@@ -112,6 +123,9 @@
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+            <div class="mt-6">
+                {{ $users->links() }}
             </div>
         @endif
     </x-ui.card>

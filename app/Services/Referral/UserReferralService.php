@@ -3,10 +3,12 @@
 namespace App\Services\Referral;
 
 use App\DataTransferObjects\PromoValidationResult;
+use App\Models\PromoAuditLog;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserReferral;
 use App\Services\Notifications\Contracts\NotificationDispatcherInterface;
+use App\Services\Promo\Contracts\PromoAuditLoggerInterface;
 use App\Services\Referral\Contracts\UserReferralServiceInterface;
 use App\Services\Wallet\Contracts\WalletLedgerServiceInterface;
 use App\Support\Money;
@@ -19,6 +21,7 @@ class UserReferralService implements UserReferralServiceInterface
         protected ReferralProgramSettings $program,
         protected WalletLedgerServiceInterface $ledger,
         protected NotificationDispatcherInterface $notifications,
+        protected PromoAuditLoggerInterface $audit,
     ) {}
 
     public function validate(string $code, ?string $email = null): PromoValidationResult
@@ -115,6 +118,20 @@ class UserReferralService implements UserReferralServiceInterface
                 ],
             );
         }
+
+        $this->audit->log(
+            PromoAuditLog::ACTION_REDEEMED,
+            actor: $invitee,
+            code: $referrer->referral_code,
+            meta: [
+                'user_referral_id' => $record->id,
+                'referrer_id' => $referrer->id,
+                'referrer_name' => $referrer->name,
+                'referred_id' => $invitee->id,
+                'referrer_amount' => $referrerAmount->toDecimal(),
+                'referred_amount' => $inviteeAmount->toDecimal(),
+            ],
+        );
 
         $this->notifications->userReferralCredited(
             $referrer->fresh() ?? $referrer,

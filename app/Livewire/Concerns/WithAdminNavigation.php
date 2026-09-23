@@ -8,8 +8,8 @@ trait WithAdminNavigation
     {
         return [
             ['label' => __('admin.nav.dashboard'), 'href' => route('admin.dashboard'), 'icon' => '🏠', 'active' => request()->routeIs('admin.dashboard')],
-            ['label' => __('admin.nav.partners'), 'href' => route('admin.partners'), 'icon' => '👥', 'active' => request()->routeIs('admin.partners')],
-            ['label' => __('admin.nav.users'), 'href' => route('admin.users'), 'icon' => '👤', 'active' => request()->routeIs('admin.users')],
+            ['label' => __('admin.nav.partners'), 'href' => route('admin.partners'), 'icon' => '👥', 'active' => request()->routeIs('admin.partners*')],
+            ['label' => __('admin.nav.users'), 'href' => route('admin.users'), 'icon' => '👤', 'active' => request()->routeIs('admin.users*')],
             ['label' => __('admin.nav.user_referrals'), 'href' => route('admin.user-referrals'), 'icon' => '🤝', 'active' => request()->routeIs('admin.user-referrals')],
             ['label' => __('admin.nav.orders'), 'href' => route('admin.orders'), 'icon' => '📦', 'active' => request()->routeIs('admin.orders')],
             ['label' => __('admin.nav.promo_codes'), 'href' => route('admin.promo-codes'), 'icon' => '🎟️', 'active' => request()->routeIs('admin.promo-codes')],

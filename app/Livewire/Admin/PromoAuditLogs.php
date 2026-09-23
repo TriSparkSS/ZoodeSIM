@@ -37,6 +37,7 @@ class PromoAuditLogs extends Component
                 $term = '%'.addcslashes(trim($this->search), '%_\\').'%';
                 $query->where(function ($inner) use ($term) {
                     $inner->where('code', 'like', $term)
+                        ->orWhere('meta->referrer_name', 'like', $term)
                         ->orWhereHas('partner', fn ($partners) => $partners->where('name', 'like', $term));
                 });
             })

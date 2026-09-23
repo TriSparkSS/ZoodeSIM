@@ -18,7 +18,7 @@
             </div>
         </div>
 
-        @if(count($partners) === 0)
+        @if($partners->isEmpty())
             <x-ui.empty-state
                 :title="__('ui.no_results')"
                 :description="__('ui.empty_state_description')"
@@ -139,6 +139,9 @@
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+            <div class="mt-6">
+                {{ $partners->links() }}
             </div>
         @endif
     </x-ui.card>

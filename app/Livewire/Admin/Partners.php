@@ -11,14 +11,17 @@ use App\Models\Partner;
 use App\Models\Transaction;
 use App\Services\Partner\Contracts\PartnerBalanceAdjustmentServiceInterface;
 use App\Services\Partner\PartnerService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Partners extends Component
 {
     use ResolvesAuthenticatedAdmin;
     use WithAdminNavigation;
     use WithLocalizedTitle;
+    use WithPagination;
     use WithToast;
 
     public string $search = '';
@@ -63,15 +66,31 @@ class Partners extends Component
 
     public string $walletNote = '';
 
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    public function filteredPartners(): array
+    public function updatedSearch(): void
     {
-        $partners = Partner::query()
+        $this->resetPage();
+    }
+
+    /**
+     * @return LengthAwarePaginator<int, array<string, mixed>>
+     */
+    public function filteredPartners(): LengthAwarePaginator
+    {
+        $term = trim($this->search);
+
+        return Partner::query()
             ->with('promoCodes')
-            ->get()
-            ->map(function (Partner $partner) {
+            ->when($term !== '', function ($query) use ($term) {
+                $like = '%'.addcslashes($term, '%_\\').'%';
+                $query->where(function ($inner) use ($like) {
+                    $inner->where('name', 'like', $like)
+                        ->orWhere('email', 'like', $like)
+                        ->orWhereHas('promoCodes', fn ($promos) => $promos->where('code', 'like', $like));
+                });
+            })
+            ->orderByDesc('created_at')
+            ->paginate(20)
+            ->through(function (Partner $partner) {
                 $activePromo = $partner->promoCodes
                     ->sortByDesc('created_at')
                     ->first(fn ($promo) => $promo->isCurrentlyUsable())
@@ -100,21 +119,7 @@ class Partners extends Component
                     'total_earned' => (float) $partner->total_earned,
                     'created_at' => $partner->created_at?->format('Y-m-d'),
                 ];
-            })
-            ->all();
-
-        if ($this->search === '') {
-            return $partners;
-        }
-
-        $query = mb_strtolower($this->search);
-
-        return array_values(array_filter(
-            $partners,
-            fn (array $partner) => str_contains(mb_strtolower($partner['name']), $query)
-                || str_contains(mb_strtolower($partner['email']), $query)
-                || ($partner['promo'] && str_contains(mb_strtolower($partner['promo']), $query))
-        ));
+            });
     }
 
     public function openProfile(string $partnerId): void

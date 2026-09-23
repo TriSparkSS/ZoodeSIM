@@ -41,9 +41,9 @@ class UserReferralApiTest extends TestCase
 
         $response->assertCreated()
             ->assertJsonPath('data.bonus_type', PromoCode::BONUS_TYPE_USD)
-            ->assertJsonPath('data.bonus_amount', 1)
+            ->assertJsonPath('data.bonus_amount', 1.5)
             ->assertJsonPath('data.bonus_mb', 0)
-            ->assertJsonPath('data.user.balance', '1.00');
+            ->assertJsonPath('data.user.balance', '1.50');
 
         $this->assertNotEmpty($response->json('data.user.referral_code'));
         $this->assertNotSame($referrer->referral_code, $response->json('data.user.referral_code'));
@@ -51,28 +51,28 @@ class UserReferralApiTest extends TestCase
         $invitee = User::query()->where('email', 'user@example.com')->firstOrFail();
 
         $this->assertSame($referrer->id, $invitee->referred_by_user_id);
-        $this->assertEquals(1.50, (float) $referrer->fresh()->balance);
-        $this->assertEquals(1.00, (float) $invitee->balance);
+        $this->assertEquals(1.00, (float) $referrer->fresh()->balance);
+        $this->assertEquals(1.50, (float) $invitee->balance);
         $this->assertDatabaseCount('promo_usage', 0);
         $this->assertDatabaseHas('user_referrals', [
             'referrer_id' => $referrer->id,
             'referred_id' => $invitee->id,
-            'referrer_amount' => '1.50',
-            'referred_amount' => '1.00',
+            'referrer_amount' => '1.00',
+            'referred_amount' => '1.50',
             'currency' => 'USD',
         ]);
         $this->assertDatabaseHas('transactions', [
             'transactable_type' => User::class,
             'transactable_id' => $invitee->id,
             'category' => Transaction::CATEGORY_USER_REFERRAL_BONUS,
-            'amount' => '1.00',
+            'amount' => '1.50',
             'currency' => 'USD',
         ]);
         $this->assertDatabaseHas('transactions', [
             'transactable_type' => User::class,
             'transactable_id' => $referrer->id,
             'category' => Transaction::CATEGORY_USER_REFERRAL_REWARD,
-            'amount' => '1.50',
+            'amount' => '1.00',
             'currency' => 'USD',
         ]);
     }
@@ -205,8 +205,8 @@ class UserReferralApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('message', __('api.user.referral'))
             ->assertJsonPath('data.referral_code', $referrer->referral_code)
-            ->assertJsonPath('data.referrer_reward', 1.5)
-            ->assertJsonPath('data.referred_reward', 1)
+            ->assertJsonPath('data.referrer_reward', 1)
+            ->assertJsonPath('data.referred_reward', 1.5)
             ->assertJsonPath('data.referral_count', 1)
             ->assertJsonPath('data.total_earned', 1.5)
             ->assertJsonPath('data.referrals.0.id', $invitee->id)
@@ -238,7 +238,7 @@ class UserReferralApiTest extends TestCase
                 'data' => [
                     'valid' => true,
                     'bonus_type' => PromoCode::BONUS_TYPE_USD,
-                    'bonus_amount' => 1,
+                    'bonus_amount' => 1.5,
                     'bonus_mb' => 0,
                     'partner_name' => null,
                     'reason' => null,

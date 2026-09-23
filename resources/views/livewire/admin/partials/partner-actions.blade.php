@@ -10,4 +10,7 @@
     <x-ui.button variant="success" size="sm" wire:click="openWallet('{{ $partnerId }}')">
         {{ __('admin.partners.action_wallet') }}
     </x-ui.button>
+    <x-ui.button variant="secondary" size="sm" :href="route('admin.partners.referrals', $partnerId)">
+        {{ __('admin.partners.action_referrals') }}
+    </x-ui.button>
 </div>

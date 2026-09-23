@@ -9,6 +9,9 @@ use App\Models\ContentBlock;
 use App\Models\ProgramSetting;
 use App\Services\Content\ProgramSettingService;
 use App\Services\Locale\LocaleManager;
+use App\Services\Referral\ReferralProgramSettings;
+use App\Support\Money;
+use Illuminate\Support\Collection;
 use Livewire\Component;
 
 class Settings extends Component
@@ -48,11 +51,22 @@ class Settings extends Component
 
     public function save(): void
     {
-        $this->validate([
-            'settingValues.*' => ['required', 'string', 'max:255'],
-        ]);
+        $rules = [];
 
-        $this->settings->updateValues($this->settingValues);
+        foreach (ReferralProgramSettings::USER_REFERRAL_REWARD_KEYS as $key) {
+            $rules['settingValues.'.$key] = ['required', 'numeric', 'min:0', 'decimal:0,2'];
+        }
+
+        $this->validate($rules);
+
+        $values = [];
+
+        foreach (ReferralProgramSettings::USER_REFERRAL_REWARD_KEYS as $key) {
+            $values[$key] = Money::normalizeDecimal($this->settingValues[$key]);
+        }
+
+        $this->settings->updateValues($values);
+        $this->settingValues = $values;
         $this->toast(__('admin.settings.saved'));
     }
 
@@ -122,16 +136,26 @@ class Settings extends Component
 
     protected function loadSettingValues(): void
     {
-        $this->settingValues = $this->settings->allOrdered()
+        $this->settingValues = $this->referralRewardSettings()
             ->mapWithKeys(fn (ProgramSetting $setting) => [$setting->key => (string) $setting->value])
             ->all();
+    }
+
+    /**
+     * @return Collection<int, ProgramSetting>
+     */
+    protected function referralRewardSettings(): Collection
+    {
+        return $this->settings->allOrdered()
+            ->whereIn('key', ReferralProgramSettings::USER_REFERRAL_REWARD_KEYS)
+            ->values();
     }
 
     public function render()
     {
         return $this->withLocalizedTitle(
             view('livewire.admin.settings', [
-                'programSettings' => $this->settings->allOrdered(),
+                'programSettings' => $this->referralRewardSettings(),
                 'contentBlocks' => ContentBlock::query()
                     ->whereNotIn('slug', ContentBlock::legalSlugs())
                     ->orderBy('slug')

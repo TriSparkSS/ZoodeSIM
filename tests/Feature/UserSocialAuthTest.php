@@ -264,12 +264,12 @@ class UserSocialAuthTest extends TestCase
         ])
             ->assertCreated()
             ->assertJsonPath('data.bonus_type', PromoCode::BONUS_TYPE_USD)
-            ->assertJsonPath('data.bonus_amount', 1)
+            ->assertJsonPath('data.bonus_amount', 1.5)
             ->assertJsonPath('data.bonus_mb', 0);
 
         $this->assertDatabaseCount('promo_usage', 0);
         $this->assertDatabaseCount('user_referrals', 1);
-        $this->assertEquals(1.50, (float) $referrer->fresh()->balance);
+        $this->assertEquals(1.00, (float) $referrer->fresh()->balance);
     }
 
     public function test_new_facebook_user_is_registered(): void
@@ -470,12 +470,12 @@ class UserSocialAuthTest extends TestCase
         ])
             ->assertCreated()
             ->assertJsonPath('data.bonus_type', PromoCode::BONUS_TYPE_USD)
-            ->assertJsonPath('data.bonus_amount', 1);
+            ->assertJsonPath('data.bonus_amount', 1.5);
 
         $this->assertDatabaseCount('promo_usage', 0);
         $this->assertDatabaseCount('user_referrals', 1);
-        $this->assertEquals(1.50, (float) $referrer->fresh()->balance);
-        $this->assertEquals(1.00, (float) User::query()->where('email', 'fb-guest@example.com')->value('balance'));
+        $this->assertEquals(1.00, (float) $referrer->fresh()->balance);
+        $this->assertEquals(1.50, (float) User::query()->where('email', 'fb-guest@example.com')->value('balance'));
     }
 
     public function test_firebase_password_user_can_apply_user_referral_code(): void
@@ -502,7 +502,7 @@ class UserSocialAuthTest extends TestCase
             ->assertJsonPath('data.bonus_type', PromoCode::BONUS_TYPE_USD);
 
         $this->assertDatabaseCount('user_referrals', 1);
-        $this->assertEquals(1.50, (float) $referrer->fresh()->balance);
+        $this->assertEquals(1.00, (float) $referrer->fresh()->balance);
     }
 
     protected function identity(

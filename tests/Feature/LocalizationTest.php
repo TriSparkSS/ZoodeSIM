@@ -74,10 +74,10 @@ class LocalizationTest extends TestCase
 
         app()->setLocale('de');
 
-        $setting = ProgramSetting::query()->where('key', 'registration_reward')->first();
+        $setting = ProgramSetting::query()->where('key', 'user_referral_referrer_reward')->first();
 
         $this->assertNotNull($setting);
-        $this->assertSame('Registrierungsprämie', $setting->label);
+        $this->assertSame('Empfehler-Prämie (Nutzer)', $setting->label);
     }
 
     public function test_static_ui_translations_exist_for_supported_locales(): void

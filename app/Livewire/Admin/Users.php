@@ -12,14 +12,17 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Services\User\Contracts\UserAdminServiceInterface;
 use App\Services\User\Contracts\UserBalanceAdjustmentServiceInterface;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Users extends Component
 {
     use ResolvesAuthenticatedAdmin;
     use WithAdminNavigation;
     use WithLocalizedTitle;
+    use WithPagination;
     use WithToast;
 
     public string $search = '';
@@ -58,16 +61,31 @@ class Users extends Component
 
     public string $walletNote = '';
 
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    public function filteredUsers(): array
+    public function updatedSearch(): void
     {
-        $users = User::query()
+        $this->resetPage();
+    }
+
+    /**
+     * @return LengthAwarePaginator<int, array<string, mixed>>
+     */
+    public function filteredUsers(): LengthAwarePaginator
+    {
+        $term = trim($this->search);
+
+        return User::query()
             ->withTrashed()
+            ->when($term !== '', function ($query) use ($term) {
+                $like = '%'.addcslashes($term, '%_\\').'%';
+                $query->where(function ($inner) use ($like) {
+                    $inner->where('name', 'like', $like)
+                        ->orWhere('email', 'like', $like)
+                        ->orWhere('phone', 'like', $like);
+                });
+            })
             ->orderByDesc('created_at')
-            ->get()
-            ->map(fn (User $user) => [
+            ->paginate(20)
+            ->through(fn (User $user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
@@ -76,21 +94,7 @@ class Users extends Component
                 'balance' => (string) $user->balance,
                 'created_at' => $user->created_at?->format('Y-m-d'),
                 'deleted' => $user->trashed(),
-            ])
-            ->all();
-
-        if ($this->search === '') {
-            return $users;
-        }
-
-        $query = mb_strtolower($this->search);
-
-        return array_values(array_filter(
-            $users,
-            fn (array $user) => str_contains(mb_strtolower((string) $user['name']), $query)
-                || str_contains(mb_strtolower((string) $user['email']), $query)
-                || str_contains(mb_strtolower((string) $user['phone']), $query)
-        ));
+            ]);
     }
 
     public function openEdit(string $userId): void

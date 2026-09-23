@@ -7,6 +7,16 @@ use App\Support\Money;
 
 class ReferralProgramSettings
 {
+    /**
+     * Program settings shown and saved on the admin settings page.
+     *
+     * @var list<string>
+     */
+    public const USER_REFERRAL_REWARD_KEYS = [
+        'user_referral_referrer_reward',
+        'user_referral_invitee_reward',
+    ];
+
     public function __construct(
         protected ProgramSettingService $settings,
     ) {}
@@ -60,7 +70,7 @@ class ReferralProgramSettings
     {
         return $this->decimal(
             'user_referral_referrer_reward',
-            (string) config('referral.user_referral_referrer_reward', '1.50'),
+            (string) config('referral.user_referral_referrer_reward', '1.00'),
         );
     }
 
@@ -68,7 +78,7 @@ class ReferralProgramSettings
     {
         return $this->decimal(
             'user_referral_invitee_reward',
-            (string) config('referral.user_referral_invitee_reward', '1.00'),
+            (string) config('referral.user_referral_invitee_reward', '1.50'),
         );
     }
 

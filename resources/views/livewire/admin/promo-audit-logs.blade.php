@@ -55,7 +55,7 @@
                                     {{ $log->code ?? $log->promoCode?->code ?? '—' }}
                                 </td>
                                 <td class="py-3.5 pe-4 align-middle">
-                                    {{ $log->partner?->name ?? '—' }}
+                                    {{ $log->partner?->name ?? ($log->meta['referrer_name'] ?? '—') }}
                                 </td>
                                 <td class="py-3.5 align-middle text-xs text-surface-muted dark:text-brand-muted">
                                     {{ $log->ip_address ?? '—' }}
