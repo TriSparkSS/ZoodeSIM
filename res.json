@@ -1,0 +1,47 @@
+flutter: ======== APPLE CREDENTIAL DETAIL ========
+flutter: userIdentifier: 001879.325702d803754c219acb92ae91b09df2.1106
+flutter: email: p76ck6799f@privaterelay.appleid.com
+flutter: givenName: Raghav
+flutter: familyName: Tomar
+flutter: identityToken: eyJraWQiOiJHTkNmNEo4M09oIiwiYWxnIjoiUlMyNTYifQ.eyJpc3MiOiJodHRwczovL2FwcGxlaWQuYXBwbGUuY29tIiwiYXVkIjoiY29tLnpvb2Rlc2ltbmV3IiwiZXhwIjoxNzg5OTAyNDEzLCJpYXQiOjE3ODk4MTYwMTMsInN1YiI6IjAwMTg3OS4zMjU3MDJkODAzNzU0YzIxOWFjYjkyYWU5MWIwOWRmMi4xMTA2Iiwibm9uY2UiOiIxZWFkMzNlOTgxY2FmMzU3MjIxYmNlY2ZlYTkwNTU5NDUzOGE0OWZkNjc4YWQ1MDEzNTIzYWRjN2Q0YTRhNjlkIiwiY19oYXNoIjoiUDd4RHMtQ2Y5dkNDUkdIcWFnYnhIZyIsImVtYWlsIjoicDc2Y2s2Nzk5ZkBwcml2YXRlcmVsYXkuYXBwbGVpZC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiYXV0aF90aW1lIjoxNzg5ODE2MDEzLCJub25jZV9zdXBwb3J0ZWQiOnRydWUsInJlYWxfdXNlcl9zdGF0dXMiOjJ9.qgSUTcnjBDVCGYfbzCazygHlWoyDw0oQW7Ar0xcSyZOUxXwSSbwxmqh9n2X-Kd5mVi5Y6M8JNiEMdDm3dm8OSPuxIpIPJYYPGIOg_VbbVrzo6ezmRjqwrDPAcyGV_usKTaYpOmpBEkcBhu0_cHbuBFDuMVn1hP9z7JFFS-FYZFiDr6l-irIUfSISMe9_HD-bySoWfa0IlwxWzBFTHE42FPnTtmErkgWwcAoO7Ey2ozDMsRbKIOBN0otjSA5BndphOKUhhWgH3tgRHNV7K-aHLMQTKfrd3K38xWtjF2mBYVagGgQckXHkv-8LY72F6783N_P2S9oJ5Syv1-WTCiwoWw
+flutter: authorizationCode: c5c280abc9bcd4e7d931b7e534eb3c1a7.0.mryxz.GRXcYEDq6a8B8IkZW934Kg
+flutter: =======================================
+flutter: ======== APPLE LOGIN DETAIL ========
+flutter: providerId: apple.com
+flutter: isNewUser: true
+flutter: username: null
+flutter: profile: {real_user_status: 2, email: p76ck6799f@privaterelay.appleid.com, iat: 1789816013, c_hash: P7xDs-Cf9vCCRGHqagbxHg, sub: 001879.325702d803754c219acb92ae91b09df2.1106, auth_time: 1789816013, aud: com.zoodesimnew, exp: 1789902413, email_verified: true, nonce_supported: true, nonce: 1ead33e981caf357221bcecfea905594538a49fd678ad5013523adc7d4a4a69d, iss: https://appleid.apple.com}
+flutter: uid: FEw6DjyLMdd3w7Zr9jtm3LVTDZk1
+flutter: email: p76ck6799f@privaterelay.appleid.com
+flutter: emailVerified: true
+flutter: displayName: null
+flutter: phoneNumber: null
+flutter: photoURL: null
+flutter: tenantId: null
+flutter: creationTime: 2026-09-19 11:06:55.875Z
+flutter: lastSignInTime: 2026-09-19 11:06:55.875Z
+flutter: providerData: provider=apple.com uid=001879.325702d803754c219acb92ae91b09df2.1106 email=p76ck6799f@privaterelay.appleid.com name=null phone=null photo=null
+flutter: appleUserIdentifier: 001879.325702d803754c219acb92ae91b09df2.1106
+flutter: appleEmail: p76ck6799f@privaterelay.appleid.com
+flutter: appleGivenName: Raghav
+flutter: appleFamilyName: Tomar
+flutter: =======================================
+
+
+flutter: ======== GOOGLE LOGIN DETAIL ========
+flutter: providerId: google.com
+flutter: isNewUser: true
+flutter: username: null
+flutter: profile: {family_name: Tomar, email: raghavtomar661@gmail.com, picture: https://lh3.googleusercontent.com/a/ACg8ocLAWMGFW1hENaR5vwqseycb4LOZHtI4hC9Ie3cu7QGOYGNKdH1V=s96-c, name: Raghav Tomar, granted_scopes: https://www.googleapis.com/auth/userinfo.email openid https://www.googleapis.com/auth/userinfo.profile, given_name: Raghav, verified_email: true, id: 102286654861813726856}
+flutter: uid: AA3uReVLyUTnUj4RiDK9wR0PYk32
+flutter: email: raghavtomar661@gmail.com
+flutter: emailVerified: true
+flutter: displayName: Raghav Tomar
+flutter: phoneNumber: null
+flutter: photoURL: https://lh3.googleusercontent.com/a/ACg8ocLAWMGFW1hENaR5vwqseycb4LOZHtI4hC9Ie3cu7QGOYGNKdH1V=s96-c
+flutter: tenantId: null
+flutter: creationTime: 2026-09-19 11:11:01.209Z
+flutter: lastSignInTime: 2026-09-19 11:11:01.210Z
+flutter: providerData: provider=google.com uid=102286654861813726856 email=raghavtomar661@gmail.com name=Raghav Tomar phone=null photo=null
+flutter: =======================================
+flutter: SOCIAL BACKEND LINK FAILED: This phone number is already registered.

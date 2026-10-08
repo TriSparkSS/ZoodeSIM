@@ -223,6 +223,9 @@ return [
         'table_client' => 'Client-ID',
         'table_package' => 'Paket',
         'table_location' => 'Standort',
+        'table_actual_price' => 'Tatsächlicher Preis',
+        'table_user_paid' => 'Vom Nutzer gezahlt',
+        'table_profit' => 'Gewinn',
         'statuses' => [
             'pending_payment' => 'Zahlung ausstehend',
             'paid' => 'Bezahlt',

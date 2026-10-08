@@ -47,7 +47,13 @@ class AdminEsimOrdersTest extends TestCase
             ->assertSee($adaOrder->id)
             ->assertSee($bobOrder->id)
             ->assertSee('Ada Lovelace')
-            ->assertSee('Bob Builder');
+            ->assertSee('Bob Builder')
+            ->assertSee('$1.80')
+            ->assertSee('$1.89')
+            ->assertSee('$0.09')
+            ->assertSee(__('admin.orders.table_actual_price'))
+            ->assertSee(__('admin.orders.table_user_paid'))
+            ->assertSee(__('admin.orders.table_profit'));
 
         Livewire::test(Orders::class)
             ->assertSee($adaOrder->id)

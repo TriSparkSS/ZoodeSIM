@@ -234,6 +234,9 @@ return [
         'table_client' => 'Client ID',
         'table_package' => 'Package',
         'table_location' => 'Location',
+        'table_actual_price' => 'Actual price',
+        'table_user_paid' => 'User paid',
+        'table_profit' => 'Profit',
         'statuses' => [
             'pending_payment' => 'Pending payment',
             'paid' => 'Paid',

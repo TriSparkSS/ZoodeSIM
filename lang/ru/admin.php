@@ -223,6 +223,9 @@ return [
         'table_client' => 'ID клиента',
         'table_package' => 'Пакет',
         'table_location' => 'Локация',
+        'table_actual_price' => 'Фактическая цена',
+        'table_user_paid' => 'Оплатил пользователь',
+        'table_profit' => 'Прибыль',
         'statuses' => [
             'pending_payment' => 'Ожидает оплаты',
             'paid' => 'Оплачен',

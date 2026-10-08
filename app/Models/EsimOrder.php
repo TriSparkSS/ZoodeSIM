@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Money;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -96,6 +97,17 @@ class EsimOrder extends Model
     public function isFailed(): bool
     {
         return $this->order_status === self::STATUS_FAILED;
+    }
+
+    /**
+     * Sale margin: amount the user paid minus the provider cost.
+     */
+    public function adminProfit(): string
+    {
+        $paid = Money::normalizeDecimal((string) ($this->charged_amount ?? $this->customer_price));
+        $cost = Money::normalizeDecimal((string) $this->provider_cost);
+
+        return bcsub($paid, $cost, 2);
     }
 
     /**

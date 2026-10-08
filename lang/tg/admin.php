@@ -223,6 +223,9 @@ return [
         'table_client' => 'ID-и муштарӣ',
         'table_package' => 'Баста',
         'table_location' => 'Макон',
+        'table_actual_price' => 'Нархи воқеӣ',
+        'table_user_paid' => 'Пардохти корбар',
+        'table_profit' => 'Фоида',
         'statuses' => [
             'pending_payment' => 'Пардохт интизор',
             'paid' => 'Пардохтшуда',

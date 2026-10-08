@@ -223,6 +223,9 @@ return [
         'table_client' => 'ID client',
         'table_package' => 'Forfait',
         'table_location' => 'Localisation',
+        'table_actual_price' => 'Prix réel',
+        'table_user_paid' => 'Payé par l\'utilisateur',
+        'table_profit' => 'Profit',
         'statuses' => [
             'pending_payment' => 'Paiement en attente',
             'paid' => 'Payée',

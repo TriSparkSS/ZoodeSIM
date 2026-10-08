@@ -147,7 +147,7 @@
             />
         @else
             <div class="overflow-x-auto">
-                <table class="w-full min-w-[1100px] table-fixed border-collapse text-start">
+                <table class="w-full min-w-[1400px] table-fixed border-collapse text-start">
                     <thead>
                         <tr class="border-b border-surface-border text-[11px] uppercase tracking-wide text-surface-muted dark:border-brand-border dark:text-brand-muted">
                             <th class="pb-3.5 pe-3 text-start font-medium">{{ __('admin.orders.table_id') }}</th>
@@ -155,7 +155,9 @@
                             <th class="pb-3.5 pe-3 text-start font-medium">{{ __('admin.orders.table_client') }}</th>
                             <th class="pb-3.5 pe-3 text-start font-medium">{{ __('admin.orders.table_package') }}</th>
                             <th class="pb-3.5 pe-3 text-start font-medium">{{ __('admin.orders.table_location') }}</th>
-                            <th class="pb-3.5 pe-3 text-start font-medium">{{ __('ui.amount') }}</th>
+                            <th class="pb-3.5 pe-3 text-start font-medium">{{ __('admin.orders.table_actual_price') }}</th>
+                            <th class="pb-3.5 pe-3 text-start font-medium">{{ __('admin.orders.table_user_paid') }}</th>
+                            <th class="pb-3.5 pe-3 text-start font-medium">{{ __('admin.orders.table_profit') }}</th>
                             <th class="pb-3.5 pe-3 text-start font-medium">{{ __('ui.status') }}</th>
                             <th class="pb-3.5 text-start font-medium">{{ __('ui.date') }}</th>
                         </tr>
@@ -178,9 +180,9 @@
                                     <div class="text-[11px] text-surface-muted dark:text-brand-muted">{{ $row->package_code }}</div>
                                 </td>
                                 <td class="py-3 pe-3 align-middle">{{ $row->package_location ?: '—' }}</td>
-                                <td class="py-3 pe-3 align-middle font-semibold">
-                                    ${{ number_format((float) ($row->charged_amount ?? $row->customer_price), 2) }}
-                                </td>
+                                <td class="py-3 pe-3 align-middle font-semibold">${{ number_format((float) $row->provider_cost, 2) }}</td>
+                                <td class="py-3 pe-3 align-middle font-semibold">${{ number_format((float) ($row->charged_amount ?? $row->customer_price), 2) }}</td>
+                                <td class="py-3 pe-3 align-middle font-semibold text-brand-green">${{ number_format((float) $row->adminProfit(), 2) }}</td>
                                 <td class="py-3 pe-3 align-middle">
                                     <x-ui.badge :type="$row->order_status === 'active' ? 'active' : ($row->order_status === 'failed' ? 'rejected' : 'pending')">
                                         {{ __('admin.orders.statuses.'.$row->order_status) }}
